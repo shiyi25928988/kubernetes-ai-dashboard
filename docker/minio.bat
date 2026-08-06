@@ -1,0 +1,1 @@
+docker run -itd -p 9000:9000 -p 9001:9001 minio/minio:latest server /data/minio --console-address ":9001"

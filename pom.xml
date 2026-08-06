@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.8</version>
+    <!-- lookup parent from repository -->
+  </parent>
+  <groupId>cc.shiyi</groupId>
+  <artifactId>kubernetes-ai-dashboard</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>kubernetes-ai-dashboard</name>
+  <description>kubernetes-ai-dashboard</description>
+  <licenses>
+    <license/>
+  </licenses>
+  <developers>
+    <developer/>
+  </developers>
+  <scm/>
+  <properties>
+    <java.version>21</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <spring-cloud.version>2025.0.0</spring-cloud.version>
+    <spring-ai.version>1.1.4</spring-ai.version>
+    <guava.version>33.5.0-jre</guava.version>
+    <mybatis.version>3.5.14</mybatis.version>
+    <logback.version>1.5.20</logback.version>
+    <minio.version>8.6.0</minio.version>
+    <sa-token.version>1.44.0</sa-token.version>
+  </properties>
+  <dependencies>
+<!--    &lt;!&ndash; Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-kubernetes-fabric8 &ndash;&gt;-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.cloud</groupId>-->
+<!--      <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>-->
+<!--    </dependency>-->
+<!--    &lt;!&ndash; Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-kubernetes-fabric8-config &ndash;&gt;-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.cloud</groupId>-->
+<!--      <artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>-->
+<!--    </dependency>-->
+<!--      &lt;!&ndash; Source: https://mvnrepository.com/artifact/com.github.docker-java/docker-java &ndash;&gt;-->
+<!--      <dependency>-->
+<!--          <groupId>com.github.docker-java</groupId>-->
+<!--          <artifactId>docker-java</artifactId>-->
+<!--          <version>3.7.1</version>-->
+<!--      </dependency>-->
+      <dependency>
+          <groupId>io.fabric8</groupId>
+          <artifactId>kubernetes-client</artifactId>
+          <!-- 不需要写版本号，BOM自动管理 -->
+      </dependency>
+      <!-- Source: https://mvnrepository.com/artifact/io.fabric8/kubernetes-model-metrics -->
+      <dependency>
+          <groupId>io.fabric8</groupId>
+          <artifactId>kubernetes-model-metrics</artifactId>
+      </dependency>
+      <!-- Source: https://mvnrepository.com/artifact/io.fabric8/kubernetes-server-mock -->
+      <dependency>
+          <groupId>io.fabric8</groupId>
+          <artifactId>kubernetes-server-mock</artifactId>
+          <scope>test</scope>
+      </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-rag</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-advisors-vector-store</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-markdown-document-reader</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-pdf-document-reader</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-starter-mcp-client</artifactId>
+        <exclusions>
+            <exclusion>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <groupId>io.swagger.core.v3</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+    </dependency>
+    <!--		<dependency>-->
+    <!--			<groupId>org.springframework.ai</groupId>-->
+    <!--			<artifactId>spring-ai-starter-mcp-server</artifactId>-->
+    <!--		</dependency>-->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-chat-memory</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-chat-memory-repository-jdbc</artifactId>
+    </dependency>
+    <!--		<dependency>-->
+    <!--			<groupId>org.springframework.ai</groupId>-->
+    <!--			<artifactId>spring-ai-starter-model-ollama</artifactId>-->
+    <!--		</dependency>-->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-openai</artifactId>
+    </dependency>
+    <!--		<dependency>-->
+    <!--			<groupId>org.springframework.ai</groupId>-->
+    <!--			<artifactId>spring-ai-starter-model-transformers</artifactId>-->
+    <!--		</dependency>-->
+    <!--		<dependency>-->
+    <!--			<groupId>org.springframework.ai</groupId>-->
+    <!--			<artifactId>spring-ai-starter-vector-store-elasticsearch</artifactId>-->
+    <!--		</dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.ai</groupId>-->
+<!--      <artifactId>spring-ai-starter-vector-store-milvus</artifactId>-->
+<!--    </dependency>-->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-tika-document-reader</artifactId>
+        <exclusions>
+            <exclusion>
+                <artifactId>commons-logging</artifactId>
+                <groupId>commons-logging</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-batch</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <!--		<dependency>-->
+    <!--			<groupId>org.springframework.boot</groupId>-->
+    <!--			<artifactId>spring-boot-starter-data-mongodb</artifactId>-->
+    <!--		</dependency>-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web-services</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-websocket</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+      <version>${mybatis.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-openfeign</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-logging</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>logback-core</artifactId>
+          <groupId>ch.qos.logback</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>3.2.3</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>2.0.17</version>
+    </dependency>
+    <!--		<dependency>-->
+    <!--			<groupId>com.aliyun.openservices</groupId>-->
+    <!--			<artifactId>aliyun-log-logback-appender</artifactId>-->
+    <!--			<version>0.1.29</version>-->
+    <!--			<exclusions>-->
+    <!--				<exclusion>-->
+    <!--					<artifactId>guava</artifactId>-->
+    <!--					<groupId>com.google.guava</groupId>-->
+    <!--				</exclusion>-->
+    <!--			</exclusions>-->
+    <!--		</dependency>-->
+    <dependency>
+      <groupId>com.github.loki4j</groupId>
+      <artifactId>loki-logback-appender</artifactId>
+      <version>2.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-loadbalancer</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-devtools</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>2.8.13</version>
+      <!-- 使用最新版本 -->
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>asm</artifactId>
+          <groupId>org.ow2.asm</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter-test</artifactId>
+      <version>3.0.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.batch</groupId>
+      <artifactId>spring-batch-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+        <exclusions>
+            <exclusion>
+                <artifactId>error_prone_annotations</artifactId>
+                <groupId>com.google.errorprone</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.minio</groupId>
+      <artifactId>minio</artifactId>
+      <version>${minio.version}</version>
+        <exclusions>
+            <exclusion>
+                <artifactId>guava</artifactId>
+                <groupId>com.google.guava</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.github.mwiede</groupId>
+      <artifactId>jsch</artifactId>
+      <version>2.27.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-email</artifactId>
+      <version>1.6.0</version>
+    </dependency>
+      <dependency>
+          <groupId>cn.dev33</groupId>
+          <artifactId>sa-token-spring-boot3-starter</artifactId>
+          <version>${sa-token.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>cn.dev33</groupId>
+          <artifactId>sa-token-temp-jwt</artifactId>
+          <version>${sa-token.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>cn.dev33</groupId>
+          <artifactId>sa-token-redis-template</artifactId>
+          <version>${sa-token.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>cn.dev33</groupId>
+          <artifactId>sa-token-alone-redis</artifactId>
+          <version>${sa-token.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>cn.dev33</groupId>
+          <artifactId>sa-token-fastjson</artifactId>
+          <version>${sa-token.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-pool2</artifactId>
+      </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>5.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.21.2</version>
+    </dependency>
+  </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>${spring-ai.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client-bom</artifactId>
+        <version>6.9.2</version> <!-- 用6.x稳定版，不需要单独加任何扩展包，MPIJob操作完全支持 -->
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-archetype-plugin</artifactId>
+        <version>3.4.0</version>
+      </plugin>
+    </plugins>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.archetype</groupId>
+        <artifactId>archetype-packaging</artifactId>
+        <version>3.4.0</version>
+      </extension>
+    </extensions>
+  </build>
+  <modules>
+    <module>common</module>
+    <module>oss</module>
+    <module>user</module>
+    <module>search</module>
+    <module>dashboard</module>
+    <module>ai-base</module>
+      <module>message</module>
+  </modules>
+</project>

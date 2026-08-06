@@ -1,0 +1,15 @@
+common/target/
+scarfolding.iml
+ceditor/ceditor-api/target/
+ceditor/ceditor-impl/target/
+oss/target/
+mcp/target/
+.idea/
+markdown/target/
+user/target/
+docker/volumes/
+logs/
+search/target/
+dashboard/target/
+ai-base/target/
+message/target/

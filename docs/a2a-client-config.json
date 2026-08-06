@@ -1,0 +1,212 @@
+{
+  "configVersion": "1.1",
+  "protocolVersion": "1.0",
+  "agent": {
+    "name": "MPI Scheduling Agent",
+    "description": "MPI 并行计算作业调度 Agent，通过 A2A 协议提供作业创建、查询、取消等能力",
+    "protocolVersion": "1.0",
+    "agentVersion": "1.0.0"
+  },
+  "protocol": {
+    "type": "A2A",
+    "version": "1.0",
+    "transport": "JSON-RPC 2.0",
+    "jsonrpcVersion": "2.0",
+    "versionHeader": "A2A-Version: 1.0"
+  },
+  "endpoint": {
+    "baseUrl": "http://<服务器地址>:8080",
+    "contextPath": "/a2a",
+    "supportedInterfaces": [
+      {
+        "url": "http://<服务器地址>:8080/a2a",
+        "protocolBinding": "JSONRPC",
+        "protocolVersion": "1.0"
+      }
+    ],
+    "discovery": {
+      "method": "GET",
+      "paths": [
+        "/.well-known/agent-card.json",
+        "/a2a/.well-known/agent-card.json",
+        "/a2a/card"
+      ],
+      "authRequired": false,
+      "description": "获取 AgentCard（含 supportedInterfaces 与技能列表），免认证"
+    },
+    "rpc": {
+      "method": "POST",
+      "path": "/a2a",
+      "alternativePath": "/a2a/",
+      "contentType": "application/a2a+json",
+      "acceptedContentTypes": ["application/a2a+json", "application/json"],
+      "authRequired": true,
+      "description": "JSON-RPC 端点，所有方法调用经此提交"
+    }
+  },
+  "authentication": {
+    "type": "api-key",
+    "location": "header",
+    "headerName": "X-API-Key",
+    "alternative": "Authorization: Bearer <apiKey>",
+    "apiKey": "<填入 a2a.api-key，默认 1234567890>",
+    "note": "GET 发现端点免认证；POST /a2a 需携带。当前版本服务端 Key 校验暂未启用，但建议携带以保证向前兼容"
+  },
+  "messageStructure": {
+    "role": "ROLE_USER | ROLE_AGENT",
+    "partFormat": "A2A 1.0 移除 kind 判别字段，Part 类型由成员字段存在性判别",
+    "textPart": { "text": "<内容>", "mediaType": "text/plain" },
+    "dataPart": { "data": { "<key>": "<value>" }, "mediaType": "application/json" },
+    "note": "服务端兼容 0.3 的 {kind:text,data:...} 写法作为输入，但输出严格 1.0（无 kind）"
+  },
+  "supportedMethods": [
+    {
+      "method": "SendMessage",
+      "aliases": ["message/send", "sendMessage"],
+      "description": "发送消息执行求解逻辑，返回 SendMessageResponse（result.task）",
+      "params": "MessageSendParams"
+    },
+    {
+      "method": "GetTask",
+      "aliases": ["tasks/get", "getTask"],
+      "description": "查询任务状态，返回 GetTaskResponse（result.task）",
+      "params": { "id": "string", "historyLength": "int?" }
+    },
+    {
+      "method": "CancelTask",
+      "aliases": ["tasks/cancel", "cancelTask"],
+      "description": "取消任务，直接返回 Task（result 为裸 Task，无包装）",
+      "params": { "id": "string" }
+    },
+    {
+      "method": "ListTasks",
+      "aliases": ["tasks/list", "listTasks"],
+      "description": "列出任务（当前返回空列表占位），返回 ListTasksResponse",
+      "params": "none"
+    }
+  ],
+  "requestTemplate": {
+    "jsonrpc": "2.0",
+    "id": "<请求ID，string | number，用于响应关联>",
+    "method": "SendMessage",
+    "params": {
+      "message": {
+        "role": "ROLE_USER",
+        "messageId": "<可选，消息ID>",
+        "parts": [
+          {
+            "text": "<用户指令，如：创建一个 8 核 16G 的 MPI 作业运行 fluid_solver>",
+            "mediaType": "text/plain"
+          }
+        ]
+      },
+      "configuration": {
+        "acceptedOutputModes": ["text/plain", "application/json"]
+      },
+      "metadata": {
+        "solverType": "<可选，mpi/aerosim/mystran，未指定默认 mpi>",
+        "projectId": "<可选，当前项目编号>",
+        "priority": "normal",
+        "includeHistory": false
+      }
+    }
+  },
+  "responseShape": {
+    "sendMessageSuccess": {
+      "jsonrpc": "2.0",
+      "id": "<请求ID>",
+      "result": { "task": "<Task 对象，见 taskShape>" }
+    },
+    "getTaskSuccess": {
+      "jsonrpc": "2.0",
+      "id": "<请求ID>",
+      "result": { "task": "<Task 对象>" }
+    },
+    "cancelTaskSuccess": {
+      "jsonrpc": "2.0",
+      "id": "<请求ID>",
+      "result": "<Task 对象（裸，无 task 包装）>"
+    },
+    "listTasksSuccess": {
+      "jsonrpc": "2.0",
+      "id": "<请求ID>",
+      "result": { "tasks": [], "totalSize": 0, "pageSize": 0, "nextPageToken": "" }
+    },
+    "error": {
+      "jsonrpc": "2.0",
+      "id": "<请求ID>",
+      "error": { "code": "<int>", "message": "<string>", "data": "<可选>" }
+    },
+    "errorCodes": {
+      "-32600": "Invalid Request（method 为空）",
+      "-32601": "Method not found（不支持的方法）",
+      "-32602": "Invalid params（message 或 id 为空）",
+      "-32603": "Internal error / 无可用求解器"
+    }
+  },
+  "taskShape": {
+    "kind": "task",
+    "id": "任务ID（建议用作 GetTask/CancelTask 的 id）",
+    "contextId": "会话上下文ID",
+    "status": {
+      "state": "TASK_STATE_SUBMITTED | TASK_STATE_WORKING | TASK_STATE_RUNNING | TASK_STATE_INPUT_REQUIRED | TASK_STATE_COMPLETED | TASK_STATE_CANCELED | TASK_STATE_FAILED | TASK_STATE_REJECTED | TASK_STATE_AUTH_REQUIRED | TASK_STATE_UNKNOWN",
+      "timestamp": "ISO-8601 时间戳"
+    },
+    "artifacts": [
+      {
+        "name": "产物名称",
+        "index": 0,
+        "parts": [{ "text": "LLM 响应文本或状态详情" }]
+      }
+    ]
+  },
+  "taskStateEnum": [
+    "TASK_STATE_UNSPECIFIED", "TASK_STATE_SUBMITTED", "TASK_STATE_WORKING", "TASK_STATE_RUNNING",
+    "TASK_STATE_INPUT_REQUIRED", "TASK_STATE_COMPLETED", "TASK_STATE_CANCELED",
+    "TASK_STATE_FAILED", "TASK_STATE_REJECTED", "TASK_STATE_AUTH_REQUIRED", "TASK_STATE_UNKNOWN"
+  ],
+  "metadataBehavior": {
+    "solverRouting": "优先依据 metadata.solverType 路由（mpi/aerosim/mystran），未指定默认 mpi",
+    "textCannotSwitchSolver": "求解器路由发生在 LLM 推理之前，仅依据 metadata.solverType；在 message 文本中写入关键词不会切换求解器",
+    "reservedFields": ["projectId", "priority", "includeHistory"],
+    "reservedNote": "上述字段当前被服务端接收但未实现处理逻辑，不影响作业调度与上下文行为"
+  },
+  "examples": [
+    {
+      "name": "创建 MPI 作业",
+      "headers": { "Content-Type": "application/a2a+json", "X-API-Key": "1234567890", "A2A-Version": "1.0" },
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "1",
+        "method": "SendMessage",
+        "params": {
+          "message": {
+            "role": "ROLE_USER",
+            "parts": [{ "text": "创建一个名为 test 的 MPI 作业，镜像 mpi:latest，命令 mpirun -np 4 ./app", "mediaType": "text/plain" }]
+          },
+          "metadata": { "solverType": "mpi" }
+        }
+      }
+    },
+    {
+      "name": "查询任务状态（传数字 Job ID）",
+      "headers": { "Content-Type": "application/a2a+json", "X-API-Key": "1234567890", "A2A-Version": "1.0" },
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "2",
+        "method": "GetTask",
+        "params": { "id": "123" }
+      }
+    },
+    {
+      "name": "取消任务",
+      "headers": { "Content-Type": "application/a2a+json", "X-API-Key": "1234567890", "A2A-Version": "1.0" },
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "3",
+        "method": "CancelTask",
+        "params": { "id": "123" }
+      }
+    }
+  ]
+}

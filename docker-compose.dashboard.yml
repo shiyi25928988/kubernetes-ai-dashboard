@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0.41
+    container_name: dashboard-mysql
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - dashboard-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.2.5
+    container_name: dashboard-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - dashboard-network
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: minio
+    command: server /data --console-address ":9001"
+    env_file:
+      - .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USERNAME}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - dashboard-network
+    restart: unless-stopped
+
+  backend:
+    image: dashboard-backend:latest
+    container_name: dashboard-backend
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+      - minio
+    networks:
+      - dashboard-network
+    extra_hosts:
+      - "minio.shiyi.intra:10.13.11.219"
+      - "oneapi.isic.shiyi.intra:10.13.11.219"
+    restart: unless-stopped
+
+  frontend:
+    image: dashboard-frontend:latest
+    container_name: dashboard-frontend
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: 8080
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - dashboard-network
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  redis-data:
+  minio-data:
+
+networks:
+  dashboard-network:
+    driver: bridge

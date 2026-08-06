@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="1 minute">
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <!-- 定义文件输出的 Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志文件的路径 -->
+        <file>${user.dir}/logs/app.log</file>
+        <!-- 滚动策略：基于时间的文件名和大小 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${user.dir}/logs/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 保持最近30天的日志文件 -->
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+
+        <!-- 日志格式化 -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <immediateFlush>true</immediateFlush>
+    </appender>
+
+    <!-- 定义控制台输出的 Appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="aliyun" class="com.aliyun.openservices.log.logback.LoghubAppender">
+        <accessKeyId>K9odvvlLFiwy5L4K</accessKeyId>
+        <accessKeySecret>2VHcArIT0iwDF7YP8f79pfzsFNEinl</accessKeySecret>
+        <endpoint>data.cn-shanghai-shiyi-d01.sls-pub.res.n01.cloud.shiyi.intra</endpoint>
+        <project>k8s-log-c47b77c427ba44a76a59350645ae8151b</project>
+        <logStore>frr-srv</logStore>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <contextName>ceditor</contextName>
+    <appender name="loki" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>http://127.0.0.1:3100/loki/api/v1/push</url>
+        </http>
+    </appender>
+
+    <!-- 根日志器配置 -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+<!--        <appender-ref ref="loki"/>-->
+<!--        <appender-ref ref="FILE"/>-->
+<!--        <appender-ref ref="aliyun"/>-->
+    </root>
+
+</configuration>
+

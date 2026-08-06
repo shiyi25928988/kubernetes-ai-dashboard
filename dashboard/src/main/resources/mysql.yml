@@ -1,0 +1,13 @@
+spring:
+  sql:
+    init:
+      platform: mysql
+      schema-locations: optional:classpath*:db/schema.sql
+      data-locations: optional:classpath*:db/data.sql
+      sql-script-encoding: utf-8
+      mode: always
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/dashboard?createDatabaseIfNotExist=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver

@@ -1,0 +1,1 @@
+- [Project Core Purpose](project_core_purpose.md) — AI Agent-driven MPI task scheduling platform for solver computing applications running as mpi-job on Kubernetes

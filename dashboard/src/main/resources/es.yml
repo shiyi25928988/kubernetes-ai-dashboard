@@ -1,0 +1,11 @@
+spring:
+  elasticsearch:
+    uris: http://localhost:9200
+    username: elastic
+    password: 123456
+  ai:
+    vectorstore:
+      elasticsearch:
+        index-name: my_document_index
+        embedding-dimension: 1536
+        create-index: true

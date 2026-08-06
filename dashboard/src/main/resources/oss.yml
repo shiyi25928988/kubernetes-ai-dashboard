@@ -1,0 +1,7 @@
+minio:
+  host: ${MINIO_HOST:10.113.16.247}
+  port: ${MINIO_PORT:9000}
+  bucket: ${MINIO_BUCKET:solving}
+  username: ${MINIO_USERNAME:minioadmin}
+  password: ${MINIO_PASSWORD:minioadmin}
+  isHttps: ${MINIO_ISHTTPS:false}

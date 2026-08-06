@@ -1,0 +1,26 @@
+sa-token:
+  is-print: false
+  token-name: token
+  timeout: 43200
+  excludePath:
+    - /swagger-ui/**
+    - /api-docs/**
+    - /api/v1/user/register
+    - /api/v1/user/login
+    - /ws/**
+    - /api/v1/ai/**
+    - /a2a/**              # A2A 接口使用独立 API Key 认证，排除 Sa-Token 登录校验
+    - /.well-known/agent-card.json  # A2A 标准发现端点（根路径），免认证
+  alone-redis:
+    database: ${REDIS_DATABASE:0}
+    host: ${REDIS_HOST:10.35.79.185}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:123456}
+    timeout: 10s
+    connect-timeout: 60s
+#    lettuce:
+#      pool:
+#        max-active: 10
+#        max-idle: 10
+#        max-wait: 30s
+#        min-idle: 1

@@ -1,0 +1,27 @@
+spring:
+  ai:
+    vectorstore:
+      milvus:
+        client:
+          # Milvus 服务器地址
+          host: ${SPRING_AI_VECTORSTORE_MILVUS_CLIENT_HOST:127.0.0.1}
+          # Milvus 服务器端口
+          port: ${SPRING_AI_VECTORSTORE_MILVUS_CLIENT_PORT:19530}
+          # 是否启用 Milvus 向量存储
+          enabled: true
+          # 可选：用户名（如果启用了认证）
+          username:
+          # 可选：密码（如果启用了认证）
+          password:
+          # 可选：数据库名称
+          database-name: ${SPRING_AI_VECTORSTORE_MILVUS_CLIENT_DATABASE_NAME:default}
+          # 可选：collection 名称
+          collection-name: ${SPRING_AI_VECTORSTORE_MILVUS_CLIENT_COLLECTION_NAME:vector_store}
+          # 可选：是否使用 TLS
+          use-tls: false
+          # 可选：TLS 证书路径
+          tls-ca-path:
+          # 可选：TLS 私钥路径
+          tls-key-path:
+          # 可选：TLS 证书路径
+          tls-cert-path:

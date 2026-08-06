@@ -1,0 +1,20 @@
+spring:
+  ai:
+    mcp:
+      server:
+        name: k8s-mcp-server
+      client:
+        enabled: true
+        name: k8s-mcp-client
+        version: 1.0.0
+        request-timeout: 30s
+        type: SYNC
+    openai:
+      base-url: ${SPRING_AI_OPENAI_BASE_URL:}
+      api-key: ${SPRING_AI_OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${SPRING_AI_OPENAI_CHAT_MODEL:}
+          temperature: 0.7
+          frequency-penalty: 0.0
+          max-tokens: 10240

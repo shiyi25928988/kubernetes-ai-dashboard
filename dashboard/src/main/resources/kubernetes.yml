@@ -1,0 +1,10 @@
+kubernetes:
+  client:
+    # kubeconfig 配置方式（优先级从高到低）
+    # 1. config-url: 从 HTTP URL 下载
+    # 2. config-path: 使用本地文件
+    # 3. 留空: 使用集群内 ServiceAccount（生产推荐）
+    config-url: ${KUBERNETES_CLIENT_CONFIG_URL:http://xxx.xxx.xxx.xxx/config}
+    config-path: ${KUBERNETES_CLIENT_CONFIG_PATH:}
+    # 是否信任证书（默认 true）
+    trust-certs: ${KUBERNETES_CLIENT_TRUST_CERTS:true}

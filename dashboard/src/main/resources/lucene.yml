@@ -1,0 +1,3 @@
+lucene:
+    storage:
+      path: ${LUCENE_STORAGE_PATH:D:\\data\\lucene}

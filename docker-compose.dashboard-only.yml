@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    image: dashboard-backend:latest
+    container_name: dashboard-backend
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    networks:
+      - dashboard-network
+    restart: unless-stopped
+
+  frontend:
+    image: dashboard-frontend:latest
+    container_name: dashboard-frontend
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: 8080
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - dashboard-network
+    restart: unless-stopped
+
+networks:
+  dashboard-network:
+    driver: bridge
+

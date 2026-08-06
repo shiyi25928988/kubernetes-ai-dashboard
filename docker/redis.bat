@@ -1,0 +1,1 @@
+docker run --name redis -d -p 6379:6379 --privileged=true redis:8.2.5 --requirepass "123456"
