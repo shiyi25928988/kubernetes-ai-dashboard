@@ -4,6 +4,7 @@ import cc.shiyi.dashboard.advisor.SolverProvider;
 import cc.shiyi.dashboard.dto.a2a.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,8 @@ import java.util.*;
 @Setter(onMethod_ = @Autowired)
 public class A2ARequestHandler {
 
+    @Setter(AccessLevel.NONE)
+    @Autowired(required = false)
     List<SolverProvider> solverProviders;
     ObjectMapper objectMapper;
 

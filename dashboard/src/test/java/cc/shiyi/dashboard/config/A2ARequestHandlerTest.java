@@ -31,7 +31,7 @@ class A2ARequestHandlerTest {
         mockSolverProvider = Mockito.mock(SolverProvider.class);
         objectMapper = new ObjectMapper();
 
-        handler.setSolverProviders(List.of(mockSolverProvider));
+        handler.solverProviders = List.of(mockSolverProvider);
         handler.setObjectMapper(objectMapper);
 
         when(mockSolverProvider.getSolverType()).thenReturn("mpi");
@@ -167,7 +167,7 @@ class A2ARequestHandlerTest {
         SolverProvider secondProvider = Mockito.mock(SolverProvider.class);
         when(secondProvider.getSolverType()).thenReturn("cfd");
         when(secondProvider.getSkills()).thenReturn(List.of());
-        handler.setSolverProviders(List.of(mockSolverProvider, secondProvider));
+        handler.solverProviders = List.of(mockSolverProvider, secondProvider);
 
         Task cfdTask = buildSampleTask(TaskState.COMPLETED);
         cfdTask.setId("cfd-task");

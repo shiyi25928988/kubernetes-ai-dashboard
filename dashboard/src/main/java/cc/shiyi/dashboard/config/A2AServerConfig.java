@@ -35,8 +35,10 @@ public class A2AServerConfig {
     A2AProperties a2aProperties;
 
     /**
-     * 所有求解器提供者（Spring 自动注入所有实现）
+     * 所有求解器提供者（Spring 自动注入所有实现；无实现时注入空列表）
      */
+    @Setter(AccessLevel.NONE)
+    @Autowired(required = false)
     List<SolverProvider> solverProviders;
 
     @Setter(AccessLevel.NONE)
