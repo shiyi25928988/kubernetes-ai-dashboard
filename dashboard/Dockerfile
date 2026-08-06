@@ -1,4 +1,4 @@
-FROM 10.113.16.240/maven:3.9-eclipse-temurin-21 AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
@@ -31,7 +31,7 @@ RUN mvn clean package -DskipTests -B -pl dashboard -am
 RUN ls -la /app/dashboard/target/
 
 # Runtime image
-FROM 10.113.16.240/eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 ENV TZ=Asia/Shanghai
 WORKDIR /app

@@ -63,9 +63,6 @@ services:
       - minio
     networks:
       - dashboard-network
-    extra_hosts:
-      - "minio.shiyi.intra:10.13.11.219"
-      - "oneapi.isic.shiyi.intra:10.13.11.219"
     restart: unless-stopped
 
   frontend:

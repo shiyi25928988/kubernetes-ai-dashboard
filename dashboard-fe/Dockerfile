@@ -1,4 +1,4 @@
-FROM 10.113.16.240/node:20-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # Production image with nginx
-FROM 10.113.16.240/nginx:alpine
+FROM nginx:alpine
 
 ENV TZ=Asia/Shanghai
 ENV BACKEND_HOST=backend

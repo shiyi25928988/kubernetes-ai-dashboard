@@ -109,7 +109,7 @@ public class A2AServerConfig {
             return baseUrl.replaceAll("/+$", "") + a2aProperties.getContextPath();
         }
         log.warn("a2a.base-url 未配置，AgentCard.url 回退为 localhost，外部调用将失败。" +
-                "请通过 A2A_BASE_URL 环境变量配置外部可达地址（如 http://10.113.16.247:8080）");
+                "请通过 A2A_BASE_URL 环境变量配置外部可达地址");
         return "http://localhost:" + serverPort + a2aProperties.getContextPath();
     }
 }

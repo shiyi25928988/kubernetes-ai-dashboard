@@ -1,5 +1,5 @@
 minio:
-  host: ${MINIO_HOST:10.113.16.247}
+  host: ${MINIO_HOST:127.0.0.1}
   port: ${MINIO_PORT:9000}
   bucket: ${MINIO_BUCKET:solving}
   username: ${MINIO_USERNAME:minioadmin}

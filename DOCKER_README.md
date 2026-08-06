@@ -98,10 +98,10 @@ chmod +x build-docker.sh
 
 ```bash
 # 构建后端镜像
-docker build -f dashboard/Dockerfile -t 10.113.16.240/mpi-dashboard-backend:latest .
+docker build -f dashboard/Dockerfile -t <REGISTRY>/mpi-dashboard-backend:latest .
 
 # 构建前端镜像
-docker build -f dashboard-fe/Dockerfile -t 10.113.16.240/mpi-dashboard-frontend:latest ./dashboard-fe
+docker build -f dashboard-fe/Dockerfile -t <REGISTRY>/mpi-dashboard-frontend:latest ./dashboard-fe
 ```
 
 ---
