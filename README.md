@@ -194,7 +194,6 @@ docker build -f dashboard-fe/Dockerfile -t <REGISTRY>/mpi-dashboard-frontend:lat
 ## 贡献
 
 - [ ] 完善集群监控告警
-- [ ] 扩展 A2A SolverProvider 实现
 - [ ] 增加更多 K8s 资源类型支持
 
 欢迎提 Issue 与 Pull Request。

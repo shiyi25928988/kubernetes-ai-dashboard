@@ -3,14 +3,14 @@
     <el-card shadow="hover" class="mb-4">
       <template #header>
         <div class="card-header">
-          <span>Pod管理</span>
+          <span>{{ t('pod.title') }}</span>
           <div class="header-right">
             <el-button type="primary" size="small" @click="loadPods" :loading="loading">
               <el-icon class="mr-1"><Refresh /></el-icon>
-              刷新
+              {{ t('common.refresh') }}
             </el-button>
-            <el-select v-model="namespace" placeholder="选择命名空间" class="w-48 ml-2" @change="loadPods">
-              <el-option label="所有命名空间" value="" />
+            <el-select v-model="namespace" :placeholder="t('common.selectNamespace')" class="w-48 ml-2" @change="loadPods">
+              <el-option :label="t('common.allNamespaces')" value="" />
               <el-option
                 v-for="ns in namespaces"
                 :key="ns.metadata.name"
@@ -23,52 +23,52 @@
       </template>
 
       <div v-if="pods.length === 0 && !loading" class="empty-state">
-        <el-empty description="暂无Pod数据">
-          <el-button type="primary" @click="loadPods">刷新数据</el-button>
+        <el-empty :description="t('pod.empty')">
+          <el-button type="primary" @click="loadPods">{{ t('common.refreshData') }}</el-button>
         </el-empty>
       </div>
       <el-table v-else :data="pods" v-loading="loading" stripe>
-        <el-table-column prop="metadata.name" label="名称" />
-        <el-table-column prop="metadata.namespace" label="命名空间" />
-        <el-table-column prop="status.phase" label="状态">
+        <el-table-column prop="metadata.name" :label="t('common.name')" />
+        <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+        <el-table-column prop="status.phase" :label="t('common.status')">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status.phase)">
               {{ scope.row.status.phase }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status.podIP" label="Pod IP" />
-        <el-table-column prop="status.hostIP" label="主机IP" />
-        <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-        <el-table-column label="操作" class-name="sticky-right-col">
+        <el-table-column prop="status.podIP" :label="t('pod.podIP')" />
+        <el-table-column prop="status.hostIP" :label="t('pod.hostIP')" />
+        <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+        <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
           <template #default="scope">
-            <el-button type="primary" size="small" @click="viewDetail(scope.row)">详情</el-button>
-            <el-button type="warning" size="small" @click="viewLogs(scope.row)">日志</el-button>
-            <el-button type="danger" size="small" @click="deletePod(scope.row)">删除</el-button>
+            <el-button type="primary" size="small" @click="viewDetail(scope.row)">{{ t('common.details') }}</el-button>
+            <el-button type="warning" size="small" @click="viewLogs(scope.row)">{{ t('common.logs') }}</el-button>
+            <el-button type="danger" size="small" @click="deletePod(scope.row)">{{ t('common.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
 
     <!-- Pod详情对话框 -->
-    <el-dialog v-model="detailVisible" title="Pod详情" width="800px">
+    <el-dialog v-model="detailVisible" :title="t('pod.detail')" width="800px">
       <el-descriptions :data="selectedPod" border column="1" v-if="selectedPod">
-        <el-descriptions-item label="名称" prop="metadata.name" />
-        <el-descriptions-item label="命名空间" prop="metadata.namespace" />
-        <el-descriptions-item label="状态" prop="status.phase">
+        <el-descriptions-item :label="t('common.name')" prop="metadata.name" />
+        <el-descriptions-item :label="t('common.namespace')" prop="metadata.namespace" />
+        <el-descriptions-item :label="t('common.status')" prop="status.phase">
           <el-tag :type="getStatusType(selectedPod.status.phase)">
             {{ selectedPod.status.phase }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="Pod IP" prop="status.podIP" />
-        <el-descriptions-item label="主机IP" prop="status.hostIP" />
-        <el-descriptions-item label="创建时间" prop="metadata.creationTimestamp" />
-        <el-descriptions-item label="标签">
+        <el-descriptions-item :label="t('pod.podIP')" prop="status.podIP" />
+        <el-descriptions-item :label="t('pod.hostIP')" prop="status.hostIP" />
+        <el-descriptions-item :label="t('common.createdAt')" prop="metadata.creationTimestamp" />
+        <el-descriptions-item :label="t('pod.labels')">
           <el-tag v-for="(value, key) in selectedPod.metadata.labels" :key="key" class="mr-1">
             {{ key }}: {{ value }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="注解">
+        <el-descriptions-item :label="t('pod.annotations')">
           <el-tag v-for="(value, key) in selectedPod.metadata.annotations" :key="key" class="mr-1" type="info">
             {{ key }}: {{ value }}
           </el-tag>
@@ -77,12 +77,12 @@
     </el-dialog>
 
     <!-- 日志对话框 -->
-    <el-dialog v-model="logsVisible" title="Pod日志" width="1000px">
+    <el-dialog v-model="logsVisible" :title="t('pod.logs')" width="1000px">
       <el-card class="log-card">
         <pre class="log-content">{{ logs }}</pre>
       </el-card>
       <template #footer>
-        <el-button @click="logsVisible = false">关闭</el-button>
+        <el-button @click="logsVisible = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -91,10 +91,11 @@
 <script setup>
 import { ref, onMounted, onActivated } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { Refresh } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
-console.log('Pod.vue 组件加载')
+const { t } = useI18n({ useScope: 'global' })
 
 const namespace = ref('')
 const namespaces = ref([])
@@ -125,7 +126,7 @@ const loadNamespaces = async () => {
       namespaces.value = res.data.items
     }
   } catch (error) {
-    ElMessage.error('加载命名空间失败')
+    ElMessage.error(t('common.loadNamespacesFailed'))
   }
 }
 
@@ -143,7 +144,7 @@ const loadPods = async () => {
       pods.value = res.data
     }
   } catch (error) {
-    ElMessage.error('加载Pod列表失败')
+    ElMessage.error(t('pod.loadFailed'))
   } finally {
     loading.value = false
   }
@@ -164,42 +165,40 @@ const viewLogs = async (row) => {
       logsVisible.value = true
     }
   } catch (error) {
-    ElMessage.error('获取日志失败')
+    ElMessage.error(t('common.getLogsFailed'))
   }
 }
 
 // 删除Pod
 const deletePod = (row) => {
   ElMessageBox.confirm(
-    `确定要删除Pod "${row.metadata.name}" 吗？`,
-    '提示',
+    t('pod.confirmDelete', { name: row.metadata.name }),
+    t('common.tip'),
     {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     }
   ).then(async () => {
     try {
       const res = await request.delete(`/api/v1/k8s/namespaces/${row.metadata.namespace}/pods/${row.metadata.name}`)
       if (res.code === 200) {
-        ElMessage.success('删除成功')
+        ElMessage.success(t('common.deleteSuccess'))
         loadPods()
       }
     } catch (error) {
-      ElMessage.error('删除失败')
+      ElMessage.error(t('common.deleteFailed'))
     }
   })
 }
 
 onMounted(() => {
-  console.log('Pod页面加载，开始调用接口')
-  loadNamespaces().catch(err => console.error('加载命名空间失败:', err))
-  loadPods().catch(err => console.error('加载Pod失败:', err))
+  loadNamespaces().catch(err => console.error('load namespaces failed:', err))
+  loadPods().catch(err => console.error('load pods failed:', err))
 })
 
 onActivated(() => {
-  console.log('Pod页面激活，刷新数据')
-  loadPods().catch(err => console.error('刷新Pod失败:', err))
+  loadPods().catch(err => console.error('refresh pods failed:', err))
 })
 </script>
 

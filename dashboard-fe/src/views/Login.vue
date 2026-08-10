@@ -1,9 +1,10 @@
 <template>
   <div class="login-container">
-        <div class="login-box">
+    <div class="lang-corner"><LanguageSwitcher /></div>
+    <div class="login-box">
       <div class="login-header">
-        <h2>DSSP</h2>
-        <p>欢迎登录</p>
+        <h2>{{ t('brand.name') }}</h2>
+        <p>{{ t('login.welcome') }}</p>
       </div>
       <el-form
         ref="loginFormRef"
@@ -12,19 +13,19 @@
         label-position="top"
         class="login-form"
       >
-        <el-form-item label="账号" prop="account">
+        <el-form-item :label="t('login.account')" prop="account">
           <el-input
             v-model="loginForm.account"
-            placeholder="请输入账号"
+            :placeholder="t('login.accountPlaceholder')"
             prefix-icon="User"
             size="large"
           />
         </el-form-item>
-        <el-form-item label="密码" prop="password">
+        <el-form-item :label="t('login.password')" prop="password">
           <el-input
             v-model="loginForm.password"
             type="password"
-            placeholder="请输入密码"
+            :placeholder="t('login.passwordPlaceholder')"
             prefix-icon="Lock"
             size="large"
             @keyup.enter="handleLogin"
@@ -38,11 +39,11 @@
             :loading="loading"
             @click="handleLogin"
           >
-            登录
+            {{ t('login.submit') }}
           </el-button>
           <div class="login-footer">
-            <span>还没有账号？</span>
-            <el-button type="text" @click="$router.push('/register')">立即注册</el-button>
+            <span>{{ t('login.noAccount') }}</span>
+            <el-button type="text" @click="$router.push('/register')">{{ t('login.registerNow') }}</el-button>
           </div>
         </el-form-item>
       </el-form>
@@ -51,12 +52,15 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { User, Lock } from '@element-plus/icons-vue'
 import { login } from '@/api/user'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
+const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const loginFormRef = ref()
 const loading = ref(false)
@@ -66,16 +70,16 @@ const loginForm = reactive({
   password: ''
 })
 
-const loginRules = {
+const loginRules = computed(() => ({
   account: [
-    { required: true, message: '请输入账号', trigger: 'blur' },
-    { min: 2, max: 20, message: '账号长度在 2 到 20 个字符', trigger: 'blur' }
+    { required: true, message: t('login.accountRequired'), trigger: 'blur' },
+    { min: 2, max: 20, message: t('login.accountLen'), trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+    { required: true, message: t('login.passwordRequired'), trigger: 'blur' },
+    { min: 6, max: 20, message: t('login.passwordLen'), trigger: 'blur' }
   ]
-}
+}))
 
 const handleLogin = async () => {
   if (!loginFormRef.value) return
@@ -87,10 +91,10 @@ const handleLogin = async () => {
         const res = await login(loginForm)
         localStorage.setItem('token', res.data.tokenValue)
         localStorage.setItem('userInfo', JSON.stringify(res.data))
-        ElMessage.success('登录成功')
+        ElMessage.success(t('login.success'))
         router.push('/dashboard')
       } catch (error) {
-        console.error('登录失败:', error)
+        console.error('login failed:', error)
       } finally {
         loading.value = false
       }
@@ -114,6 +118,16 @@ const handleLogin = async () => {
   background: url('@/assets/login-bg.png') no-repeat center center / cover;
 }
 
+.lang-corner {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 6px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
 .login-box {
   width: 450px;

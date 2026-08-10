@@ -3,8 +3,8 @@
     <el-card shadow="hover" class="mb-4">
       <template #header>
         <div class="card-header">
-          <span>Service管理</span>
-          <el-select v-model="namespace" placeholder="选择命名空间" class="w-48" @change="loadServices">
+          <span>{{ t('service.title') }}</span>
+          <el-select v-model="namespace" :placeholder="t('common.selectNamespace')" class="w-48" @change="loadServices">
             <el-option
               v-for="ns in namespaces"
               :key="ns.metadata.name"
@@ -16,60 +16,60 @@
       </template>
 
       <el-table :data="services" v-loading="loading" stripe table-layout="fixed">
-        <el-table-column prop="metadata.name" label="名称" width="200" />
-        <el-table-column prop="metadata.namespace" label="命名空间" width="150" />
-        <el-table-column prop="spec.type" label="类型" width="120">
+        <el-table-column prop="metadata.name" :label="t('common.name')" width="200" />
+        <el-table-column prop="metadata.namespace" :label="t('common.namespace')" width="150" />
+        <el-table-column prop="spec.type" :label="t('common.type')" width="120">
           <template #default="scope">
             <el-tag :type="getTypeTag(scope.row.spec.type)">
               {{ scope.row.spec.type }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="spec.clusterIP" label="集群IP" width="150" />
-        <el-table-column label="端口" width="200">
+        <el-table-column prop="spec.clusterIP" :label="t('service.clusterIP')" width="150" />
+        <el-table-column :label="t('service.ports')" width="200">
           <template #default="scope">
             <div v-for="port in scope.row.spec.ports" :key="port.port" class="port-item">
               <el-tag size="small">{{ port.port }} -> {{ port.targetPort }}/{{ port.protocol }}</el-tag>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="metadata.creationTimestamp" label="创建时间" width="200" />
-        <el-table-column label="操作" width="200" class-name="sticky-right-col">
+        <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="200" />
+        <el-table-column :label="t('common.actions')" width="200" class-name="sticky-right-col">
           <template #default="scope">
-            <el-button type="primary" size="small" @click="viewDetail(scope.row)">详情</el-button>
-            <el-button type="danger" size="small" @click="deleteService(scope.row)">删除</el-button>
+            <el-button type="primary" size="small" @click="viewDetail(scope.row)">{{ t('common.details') }}</el-button>
+            <el-button type="danger" size="small" @click="deleteService(scope.row)">{{ t('common.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
 
     <!-- Service详情对话框 -->
-    <el-dialog v-model="detailVisible" title="Service详情" width="800px">
+    <el-dialog v-model="detailVisible" :title="t('service.detail')" width="800px">
       <el-descriptions :data="selectedService" border column="1" v-if="selectedService">
-        <el-descriptions-item label="名称" prop="metadata.name" />
-        <el-descriptions-item label="命名空间" prop="metadata.namespace" />
-        <el-descriptions-item label="类型" prop="spec.type">
+        <el-descriptions-item :label="t('common.name')" prop="metadata.name" />
+        <el-descriptions-item :label="t('common.namespace')" prop="metadata.namespace" />
+        <el-descriptions-item :label="t('common.type')" prop="spec.type">
           <el-tag :type="getTypeTag(selectedService.spec.type)">
             {{ selectedService.spec.type }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="集群IP" prop="spec.clusterIP" />
-        <el-descriptions-item label="外部IP" prop="spec.externalIPs">
+        <el-descriptions-item :label="t('service.clusterIP')" prop="spec.clusterIP" />
+        <el-descriptions-item :label="t('service.externalIP')" prop="spec.externalIPs">
           {{ selectedService.spec.externalIPs?.join(', ') || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item label="端口">
+        <el-descriptions-item :label="t('service.ports')">
           <div v-for="port in selectedService.spec.ports" :key="port.port" class="mb-1">
             <el-tag size="small">{{ port.name || '' }}: {{ port.port }} -> {{ port.targetPort }}/{{ port.protocol }}</el-tag>
             <span v-if="port.nodePort"> (NodePort: {{ port.nodePort }})</span>
           </div>
         </el-descriptions-item>
-        <el-descriptions-item label="选择器">
+        <el-descriptions-item :label="t('service.selector')">
           <el-tag v-for="(value, key) in selectedService.spec.selector" :key="key" class="mr-1">
             {{ key }}: {{ value }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="创建时间" prop="metadata.creationTimestamp" />
-        <el-descriptions-item label="标签">
+        <el-descriptions-item :label="t('common.createdAt')" prop="metadata.creationTimestamp" />
+        <el-descriptions-item :label="t('common.labels')">
           <el-tag v-for="(value, key) in selectedService.metadata.labels" :key="key" class="mr-1">
             {{ key }}: {{ value }}
           </el-tag>
@@ -82,7 +82,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import request from '@/utils/request'
+
+const { t } = useI18n({ useScope: 'global' })
 
 const namespace = ref('default')
 const namespaces = ref([])
@@ -110,7 +113,7 @@ const loadNamespaces = async () => {
       namespaces.value = res.data.items
     }
   } catch (error) {
-    ElMessage.error('加载命名空间失败')
+    ElMessage.error(t('common.loadNamespacesFailed'))
   }
 }
 
@@ -124,7 +127,7 @@ const loadServices = async () => {
       services.value = res.data
     }
   } catch (error) {
-    ElMessage.error('加载Service列表失败')
+    ElMessage.error(t('service.loadFailed'))
   } finally {
     loading.value = false
   }
@@ -139,22 +142,22 @@ const viewDetail = (row) => {
 // 删除Service
 const deleteService = (row) => {
   ElMessageBox.confirm(
-    `确定要删除Service "${row.metadata.name}" 吗？`,
-    '提示',
+    t('service.confirmDelete', { name: row.metadata.name }),
+    t('common.tip'),
     {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     }
   ).then(async () => {
     try {
       const res = await request.delete(`/api/v1/k8s/namespaces/${row.metadata.namespace}/services/${row.metadata.name}`)
       if (res.code === 200) {
-        ElMessage.success('删除成功')
+        ElMessage.success(t('common.deleteSuccess'))
         loadServices()
       }
     } catch (error) {
-      ElMessage.error('删除失败')
+      ElMessage.error(t('common.deleteFailed'))
     }
   })
 }

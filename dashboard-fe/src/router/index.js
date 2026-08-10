@@ -5,37 +5,37 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/Login.vue'),
-    meta: { title: '登录' }
+    meta: { title: 'route.login' }
   },
   {
     path: '/register',
     name: 'Register',
     component: () => import('@/views/Register.vue'),
-    meta: { title: '注册' }
+    meta: { title: 'route.register' }
   },
   {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('@/views/Dashboard.vue'),
-    meta: { title: '控制台', requiresAuth: true }
+    meta: { title: 'route.dashboard', requiresAuth: true }
   },
   {
     path: '/pod',
     name: 'Pod',
     component: () => import('@/views/Pod.vue'),
-    meta: { title: 'Pod管理', requiresAuth: true }
+    meta: { title: 'route.pod', requiresAuth: true }
   },
   {
     path: '/service',
     name: 'Service',
     component: () => import('@/views/Service.vue'),
-    meta: { title: 'Service管理', requiresAuth: true }
+    meta: { title: 'route.service', requiresAuth: true }
   },
   {
     path: '/ingress',
     name: 'Ingress',
     component: () => import('@/views/Ingress.vue'),
-    meta: { title: 'Ingress管理', requiresAuth: true }
+    meta: { title: 'route.ingress', requiresAuth: true }
   },
   {
     path: '/',
@@ -48,11 +48,8 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫
+// 路由守卫（页面标题由 App.vue 根据 i18n 语言统一设置，这里只做鉴权）
 router.beforeEach((to, from, next) => {
-  // 设置页面标题
-  document.title = to.meta.title || 'MPI调度平台'
-
   const token = localStorage.getItem('token')
   // 如果是登录或注册页面，直接放行
   if (to.path === '/login' || to.path === '/register') {

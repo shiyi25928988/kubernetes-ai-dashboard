@@ -194,7 +194,6 @@ docker build -f dashboard-fe/Dockerfile -t <REGISTRY>/mpi-dashboard-frontend:lat
 ## Contributing
 
 - [ ] Improve cluster monitoring alerts
-- [ ] Extend A2A SolverProvider implementations
 - [ ] Add more K8s resource types
 
 Issues and Pull Requests are welcome.

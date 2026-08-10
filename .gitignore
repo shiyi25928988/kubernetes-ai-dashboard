@@ -13,3 +13,4 @@ search/target/
 dashboard/target/
 ai-base/target/
 message/target/
+.run/

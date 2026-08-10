@@ -181,14 +181,14 @@ CREATE TABLE IF NOT EXISTS `site_message_read` (
 
 -- 初始化欢迎消息
 INSERT INTO `site_message` (`title`, `content`, `type`, `priority`, `is_active`, `created_time`, `updated_time`)
-SELECT '欢迎使用 DSSP 平台',
-       '您好！欢迎使用 Distributed Solver Scheduling Platform (DSSP)。\n\n这是一个用于管理和调度 MPI 作业的平台，您可以：\n\n• 管理 K8S 集群资源\n• 提交和监控 MPI 作业\n• 使用 AI 助手帮助\n• 更多功能等您探索\n\n祝您使用愉快！',
+SELECT '欢迎使用 Kubernetes Dashboard For AI',
+       '您好！欢迎使用 Kubernetes Dashboard For AI。\n\n这是一个 Kubernetes 集群管理平台，您可以：\n\n• 管理 K8S 集群资源\n• 查看集群监控\n• 使用 AI 助手帮助\n• 更多功能等您探索\n\n祝您使用愉快！',
        'SUCCESS',
        10,
        1,
        NOW(),
        NOW()
-WHERE NOT EXISTS (SELECT 1 FROM `site_message` WHERE `title` = '欢迎使用 DSSP 平台');
+WHERE NOT EXISTS (SELECT 1 FROM `site_message` WHERE `title` = '欢迎使用 Kubernetes Dashboard For AI');
 
 CREATE TABLE IF NOT EXISTS `ai_expert` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',

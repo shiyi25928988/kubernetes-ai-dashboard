@@ -3,12 +3,13 @@
     <!-- 顶部导航栏 -->
     <header class="dashboard-header">
       <div class="header-left">
-        <h2>Distributed Solver Scheduling Platform</h2>
+        <h2>{{ t('brand.name') }}</h2>
       </div>
       <div class="header-right">
         <el-button type="primary" size="small" @click="showCreateResourceDialog = true" style="margin-right: 20px;">
-          <el-icon><plus /></el-icon> 新建资源
+          <el-icon><plus /></el-icon> {{ t('header.createResource') }}
         </el-button>
+        <LanguageSwitcher />
         <!-- 消息图标 -->
         <div class="message-icon-wrapper" @click="openInboxDialog" style="margin-right: 20px; cursor: pointer; position: relative;">
           <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="message-badge">
@@ -25,14 +26,14 @@
             <el-dropdown-menu>
               <el-dropdown-item command="inbox">
                 <el-icon><Message /></el-icon>
-                收件箱 <span v-if="unreadCount > 0" style="color: #f56c6c; margin-left: 5px;">({{ unreadCount }})</span>
+                {{ t('header.inbox') }} <span v-if="unreadCount > 0" style="color: #f56c6c; margin-left: 5px;">({{ unreadCount }})</span>
               </el-dropdown-item>
               <el-dropdown-item command="check-cluster">
                 <el-icon><Refresh /></el-icon>
-                手动巡检
+                {{ t('header.manualInspect') }}
               </el-dropdown-item>
-              <el-dropdown-item command="profile">信息维护</el-dropdown-item>
-              <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+              <el-dropdown-item command="profile">{{ t('header.profile') }}</el-dropdown-item>
+              <el-dropdown-item command="logout">{{ t('header.logout') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -49,65 +50,65 @@
         >
           <el-menu-item index="overview">
             <el-icon><monitor /></el-icon>
-            <span>概览</span>
+            <span>{{ t('menu.overview') }}</span>
           </el-menu-item>
           <el-sub-menu index="k8s">
             <template #title>
               <el-icon><box /></el-icon>
-              <span>K8S管理</span>
+              <span>{{ t('menu.k8s') }}</span>
             </template>
             <el-menu-item index="namespace">
               <el-icon><FolderOpened /></el-icon>
-              <span>命名空间</span>
+              <span>{{ t('menu.namespace') }}</span>
             </el-menu-item>
             <el-menu-item index="pod">
               <el-icon><Cpu /></el-icon>
-              <span>Pod管理</span>
+              <span>{{ t('menu.pod') }}</span>
             </el-menu-item>
             <el-menu-item index="deployment">
               <el-icon><Monitor /></el-icon>
-              <span>Deployment</span>
+              <span>{{ t('menu.deployment') }}</span>
             </el-menu-item>
             <el-menu-item index="job">
               <el-icon><Operation /></el-icon>
-              <span>Job</span>
+              <span>{{ t('menu.job') }}</span>
             </el-menu-item>
             <el-menu-item index="service">
               <el-icon><Service /></el-icon>
-              <span>Service</span>
+              <span>{{ t('menu.service') }}</span>
             </el-menu-item>
             <el-menu-item index="ingress">
               <el-icon><Link /></el-icon>
-              <span>Ingress</span>
+              <span>{{ t('menu.ingress') }}</span>
             </el-menu-item>
             <el-menu-item index="pvc">
               <el-icon><Files /></el-icon>
-              <span>存储卷</span>
+              <span>{{ t('menu.pvc') }}</span>
             </el-menu-item>
             <el-menu-item index="configmap">
               <el-icon><Document /></el-icon>
-              <span>ConfigMap</span>
+              <span>{{ t('menu.configmap') }}</span>
             </el-menu-item>
             <el-menu-item index="secret">
               <el-icon><Key /></el-icon>
-              <span>Secret</span>
+              <span>{{ t('menu.secret') }}</span>
             </el-menu-item>
             <el-menu-item index="crd">
               <el-icon><Grid /></el-icon>
-              <span>CRD</span>
+              <span>{{ t('menu.crd') }}</span>
             </el-menu-item>
             <el-menu-item index="event">
               <el-icon><WarningFilled /></el-icon>
-              <span>集群事件</span>
+              <span>{{ t('menu.event') }}</span>
             </el-menu-item>
           </el-sub-menu>
           <el-menu-item index="oss">
             <el-icon><FolderOpened /></el-icon>
-            <span>对象存储</span>
+            <span>{{ t('menu.oss') }}</span>
           </el-menu-item>
           <el-menu-item index="registry">
             <el-icon><Box /></el-icon>
-            <span>镜像管理</span>
+            <span>{{ t('menu.registry') }}</span>
           </el-menu-item>
         </el-menu>
       </aside>
@@ -127,7 +128,7 @@
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.namespaceCount }}</div>
-                      <div class="stat-label">命名空间</div>
+                      <div class="stat-label">{{ t('overview.stat.namespace') }}</div>
                     </div>
                   </div>
                 </el-card>
@@ -140,7 +141,7 @@
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.podRunningCount }}/{{ k8sStats.podTotalCount }}</div>
-                      <div class="stat-label">运行中Pod</div>
+                      <div class="stat-label">{{ t('overview.stat.runningPods') }}</div>
                     </div>
                   </div>
                 </el-card>
@@ -166,7 +167,7 @@
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.pvcCount }}</div>
-                      <div class="stat-label">PVC存储卷</div>
+                      <div class="stat-label">{{ t('overview.stat.pvc') }}</div>
                     </div>
                   </div>
                 </el-card>
@@ -183,7 +184,7 @@
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.readyNodeCount }}/{{ k8sStats.nodeCount }}</div>
-                      <div class="stat-label">就绪节点</div>
+                      <div class="stat-label">{{ t('overview.stat.readyNodes') }}</div>
                     </div>
                   </div>
                 </el-card>
@@ -209,7 +210,7 @@
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.storageUsed }}/{{ k8sStats.storageTotal }}</div>
-                      <div class="stat-label">存储使用</div>
+                      <div class="stat-label">{{ t('overview.stat.storageUsage') }}</div>
                     </div>
                   </div>
                 </el-card>
@@ -222,7 +223,7 @@
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.ingressCount }}</div>
-                      <div class="stat-label">Ingress路由</div>
+                      <div class="stat-label">{{ t('overview.stat.ingress') }}</div>
                     </div>
                   </div>
                 </el-card>
@@ -242,9 +243,9 @@
                       </el-icon>
                     </div>
                     <div class="health-info">
-                      <div class="health-title">控制平面</div>
+                      <div class="health-title">{{ t('overview.health.controlPlane') }}</div>
                       <div class="health-status" :class="k8sStats.controlPlaneHealth">
-                        {{ k8sStats.controlPlaneHealth === 'normal' ? '健康' : k8sStats.controlPlaneHealth === 'warning' ? '警告' : '异常' }}
+                        {{ k8sStats.controlPlaneHealth === 'normal' ? t('overview.health.healthy') : k8sStats.controlPlaneHealth === 'warning' ? t('overview.health.warning') : t('overview.health.abnormal') }}
                       </div>
                     </div>
                   </div>
@@ -261,10 +262,10 @@
                       </el-icon>
                     </div>
                     <div class="health-info">
-                      <div class="health-title">节点健康</div>
+                      <div class="health-title">{{ t('overview.health.nodeHealth') }}</div>
                       <div class="health-status" :class="k8sStats.nodeHealth">
-                        {{ k8sStats.nodeHealth === 'normal' ? '健康' : k8sStats.nodeHealth === 'warning' ? '警告' : '异常' }}
-                        <span v-if="k8sStats.abnormalNodeCount > 0" class="abnormal-count">（{{ k8sStats.abnormalNodeCount }}异常）</span>
+                        {{ k8sStats.nodeHealth === 'normal' ? t('overview.health.healthy') : k8sStats.nodeHealth === 'warning' ? t('overview.health.warning') : t('overview.health.abnormal') }}
+                        <span v-if="k8sStats.abnormalNodeCount > 0" class="abnormal-count">{{ t('overview.health.abnormalTip', { x: k8sStats.abnormalNodeCount }) }}</span>
                       </div>
                     </div>
                   </div>
@@ -281,9 +282,9 @@
                       </el-icon>
                     </div>
                     <div class="health-info">
-                      <div class="health-title">网络状态</div>
+                      <div class="health-title">{{ t('overview.health.network') }}</div>
                       <div class="health-status" :class="k8sStats.networkHealth">
-                        {{ k8sStats.networkHealth === 'normal' ? '正常' : k8sStats.networkHealth === 'warning' ? '警告' : '异常' }}
+                        {{ k8sStats.networkHealth === 'normal' ? t('overview.health.normal') : k8sStats.networkHealth === 'warning' ? t('overview.health.warning') : t('overview.health.abnormal') }}
                       </div>
                     </div>
                   </div>
@@ -300,10 +301,10 @@
                       </el-icon>
                     </div>
                     <div class="health-info">
-                      <div class="health-title">存储健康</div>
+                      <div class="health-title">{{ t('overview.health.storage') }}</div>
                       <div class="health-status" :class="k8sStats.storageHealth">
-                        {{ k8sStats.storageHealth === 'normal' ? '正常' : k8sStats.storageHealth === 'warning' ? '警告' : '异常' }}
-                        <span v-if="k8sStats.abnormalVolumeCount > 0" class="abnormal-count">（{{ k8sStats.abnormalVolumeCount }}异常）</span>
+                        {{ k8sStats.storageHealth === 'normal' ? t('overview.health.normal') : k8sStats.storageHealth === 'warning' ? t('overview.health.warning') : t('overview.health.abnormal') }}
+                        <span v-if="k8sStats.abnormalVolumeCount > 0" class="abnormal-count">{{ t('overview.health.abnormalTip', { x: k8sStats.abnormalVolumeCount }) }}</span>
                       </div>
                     </div>
                   </div>
@@ -314,23 +315,23 @@
             <!-- 第四行：资源利用率 -->
             <el-card class="mt-20">
               <template #header>
-                <span>集群资源利用率</span>
+                <span>{{ t('overview.usage.title') }}</span>
               </template>
               <el-row :gutter="40" style="padding: 20px 0;">
                 <el-col :span="6" style="text-align: center;">
-                  <div class="usage-title">CPU使用率<br/><small>{{ k8sStats.cpuUsed }}/{{ k8sStats.cpuTotal }}</small></div>
+                  <div class="usage-title">{{ t('overview.usage.cpu') }}<br/><small>{{ k8sStats.cpuUsed }}/{{ k8sStats.cpuTotal }}</small></div>
                   <el-progress type="circle" :percentage="k8sStats.cpuUsage" :width="120" color="#67C23A" />
                 </el-col>
                 <el-col :span="6" style="text-align: center;">
-                  <div class="usage-title">内存使用率<br/><small>{{ k8sStats.memoryUsed }}/{{ k8sStats.memoryTotal }}</small></div>
+                  <div class="usage-title">{{ t('overview.usage.memory') }}<br/><small>{{ k8sStats.memoryUsed }}/{{ k8sStats.memoryTotal }}</small></div>
                   <el-progress type="circle" :percentage="k8sStats.memoryUsage" :width="120" color="#409EFF" />
                 </el-col>
                 <el-col :span="6" style="text-align: center;">
-                  <div class="usage-title">存储使用率<br/><small>{{ k8sStats.storageUsed }}/{{ k8sStats.storageTotal }}</small></div>
+                  <div class="usage-title">{{ t('overview.usage.storage') }}<br/><small>{{ k8sStats.storageUsed }}/{{ k8sStats.storageTotal }}</small></div>
                   <el-progress type="circle" :percentage="k8sStats.storageUsage" :width="120" color="#E6A23C" />
                 </el-col>
                 <el-col :span="6" style="text-align: center;">
-                  <div class="usage-title">异常Pod数</div>
+                  <div class="usage-title">{{ t('overview.usage.abnormalPods') }}</div>
                   <div style="font-size: 32px; font-weight: 700; margin: 16px 0; color: #F56C6C;">{{ k8sStats.abnormalPodCount }}</div>
                 </el-col>
               </el-row>
@@ -341,21 +342,21 @@
           <!-- K8S命名空间页面 -->
           <div v-if="activeMenu === 'namespace'" class="namespace-page">
             <div class="page-header">
-              <h3>命名空间管理</h3>
-              <el-button type="primary" @click="showCreateNamespaceDialog = true">新建命名空间</el-button>
+              <h3>{{ t('namespace.title') }}</h3>
+              <el-button type="primary" @click="showCreateNamespaceDialog = true">{{ t('namespace.create') }}</el-button>
             </div>
             <el-table :data="namespaceList" border stripe>
-              <el-table-column prop="name" label="名称" />
-              <el-table-column prop="status" label="状态" />
-              <el-table-column label="创建人">
+              <el-table-column prop="name" :label="t('common.name')" />
+              <el-table-column prop="status" :label="t('common.status')" />
+              <el-table-column :label="t('common.creator')">
                 <template #default="{ row }">
                   <span>{{ getOwnerName('Namespace', '', row.name) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="creationTimestamp" label="创建时间" />
-              <el-table-column label="操作">
+              <el-table-column prop="creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')">
                 <template #default="{ row }">
-                  <el-button type="danger" size="small" @click="handleDeleteNamespace(row.name)" v-if="row.labels?.['dssp.io/managed-by'] === 'dssp' && row.labels?.['dssp.io/created-by'] === String(userInfo.id)">删除</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteNamespace(row.name)" v-if="row.labels?.['dssp.io/managed-by'] === 'dssp' && row.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -364,19 +365,19 @@
           <!-- K8S Pod管理页面 -->
           <div v-if="activeMenu === 'pod'" class="pod-page">
             <div class="page-header">
-              <h3>Pod管理</h3>
+              <h3>{{ t('pod.title') }}</h3>
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadPodList" :loading="podLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
                 <el-select
                   v-model="podNamespaceFilter"
-                  placeholder="选择命名空间"
+                  :placeholder="t('common.selectNamespace')"
                   class="w-60 ml-2 pod-namespace-select"
                   @change="loadPodList"
                 >
-                  <el-option label="所有命名空间" value="all" />
+                  <el-option :label="t('common.allNamespaces')" value="all" />
                   <el-option
                     v-for="ns in namespaceList"
                     :key="ns.name"
@@ -385,22 +386,22 @@
                   />
                   <!-- 自定义显示模板，强制显示选中内容 -->
                   <template #prefix v-if="podNamespaceFilter">
-                    <span>{{ podNamespaceFilter === 'all' ? '所有命名空间' : podNamespaceFilter }}</span>
+                    <span>{{ podNamespaceFilter === 'all' ? t('common.allNamespaces') : podNamespaceFilter }}</span>
                   </template>
                 </el-select>
               </div>
             </div>
 
             <div v-if="podList.length === 0 && !podLoading" class="empty-state">
-              <el-empty description="暂无Pod数据">
-                <el-button type="primary" @click="loadPodList">刷新数据</el-button>
+              <el-empty :description="t('pod.empty')">
+                <el-button type="primary" @click="loadPodList">{{ t('common.refreshData') }}</el-button>
               </el-empty>
             </div>
 
             <el-table v-else :data="podList" v-loading="podLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" />
-              <el-table-column prop="metadata.namespace" label="命名空间" />
-              <el-table-column prop="status.phase" label="状态">
+              <el-table-column prop="metadata.name" :label="t('common.name')" />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column prop="status.phase" :label="t('common.status')">
                 <template #default="scope">
                   <el-tag :type="getPodStatusType(scope.row.status.phase)">
                     {{ scope.row.status.phase }}
@@ -408,13 +409,13 @@
                 </template>
               </el-table-column>
               <el-table-column prop="status.podIP" label="Pod IP" />
-              <el-table-column prop="status.hostIP" label="主机IP" />
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="status.hostIP" :label="t('pod.hostIP')" />
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewPodDetail(scope.row)">详情</el-button>
-                  <el-button type="warning" size="small" @click="viewPodLogs(scope.row)">日志</el-button>
-                  <el-button type="danger" size="small" @click="handleDeletePod(scope.row)">删除</el-button>
+                  <el-button type="primary" size="small" @click="viewPodDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="warning" size="small" @click="viewPodLogs(scope.row)">{{ t('common.logs') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeletePod(scope.row)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -423,19 +424,19 @@
           <!-- Deployment管理页面 -->
           <div v-if="activeMenu === 'deployment'" class="deployment-page">
             <div class="page-header">
-              <h3>Deployment管理</h3>
+              <h3>{{ t('deployment.title') }}</h3>
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadDeploymentList" :loading="deploymentLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
                 <el-select
                   v-model="deploymentNamespaceFilter"
-                  placeholder="选择命名空间"
+                  :placeholder="t('common.selectNamespace')"
                   class="w-60 ml-2"
                   @change="loadDeploymentList"
                 >
-                  <el-option label="所有命名空间" value="all" />
+                  <el-option :label="t('common.allNamespaces')" value="all" />
                   <el-option
                     v-for="ns in namespaceList"
                     :key="ns.name"
@@ -443,47 +444,47 @@
                     :value="ns.name"
                   />
                   <template #prefix v-if="deploymentNamespaceFilter">
-                    <span>{{ deploymentNamespaceFilter === 'all' ? '所有命名空间' : deploymentNamespaceFilter }}</span>
+                    <span>{{ deploymentNamespaceFilter === 'all' ? t('common.allNamespaces') : deploymentNamespaceFilter }}</span>
                   </template>
                 </el-select>
                 <el-button type="success" size="small" @click="showCreateResourceDialog = true; currentResourceType = 'deployment'" class="ml-2">
                   <el-icon class="mr-1"><Plus /></el-icon>
-                  新建Deployment
+                  {{ t('deployment.create') }}
                 </el-button>
               </div>
             </div>
 
             <div v-if="deploymentList.length === 0 && !deploymentLoading" class="empty-state">
-              <el-empty description="暂无Deployment数据">
-                <el-button type="primary" @click="loadDeploymentList">刷新数据</el-button>
+              <el-empty :description="t('deployment.empty')">
+                <el-button type="primary" @click="loadDeploymentList">{{ t('common.refreshData') }}</el-button>
               </el-empty>
             </div>
 
             <el-table v-else :data="deploymentList" v-loading="deploymentLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" />
-              <el-table-column prop="metadata.namespace" label="命名空间" />
-              <el-table-column label="副本状态">
+              <el-table-column prop="metadata.name" :label="t('common.name')" />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('deployment.replicaStatus')">
                 <template #default="scope">
                   <el-tag :type="getDeploymentStatusType(scope.row)">
                     {{ scope.row.status?.availableReplicas || 0 }}/{{ scope.row.spec?.replicas || 0 }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="可用副本" prop="status.availableReplicas" />
-              <el-table-column label="期望副本" prop="spec.replicas" />
-              <el-table-column label="更新版本" prop="metadata.labels.app" />
-              <el-table-column label="创建人">
+              <el-table-column :label="t('deployment.available')" prop="status.availableReplicas" />
+              <el-table-column :label="t('deployment.desired')" prop="spec.replicas" />
+              <el-table-column :label="t('deployment.updatedVersion')" prop="metadata.labels.app" />
+              <el-table-column :label="t('common.creator')">
                 <template #default="scope">
                   <span>{{ getOwnerName('Deployment', scope.row.metadata?.namespace, scope.row.metadata?.name) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewDeploymentDetail(scope.row)">详情</el-button>
-                  <el-button type="warning" size="small" @click="handleScaleDeployment(scope.row)">扩缩容</el-button>
-                  <el-button type="info" size="small" @click="handleRestartDeployment(scope.row)">重启</el-button>
-                  <el-button type="danger" size="small" @click="handleDeleteDeployment(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">删除</el-button>
+                  <el-button type="primary" size="small" @click="viewDeploymentDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="warning" size="small" @click="handleScaleDeployment(scope.row)">{{ t('deployment.scale') }}</el-button>
+                  <el-button type="info" size="small" @click="handleRestartDeployment(scope.row)">{{ t('deployment.restart') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteDeployment(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -492,15 +493,15 @@
           <!-- Job管理页面 -->
           <div v-if="activeMenu === 'job'" class="configmap-page">
             <div class="page-header">
-              <h3>Job 管理</h3>
+              <h3>{{ t('job.title') }}</h3>
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadJobList" :loading="jobLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
                 <el-select
                   v-model="jobNamespaceFilter"
-                  placeholder="选择命名空间"
+                  :placeholder="t('common.selectNamespace')"
                   size="small"
                   style="width: 180px"
                   @change="loadJobList"
@@ -518,68 +519,68 @@
                   @click="showCreateResourceDialog = true; currentResourceType = 'job'"
                 >
                   <el-icon class="mr-1"><Plus /></el-icon>
-                  新建Job
+                  {{ t('job.create') }}
                 </el-button>
               </div>
             </div>
 
             <div v-if="jobList.length === 0 && !jobLoading" class="empty-state">
-              <el-empty description="暂无Job" />
+              <el-empty :description="t('job.empty')" />
             </div>
 
             <el-table v-else :data="jobList" v-loading="jobLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" show-overflow-tooltip />
-              <el-table-column prop="metadata.namespace" label="命名空间" />
+              <el-table-column prop="metadata.name" :label="t('common.name')" show-overflow-tooltip />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
               <el-table-column label="Completions">
                 <template #default="scope">
                   {{ scope.row.spec?.completions || '-' }}
                 </template>
               </el-table-column>
-              <el-table-column label="成功/总数">
+              <el-table-column :label="t('job.completions')">
                 <template #default="scope">
                   <span :class="scope.row.status?.succeeded === scope.row.spec?.completions ? 'text-success' : ''">
                     {{ scope.row.status?.succeeded ?? 0 }} / {{ scope.row.spec?.completions ?? '-' }}
                   </span>
                 </template>
               </el-table-column>
-              <el-table-column label="状态">
+              <el-table-column :label="t('common.status')">
                 <template #default="scope">
                   <el-tag
                     v-if="scope.row.status?.active > 0"
                     type="primary"
                     size="small"
-                  >运行中</el-tag>
+                  >{{ t('job.running') }}</el-tag>
                   <el-tag
                     v-else-if="scope.row.status?.succeeded >= (scope.row.spec?.completions || 1)"
                     type="success"
                     size="small"
-                  >已完成</el-tag>
+                  >{{ t('job.completed') }}</el-tag>
                   <el-tag
                     v-else-if="scope.row.status?.failed > 0"
                     type="danger"
                     size="small"
-                  >失败</el-tag>
-                  <el-tag v-else type="info" size="small">未知</el-tag>
+                  >{{ t('job.failed') }}</el-tag>
+                  <el-tag v-else type="info" size="small">{{ t('job.unknown') }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="创建人">
+              <el-table-column :label="t('common.creator')">
                 <template #default="scope">
                   <span>{{ getOwnerName('Job', scope.row.metadata?.namespace, scope.row.metadata?.name) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewJobDetail(scope.row)">详情</el-button>
-                  <el-button type="success" size="small" @click="viewJobLogs(scope.row)">日志</el-button>
-                  <el-button type="danger" size="small" @click="handleDeleteJob(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">删除</el-button>
+                  <el-button type="primary" size="small" @click="viewJobDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="success" size="small" @click="viewJobLogs(scope.row)">{{ t('common.logs') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteJob(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
           </div>
 
           <!-- Job日志弹窗 -->
-          <el-dialog v-model="showJobLogsDialog" title="Job日志" width="1000px">
+          <el-dialog v-model="showJobLogsDialog" :title="t('job.logs')" width="1000px">
             <div v-if="Object.keys(jobLogs).length > 0">
               <el-tabs v-model="activeJobLogTab" type="border-card">
                 <el-tab-pane v-for="(logs, podName) in jobLogs" :key="podName" :label="podName">
@@ -590,32 +591,32 @@
               </el-tabs>
             </div>
             <div v-else class="text-center py-8">
-              <el-empty description="暂无日志数据" />
+              <el-empty :description="t('job.noLog')" />
             </div>
             <template #footer>
-              <el-button @click="showJobLogsDialog = false">关闭</el-button>
-              <el-button type="primary" @click="viewJobLogs(selectedJob)">刷新</el-button>
+              <el-button @click="showJobLogsDialog = false">{{ t('common.close') }}</el-button>
+              <el-button type="primary" @click="viewJobLogs(selectedJob)">{{ t('common.refresh') }}</el-button>
             </template>
           </el-dialog>
 
           <!-- Job详情弹窗 -->
-          <el-dialog v-model="showJobDetailDialog" title="Job详情" width="1000px">
+          <el-dialog v-model="showJobDetailDialog" :title="t('job.detail')" width="1000px">
             <div v-if="jobDetail" class="detail-container">
               <el-tabs v-model="activeJobTab" type="border-card">
-                <el-tab-pane label="基本信息" name="jobBase">
+                <el-tab-pane :label="t('common.basicInfo')" name="jobBase">
                   <el-descriptions border column="2" size="small">
-                    <el-descriptions-item label="名称">{{ jobDetail.metadata?.name || '-' }}</el-descriptions-item>
-                    <el-descriptions-item label="命名空间">{{ jobDetail.metadata?.namespace || '-' }}</el-descriptions-item>
+                    <el-descriptions-item :label="t('common.name')">{{ jobDetail.metadata?.name || '-' }}</el-descriptions-item>
+                    <el-descriptions-item :label="t('common.namespace')">{{ jobDetail.metadata?.namespace || '-' }}</el-descriptions-item>
                     <el-descriptions-item label="UID">{{ jobDetail.metadata?.uid || '-' }}</el-descriptions-item>
                     <el-descriptions-item label="ResourceVersion">{{ jobDetail.metadata?.resourceVersion || '-' }}</el-descriptions-item>
-                    <el-descriptions-item label="创建时间">{{ formatTimestamp(jobDetail.metadata?.creationTimestamp) }}</el-descriptions-item>
+                    <el-descriptions-item :label="t('common.createdAt')">{{ formatTimestamp(jobDetail.metadata?.creationTimestamp) }}</el-descriptions-item>
                     <el-descriptions-item label="Owner">
                       <template v-if="jobDetail.metadata?.ownerReferences?.[0]">
                         {{ jobDetail.metadata.ownerReferences[0].kind }}/{{ jobDetail.metadata.ownerReferences[0].name }}
                       </template>
                       <span v-else>-</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="标签" span="2">
+                    <el-descriptions-item :label="t('common.labels')" span="2">
                       <el-tag v-for="(value, key) in jobDetail.metadata?.labels" :key="key" size="small" class="mr-1 mb-1">
                         {{ key }}={{ value }}
                       </el-tag>
@@ -624,18 +625,18 @@
                   </el-descriptions>
                 </el-tab-pane>
 
-                <el-tab-pane label="运行策略" name="jobPolicy">
+                <el-tab-pane :label="t('job.runningPolicy')" name="jobPolicy">
                   <el-descriptions border column="2" size="small">
                     <el-descriptions-item label="Completions">{{ jobDetail.spec?.completions ?? '-' }}</el-descriptions-item>
                     <el-descriptions-item label="Parallelism">{{ jobDetail.spec?.parallelism ?? '-' }}</el-descriptions-item>
                     <el-descriptions-item label="CompletionMode">{{ jobDetail.spec?.completionMode || '-' }}</el-descriptions-item>
                     <el-descriptions-item label="BackoffLimit">{{ jobDetail.spec?.backoffLimit ?? '-' }}</el-descriptions-item>
-                    <el-descriptions-item label="挂起">
+                    <el-descriptions-item :label="t('common.suspend')">
                       <el-tag :type="jobDetail.spec?.suspend ? 'warning' : 'success'" size="small">
-                        {{ jobDetail.spec?.suspend ? '是' : '否' }}
+                        {{ jobDetail.spec?.suspend ? t('common.yes') : t('common.no') }}
                       </el-tag>
                     </el-descriptions-item>
-                    <el-descriptions-item label="TTL(秒)">{{ jobDetail.spec?.ttlSecondsAfterFinished ?? '-' }}</el-descriptions-item>
+                    <el-descriptions-item :label="t('job.ttl')">{{ jobDetail.spec?.ttlSecondsAfterFinished ?? '-' }}</el-descriptions-item>
                   </el-descriptions>
                   <div v-if="jobDetail.spec?.selector?.matchLabels" class="mt-4">
                     <h4 class="mb-2">Selector</h4>
@@ -645,75 +646,75 @@
                   </div>
                 </el-tab-pane>
 
-                <el-tab-pane label="Pod模板" name="jobPodTemplate">
+                <el-tab-pane :label="t('common.podTemplate')" name="jobPodTemplate">
                   <template v-if="jobDetail.spec?.template?.spec?.containers?.[0]">
-                    <h4 class="mb-2">容器配置</h4>
+                    <h4 class="mb-2">{{ t('job.containerConfig') }}</h4>
                     <el-descriptions border column="2" size="small">
-                      <el-descriptions-item label="容器名称">{{ jobDetail.spec.template.spec.containers[0].name || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="镜像">{{ jobDetail.spec.template.spec.containers[0].image || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="镜像拉取策略">{{ jobDetail.spec.template.spec.containers[0].imagePullPolicy || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="重启策略">{{ jobDetail.spec.template.spec.restartPolicy || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="CPU限制">{{ jobDetail.spec.template.spec.containers[0].resources?.limits?.cpu || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="内存限制">{{ jobDetail.spec.template.spec.containers[0].resources?.limits?.memory || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="CPU请求">{{ jobDetail.spec.template.spec.containers[0].resources?.requests?.cpu || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="内存请求">{{ jobDetail.spec.template.spec.containers[0].resources?.requests?.memory || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="DNS策略">{{ jobDetail.spec.template.spec.dnsPolicy || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="调度器">{{ jobDetail.spec.template.spec.dashboardName || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.containerName')">{{ jobDetail.spec.template.spec.containers[0].name || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.image')">{{ jobDetail.spec.template.spec.containers[0].image || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('pod.imagePullPolicy')">{{ jobDetail.spec.template.spec.containers[0].imagePullPolicy || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('pod.restartPolicy')">{{ jobDetail.spec.template.spec.restartPolicy || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.cpuLimit')">{{ jobDetail.spec.template.spec.containers[0].resources?.limits?.cpu || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.memoryLimit')">{{ jobDetail.spec.template.spec.containers[0].resources?.limits?.memory || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.cpuRequest')">{{ jobDetail.spec.template.spec.containers[0].resources?.requests?.cpu || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.memoryRequest')">{{ jobDetail.spec.template.spec.containers[0].resources?.requests?.memory || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.dnsPolicy')">{{ jobDetail.spec.template.spec.dnsPolicy || '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.scheduler')">{{ jobDetail.spec.template.spec.dashboardName || '-' }}</el-descriptions-item>
                       <el-descriptions-item label="Hostname">{{ jobDetail.spec.template.spec.hostname || '-' }}</el-descriptions-item>
                       <el-descriptions-item label="Subdomain">{{ jobDetail.spec.template.spec.subdomain || '-' }}</el-descriptions-item>
-                      <el-descriptions-item label="优雅终止(秒)">{{ jobDetail.spec.template.spec.terminationGracePeriodSeconds ?? '-' }}</el-descriptions-item>
+                      <el-descriptions-item :label="t('job.terminationGrace')">{{ jobDetail.spec.template.spec.terminationGracePeriodSeconds ?? '-' }}</el-descriptions-item>
                     </el-descriptions>
 
                     <div v-if="jobDetail.spec.template.spec.containers[0].command?.length > 0" class="mt-4">
-                      <h4 class="mb-2">启动命令</h4>
+                      <h4 class="mb-2">{{ t('job.startCommand') }}</h4>
                       <div class="command-display">
                         <code>{{ jobDetail.spec.template.spec.containers[0].command.join(' ') }}</code>
                       </div>
                     </div>
 
                     <div v-if="jobDetail.spec.template.spec.containers[0].env?.length > 0" class="mt-4">
-                      <h4 class="mb-2">环境变量</h4>
+                      <h4 class="mb-2">{{ t('job.envVars') }}</h4>
                       <el-table :data="jobDetail.spec.template.spec.containers[0].env" size="small" border stripe max-height="250">
-                        <el-table-column prop="name" label="名称" />
-                        <el-table-column prop="value" label="值">
+                        <el-table-column prop="name" :label="t('common.name')" />
+                        <el-table-column prop="value" :label="t('common.value')">
                           <template #default="scope">
-                            {{ scope.row.value || '(未设置)' }}
+                            {{ scope.row.value || t('common.notSet') }}
                           </template>
                         </el-table-column>
                       </el-table>
                     </div>
 
                     <div v-if="jobDetail.spec.template.spec.containers[0].volumeMounts?.length > 0" class="mt-4">
-                      <h4 class="mb-2">卷挂载</h4>
+                      <h4 class="mb-2">{{ t('pod.volumeMounts') }}</h4>
                       <el-table :data="jobDetail.spec.template.spec.containers[0].volumeMounts" size="small" border stripe>
-                        <el-table-column prop="name" label="卷名称" />
-                        <el-table-column prop="mountPath" label="挂载路径" />
+                        <el-table-column prop="name" :label="t('job.volumeName')" />
+                        <el-table-column prop="mountPath" :label="t('job.mountPath')" />
                       </el-table>
                     </div>
                   </template>
-                  <el-empty v-else description="无Pod模板信息" />
+                  <el-empty v-else :description="t('job.noPodTemplate')" />
                 </el-tab-pane>
 
-                <el-tab-pane label="存储卷" name="jobVolumes">
+                <el-tab-pane :label="t('common.volumes')" name="jobVolumes">
                   <div v-if="jobDetail.spec?.template?.spec?.volumes?.length > 0">
                     <div v-for="(vol, idx) in jobDetail.spec.template.spec.volumes" :key="idx" class="mb-4">
                       <h4 class="mb-2">{{ vol.name }}</h4>
                       <el-descriptions border column="2" size="small">
-                        <el-descriptions-item v-if="vol.secret" label="类型">
+                        <el-descriptions-item v-if="vol.secret" :label="t('common.type')">
                           <el-tag type="warning" size="small">Secret</el-tag>
                         </el-descriptions-item>
-                        <el-descriptions-item v-if="vol.secret" label="Secret名称">{{ vol.secret.secretName }}</el-descriptions-item>
-                        <el-descriptions-item v-if="vol.secret" label="默认权限">{{ vol.secret.defaultMode ?? '-' }}</el-descriptions-item>
+                        <el-descriptions-item v-if="vol.secret" :label="t('job.secretName')">{{ vol.secret.secretName }}</el-descriptions-item>
+                        <el-descriptions-item v-if="vol.secret" :label="t('job.defaultMode')">{{ vol.secret.defaultMode ?? '-' }}</el-descriptions-item>
                         <el-descriptions-item v-if="vol.secret?.items" label="Items" span="2">
                           <div v-for="(item, i) in vol.secret.items" :key="i" class="mb-1">
                             <el-tag size="small">{{ item.key }} → {{ item.path }}</el-tag>
                           </div>
                         </el-descriptions-item>
-                        <el-descriptions-item v-if="vol.configMap" label="类型">
+                        <el-descriptions-item v-if="vol.configMap" :label="t('common.type')">
                           <el-tag type="info" size="small">ConfigMap</el-tag>
                         </el-descriptions-item>
-                        <el-descriptions-item v-if="vol.configMap" label="ConfigMap名称">{{ vol.configMap.name }}</el-descriptions-item>
-                        <el-descriptions-item v-if="vol.configMap" label="默认权限">{{ vol.configMap.defaultMode ?? '-' }}</el-descriptions-item>
+                        <el-descriptions-item v-if="vol.configMap" :label="t('job.configmapName')">{{ vol.configMap.name }}</el-descriptions-item>
+                        <el-descriptions-item v-if="vol.configMap" :label="t('job.defaultMode')">{{ vol.configMap.defaultMode ?? '-' }}</el-descriptions-item>
                         <el-descriptions-item v-if="vol.configMap?.items" label="Items" span="2">
                           <div v-for="(item, i) in vol.configMap.items" :key="i" class="mb-1">
                             <el-tag size="small">{{ item.key }} → {{ item.path }} (mode: {{ item.mode ?? '-' }})</el-tag>
@@ -722,21 +723,21 @@
                       </el-descriptions>
                     </div>
                   </div>
-                  <el-empty v-else description="无存储卷" />
+                  <el-empty v-else :description="t('job.noVolume')" />
                 </el-tab-pane>
 
-                <el-tab-pane label="状态" name="jobStatus">
+                <el-tab-pane :label="t('common.status')" name="jobStatus">
                   <el-descriptions border column="2" size="small">
                     <el-descriptions-item label="Active">{{ jobDetail.status?.active ?? '-' }}</el-descriptions-item>
                     <el-descriptions-item label="Ready">{{ jobDetail.status?.ready ?? '-' }}</el-descriptions-item>
                     <el-descriptions-item label="Succeeded">{{ jobDetail.status?.succeeded ?? '-' }}</el-descriptions-item>
                     <el-descriptions-item label="Failed">{{ jobDetail.status?.failed ?? '-' }}</el-descriptions-item>
-                    <el-descriptions-item label="启动时间">{{ formatTimestamp(jobDetail.status?.startTime) }}</el-descriptions-item>
-                    <el-descriptions-item label="完成时间">{{ formatTimestamp(jobDetail.status?.completionTime) }}</el-descriptions-item>
+                    <el-descriptions-item :label="t('job.startedAt')">{{ formatTimestamp(jobDetail.status?.startTime) }}</el-descriptions-item>
+                    <el-descriptions-item :label="t('job.completedAt')">{{ formatTimestamp(jobDetail.status?.completionTime) }}</el-descriptions-item>
                   </el-descriptions>
 
                   <div v-if="jobDetail.status?.conditions?.length > 0" class="mt-4">
-                    <h4 class="mb-2">状态变更记录</h4>
+                    <h4 class="mb-2">{{ t('job.statusHistory') }}</h4>
                     <el-timeline>
                       <el-timeline-item
                         v-for="(condition, index) in jobDetail.status.conditions"
@@ -746,7 +747,7 @@
                       >
                         <h5>{{ condition.type }}</h5>
                         <p>{{ condition.message }}</p>
-                        <p v-if="condition.reason" class="text-gray-500 text-sm">原因: {{ condition.reason }}</p>
+                        <p v-if="condition.reason" class="text-gray-500 text-sm">{{ t('common.reason') }}: {{ condition.reason }}</p>
                       </el-timeline-item>
                     </el-timeline>
                   </div>
@@ -754,26 +755,26 @@
               </el-tabs>
             </div>
             <template #footer>
-              <el-button @click="showJobDetailDialog = false">关闭</el-button>
+              <el-button @click="showJobDetailDialog = false">{{ t('common.close') }}</el-button>
             </template>
           </el-dialog>
 
           <!-- Service管理页面 -->
           <div v-if="activeMenu === 'service'" class="service-page">
             <div class="page-header">
-              <h3>Service管理</h3>
+              <h3>{{ t('service.title') }}</h3>
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadServiceList" :loading="serviceLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
                 <el-select
                   v-model="serviceNamespaceFilter"
-                  placeholder="选择命名空间"
+                  :placeholder="t('common.selectNamespace')"
                   class="w-60 ml-2"
                   @change="loadServiceList"
                 >
-                  <el-option label="所有命名空间" value="all" />
+                  <el-option :label="t('common.allNamespaces')" value="all" />
                   <el-option
                     v-for="ns in namespaceList"
                     :key="ns.name"
@@ -781,26 +782,26 @@
                     :value="ns.name"
                   />
                   <template #prefix v-if="serviceNamespaceFilter">
-                    <span>{{ serviceNamespaceFilter === 'all' ? '所有命名空间' : serviceNamespaceFilter }}</span>
+                    <span>{{ serviceNamespaceFilter === 'all' ? t('common.allNamespaces') : serviceNamespaceFilter }}</span>
                   </template>
                 </el-select>
                 <el-button type="success" size="small" @click="showCreateResourceDialog = true; currentResourceType = 'service'" class="ml-2">
                   <el-icon class="mr-1"><Plus /></el-icon>
-                  新建Service
+                  {{ t('service.create') }}
                 </el-button>
               </div>
             </div>
 
             <div v-if="serviceList.length === 0 && !serviceLoading" class="empty-state">
-              <el-empty description="暂无Service数据">
-                <el-button type="primary" @click="loadServiceList">刷新数据</el-button>
+              <el-empty :description="t('service.empty')">
+                <el-button type="primary" @click="loadServiceList">{{ t('common.refreshData') }}</el-button>
               </el-empty>
             </div>
 
             <el-table v-else :data="serviceList" v-loading="serviceLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" />
-              <el-table-column prop="metadata.namespace" label="命名空间" />
-              <el-table-column label="类型">
+              <el-table-column prop="metadata.name" :label="t('common.name')" />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('common.type')">
                 <template #default="scope">
                   <el-tag :type="getServiceTypeTag(scope.row.spec.type)">
                     {{ scope.row.spec.type }}
@@ -808,7 +809,7 @@
                 </template>
               </el-table-column>
               <el-table-column label="ClusterIP" prop="spec.clusterIP" />
-              <el-table-column label="端口配置">
+              <el-table-column :label="t('service.portConfig')">
                 <template #default="scope">
                   <div v-for="(port, index) in scope.row.spec.ports" :key="index" class="port-item">
                     <el-tag size="small" class="mr-1 mb-1">
@@ -818,16 +819,16 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="创建人">
+              <el-table-column :label="t('common.creator')">
                 <template #default="scope">
                   <span>{{ getOwnerName('Service', scope.row.metadata?.namespace, scope.row.metadata?.name) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewServiceDetail(scope.row)">详情</el-button>
-                  <el-button type="danger" size="small" @click="handleDeleteService(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">删除</el-button>
+                  <el-button type="primary" size="small" @click="viewServiceDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteService(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -836,19 +837,19 @@
           <!-- PVC存储卷管理页面 -->
           <div v-if="activeMenu === 'pvc'" class="pvc-page">
             <div class="page-header">
-              <h3>存储卷管理</h3>
+              <h3>{{ t('pvc.title') }}</h3>
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadPvcList" :loading="pvcLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
                 <el-select
                   v-model="pvcNamespaceFilter"
-                  placeholder="选择命名空间"
+                  :placeholder="t('common.selectNamespace')"
                   class="w-60 ml-2"
                   @change="loadPvcList"
                 >
-                  <el-option label="所有命名空间" value="all" />
+                  <el-option :label="t('common.allNamespaces')" value="all" />
                   <el-option
                     v-for="ns in namespaceList"
                     :key="ns.name"
@@ -856,39 +857,39 @@
                     :value="ns.name"
                   />
                   <template #prefix v-if="pvcNamespaceFilter">
-                    <span>{{ pvcNamespaceFilter === 'all' ? '所有命名空间' : pvcNamespaceFilter }}</span>
+                    <span>{{ pvcNamespaceFilter === 'all' ? t('common.allNamespaces') : pvcNamespaceFilter }}</span>
                   </template>
                 </el-select>
                 <el-button type="success" size="small" @click="showCreateResourceDialog = true; currentResourceType = 'pvc'" class="ml-2">
                   <el-icon class="mr-1"><Plus /></el-icon>
-                  新建存储卷
+                  {{ t('pvc.create') }}
                 </el-button>
               </div>
             </div>
 
             <div v-if="pvcList.length === 0 && !pvcLoading" class="empty-state">
-              <el-empty description="暂无存储卷数据">
-                <el-button type="primary" @click="loadPvcList">刷新数据</el-button>
+              <el-empty :description="t('pvc.empty')">
+                <el-button type="primary" @click="loadPvcList">{{ t('common.refreshData') }}</el-button>
               </el-empty>
             </div>
 
             <el-table v-else :data="pvcList" v-loading="pvcLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" />
-              <el-table-column prop="metadata.namespace" label="命名空间" />
-              <el-table-column label="状态">
+              <el-table-column prop="metadata.name" :label="t('common.name')" />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('common.status')">
                 <template #default="scope">
                   <el-tag :type="getPvcStatusType(scope.row)">
                     {{ scope.row.status?.phase || 'Pending' }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="存储类" prop="spec.storageClassName" />
-              <el-table-column label="容量">
+              <el-table-column :label="t('pvc.storageClass')" prop="spec.storageClassName" />
+              <el-table-column :label="t('pvc.capacity')">
                 <template #default="scope">
                   {{ scope.row.spec.resources.requests.storage || '-' }}
                 </template>
               </el-table-column>
-              <el-table-column label="访问模式">
+              <el-table-column :label="t('pvc.accessModes')">
                 <template #default="scope">
                   <div v-for="(mode, index) in scope.row.spec.accessModes" :key="index" class="mode-item">
                     <el-tag size="small" class="mr-1 mb-1">
@@ -897,17 +898,17 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="挂载卷" prop="spec.volumeName" />
-              <el-table-column label="创建人">
+              <el-table-column :label="t('pvc.mountVolume')" prop="spec.volumeName" />
+              <el-table-column :label="t('common.creator')">
                 <template #default="scope">
                   <span>{{ getOwnerName('PVC', scope.row.metadata?.namespace, scope.row.metadata?.name) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewPvcDetail(scope.row)">详情</el-button>
-                  <el-button type="danger" size="small" @click="handleDeletePvc(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">删除</el-button>
+                  <el-button type="primary" size="small" @click="viewPvcDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeletePvc(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -916,19 +917,19 @@
           <!-- Ingress路由管理页面 -->
           <div v-if="activeMenu === 'ingress'" class="ingress-page">
             <div class="page-header">
-              <h3>路由管理</h3>
+              <h3>{{ t('ingress.title') }}</h3>
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadIngressList" :loading="ingressLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
                 <el-select
                   v-model="ingressNamespaceFilter"
-                  placeholder="选择命名空间"
+                  :placeholder="t('common.selectNamespace')"
                   class="w-60 ml-2"
                   @change="loadIngressList"
                 >
-                  <el-option label="所有命名空间" value="all" />
+                  <el-option :label="t('common.allNamespaces')" value="all" />
                   <el-option
                     v-for="ns in namespaceList"
                     :key="ns.name"
@@ -936,34 +937,34 @@
                     :value="ns.name"
                   />
                   <template #prefix v-if="ingressNamespaceFilter">
-                    <span>{{ ingressNamespaceFilter === 'all' ? '所有命名空间' : ingressNamespaceFilter }}</span>
+                    <span>{{ ingressNamespaceFilter === 'all' ? t('common.allNamespaces') : ingressNamespaceFilter }}</span>
                   </template>
                 </el-select>
                 <el-button type="success" size="small" @click="showCreateResourceDialog = true; currentResourceType = 'ingress'" class="ml-2">
                   <el-icon class="mr-1"><Plus /></el-icon>
-                  新建路由
+                  {{ t('ingress.create') }}
                 </el-button>
               </div>
             </div>
 
             <div v-if="ingressList.length === 0 && !ingressLoading" class="empty-state">
-              <el-empty description="暂无路由数据">
-                <el-button type="primary" @click="loadIngressList">刷新数据</el-button>
+              <el-empty :description="t('ingress.empty')">
+                <el-button type="primary" @click="loadIngressList">{{ t('common.refreshData') }}</el-button>
               </el-empty>
             </div>
 
             <el-table v-else :data="ingressList" v-loading="ingressLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" />
-              <el-table-column prop="metadata.namespace" label="命名空间" />
-              <el-table-column label="状态">
+              <el-table-column prop="metadata.name" :label="t('common.name')" />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('common.status')">
                 <template #default="scope">
                   <el-tag :type="getIngressStatusType(scope.row)">
-                    {{ getIngressStatusType(scope.row) === 'success' ? '正常' : '待调度' }}
+                    {{ getIngressStatusType(scope.row) === 'success' ? t('ingress.normal') : t('ingress.pending') }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="Ingress类" prop="spec.ingressClassName" />
-              <el-table-column label="地址">
+              <el-table-column :label="t('ingress.ingressClass')" prop="spec.ingressClassName" />
+              <el-table-column :label="t('ingress.address')">
                 <template #default="scope">
                   <div v-if="scope.row.status?.loadBalancer?.ingress && scope.row.status.loadBalancer.ingress.length > 0" class="address-item">
                     <span v-for="(addr, index) in scope.row.status.loadBalancer.ingress" :key="index" class="mr-1">
@@ -975,29 +976,29 @@
               </el-table-column>
               <el-table-column label="TLS">
                 <template #default="scope">
-                  <el-tag v-if="scope.row.spec.tls && scope.row.spec.tls.length > 0" type="success">已启用</el-tag>
-                  <el-tag v-else type="info">未启用</el-tag>
+                  <el-tag v-if="scope.row.spec.tls && scope.row.spec.tls.length > 0" type="success">{{ t('common.enabled') }}</el-tag>
+                  <el-tag v-else type="info">{{ t('common.notEnabled') }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="路由规则">
+              <el-table-column :label="t('ingress.rules')">
                 <template #default="scope">
                   <div v-for="(rule, index) in scope.row.spec.rules" :key="index" class="rule-item mb-1">
                     <span class="text-sm">
-                      <strong>{{ rule.host || '默认' }}</strong> → {{ rule.http?.paths?.length || 0 }}条路径
+                      <strong>{{ rule.host || t('common.default') }}</strong> → {{ t('ingress.paths', { n: rule.http?.paths?.length || 0 }) }}
                     </span>
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="创建人">
+              <el-table-column :label="t('common.creator')">
                 <template #default="scope">
                   <span>{{ getOwnerName('Ingress', scope.row.metadata?.namespace, scope.row.metadata?.name) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewIngressDetail(scope.row)">详情</el-button>
-                  <el-button type="danger" size="small" @click="handleDeleteIngress(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">删除</el-button>
+                  <el-button type="primary" size="small" @click="viewIngressDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteIngress(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -1006,15 +1007,15 @@
           <!-- ConfigMap管理页面 -->
           <div v-if="activeMenu === 'configmap'" class="configmap-page">
             <div class="page-header">
-              <h3>ConfigMap 管理</h3>
+              <h3>{{ t('configmap.title') }}</h3>
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadConfigMapList" :loading="configMapLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
                 <el-select
                   v-model="configMapNamespaceFilter"
-                  placeholder="选择命名空间"
+                  :placeholder="t('common.selectNamespace')"
                   size="small"
                   style="width: 180px"
                   @change="loadConfigMapList"
@@ -1032,19 +1033,19 @@
                   @click="showCreateResourceDialog = true; currentResourceType = 'configmap'"
                 >
                   <el-icon class="mr-1"><Plus /></el-icon>
-                  新建ConfigMap
+                  {{ t('configmap.create') }}
                 </el-button>
               </div>
             </div>
 
             <div v-if="configMapList.length === 0 && !configMapLoading" class="empty-state">
-              <el-empty description="暂无ConfigMap" />
+              <el-empty :description="t('configmap.empty')" />
             </div>
 
             <el-table v-else :data="configMapList" v-loading="configMapLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" show-overflow-tooltip />
-              <el-table-column prop="metadata.namespace" label="命名空间" />
-              <el-table-column label="Data条目数">
+              <el-table-column prop="metadata.name" :label="t('common.name')" show-overflow-tooltip />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('configmap.dataCount')">
                 <template #default="scope">
                   {{ scope.row.data ? Object.keys(scope.row.data).length : 0 }}
                 </template>
@@ -1060,16 +1061,16 @@
                   <span v-if="!scope.row.data || Object.keys(scope.row.data).length === 0">-</span>
                 </template>
               </el-table-column>
-              <el-table-column label="创建人">
+              <el-table-column :label="t('common.creator')">
                 <template #default="scope">
                   <span>{{ getOwnerName('ConfigMap', scope.row.metadata?.namespace, scope.row.metadata?.name) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewConfigMapDetail(scope.row)">详情</el-button>
-                  <el-button type="danger" size="small" @click="handleDeleteConfigMap(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">删除</el-button>
+                  <el-button type="primary" size="small" @click="viewConfigMapDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteConfigMap(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -1078,15 +1079,15 @@
           <!-- Secret管理页面 -->
           <div v-if="activeMenu === 'secret'" class="configmap-page">
             <div class="page-header">
-              <h3>Secret 管理</h3>
+              <h3>{{ t('secret.title') }}</h3>
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadSecretList" :loading="secretLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
                 <el-select
                   v-model="secretNamespaceFilter"
-                  placeholder="选择命名空间"
+                  :placeholder="t('common.selectNamespace')"
                   size="small"
                   style="width: 180px"
                   @change="loadSecretList"
@@ -1104,24 +1105,24 @@
                   @click="showCreateResourceDialog = true; currentResourceType = 'secret'"
                 >
                   <el-icon class="mr-1"><Plus /></el-icon>
-                  新建Secret
+                  {{ t('secret.create') }}
                 </el-button>
               </div>
             </div>
 
             <div v-if="secretList.length === 0 && !secretLoading" class="empty-state">
-              <el-empty description="暂无Secret" />
+              <el-empty :description="t('secret.empty')" />
             </div>
 
             <el-table v-else :data="secretList" v-loading="secretLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" show-overflow-tooltip />
-              <el-table-column prop="metadata.namespace" label="命名空间" />
-              <el-table-column label="类型">
+              <el-table-column prop="metadata.name" :label="t('common.name')" show-overflow-tooltip />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('common.type')">
                 <template #default="scope">
                   <el-tag size="small">{{ scope.row.type || 'Opaque' }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="Data条目数">
+              <el-table-column :label="t('configmap.dataCount')">
                 <template #default="scope">
                   {{ scope.row.data ? Object.keys(scope.row.data).length : 0 }}
                 </template>
@@ -1137,16 +1138,16 @@
                   <span v-if="!scope.row.data || Object.keys(scope.row.data).length === 0">-</span>
                 </template>
               </el-table-column>
-              <el-table-column label="创建人">
+              <el-table-column :label="t('common.creator')">
                 <template #default="scope">
                   <span>{{ getOwnerName('Secret', scope.row.metadata?.namespace, scope.row.metadata?.name) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewSecretDetail(scope.row)">详情</el-button>
-                  <el-button type="danger" size="small" @click="handleDeleteSecret(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">删除</el-button>
+                  <el-button type="primary" size="small" @click="viewSecretDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteSecret(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -1159,17 +1160,17 @@
               <div class="header-actions">
                 <el-button type="primary" size="small" @click="loadCrdList" :loading="crdLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
               </div>
             </div>
 
             <div v-if="crdList.length === 0 && !crdLoading" class="empty-state">
-              <el-empty description="暂无CRD" />
+              <el-empty :description="t('crd.empty')" />
             </div>
 
             <el-table v-else :data="crdList" v-loading="crdLoading" border stripe>
-              <el-table-column prop="metadata.name" label="名称" show-overflow-tooltip />
+              <el-table-column prop="metadata.name" :label="t('common.name')" show-overflow-tooltip />
               <el-table-column label="Group" show-overflow-tooltip>
                 <template #default="scope">
                   {{ scope.row.spec?.group }}
@@ -1182,7 +1183,7 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="可用版本">
+              <el-table-column :label="t('crd.availableVersions')">
                 <template #default="scope">
                   <el-tag
                     v-for="v in (scope.row.spec?.versions || [])"
@@ -1193,10 +1194,10 @@
                 </template>
               </el-table-column>
               <el-table-column prop="status.acceptedNames.kind" label="Kind" show-overflow-tooltip />
-              <el-table-column prop="metadata.creationTimestamp" label="创建时间" />
-              <el-table-column label="操作" class-name="sticky-right-col">
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
                 <template #default="scope">
-                  <el-button type="primary" size="small" @click="viewCrdDetail(scope.row)">详情</el-button>
+                  <el-button type="primary" size="small" @click="viewCrdDetail(scope.row)">{{ t('common.details') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -1205,17 +1206,17 @@
           <!-- K8S Event事件页面 -->
           <div v-if="activeMenu === 'event'" class="event-page">
             <div class="page-header">
-              <h3>集群事件</h3>
+              <h3>{{ t('event.title') }}</h3>
               <div class="header-actions">
                 <el-select
                   v-model="eventNamespaceFilter"
-                  placeholder="全部命名空间"
+                  :placeholder="t('common.allNamespacesAll')"
                   size="small"
                   clearable
                   style="width: 200px"
                   @change="loadEventList"
                 >
-                  <el-option label="全部命名空间" value="all" />
+                  <el-option :label="t('common.allNamespacesAll')" value="all" />
                   <el-option
                     v-for="ns in namespaceList"
                     :key="ns.name"
@@ -1224,14 +1225,14 @@
                   />
                 </el-select>
                 <el-button type="primary" size="small" @click="loadEventList" :loading="eventLoading">
-                  刷新
+                  {{ t('common.refresh') }}
                 </el-button>
               </div>
             </div>
             <div class="event-container">
               <div v-if="eventList.length === 0 && !eventLoading" class="empty-state">
                 <el-icon :size="48" color="#c0c4cc"><WarningFilled /></el-icon>
-                <p>暂无事件</p>
+                <p>{{ t('event.empty') }}</p>
               </div>
               <el-table
                 v-else
@@ -1242,7 +1243,7 @@
                 height="100%"
                 size="small"
               >
-                <el-table-column prop="type" label="类型">
+                <el-table-column prop="type" :label="t('common.type')">
                   <template #default="scope">
                     <el-tag
                       :type="scope.row.type === 'Warning' ? 'danger' : 'info'"
@@ -1250,22 +1251,22 @@
                     >{{ scope.row.type }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="reason" label="原因" show-overflow-tooltip />
-                <el-table-column label="消息" min-width="300" show-overflow-tooltip>
+                <el-table-column prop="reason" :label="t('common.reason')" show-overflow-tooltip />
+                <el-table-column :label="t('common.message')" min-width="300" show-overflow-tooltip>
                   <template #default="scope">
-                    <span class="copyable-cell" @click="copyCellText(scope.row.message)" :title="'点击复制'">
+                    <span class="copyable-cell" @click="copyCellText(scope.row.message)" :title="t('common.clickToCopy')">
                       {{ scope.row.message }}
                     </span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="metadata.namespace" label="命名空间" show-overflow-tooltip />
-                <el-table-column label="资源" show-overflow-tooltip>
+                <el-table-column prop="metadata.namespace" :label="t('common.namespace')" show-overflow-tooltip />
+                <el-table-column :label="t('event.resource')" show-overflow-tooltip>
                   <template #default="scope">
                     {{ scope.row.involvedObject?.kind }}/{{ scope.row.involvedObject?.name }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="count" label="次数" />
-                <el-table-column label="最后出现">
+                <el-table-column prop="count" :label="t('event.count')" />
+                <el-table-column :label="t('event.lastSeen')">
                   <template #default="scope">
                     {{ formatTimestamp(scope.row.lastTimestamp || scope.row.eventTime?.time) }}
                   </template>
@@ -1279,80 +1280,80 @@
     </div>
 
     <!-- 新建命名空间弹窗 -->
-    <el-dialog v-model="showCreateNamespaceDialog" title="新建命名空间" width="500px">
+    <el-dialog v-model="showCreateNamespaceDialog" :title="t('namespace.createDialog')" width="500px">
       <el-form :model="namespaceForm" label-width="80px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="namespaceForm.name" placeholder="请输入命名空间名称" />
+        <el-form-item :label="t('common.name')" prop="name">
+          <el-input v-model="namespaceForm.name" :placeholder="t('namespace.namePlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showCreateNamespaceDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateNamespace" :loading="createLoading">创建</el-button>
+        <el-button @click="showCreateNamespaceDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleCreateNamespace" :loading="createLoading">{{ t('common.create') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 新建资源弹窗 -->
-    <el-dialog v-model="showCreateResourceDialog" title="新建K8S资源" width="800px">
+    <el-dialog v-model="showCreateResourceDialog" :title="t('createResource.title')" width="800px">
       <el-tabs v-model="currentResourceType" type="border-card">
         <el-tab-pane label="Deployment" name="deployment">
           <el-form :model="deploymentForm" label-width="120px">
-            <el-form-item label="命名空间" required>
-              <el-select v-model="deploymentForm.namespace" placeholder="请选择命名空间">
+            <el-form-item :label="t('common.namespace')" required>
+              <el-select v-model="deploymentForm.namespace" :placeholder="t('createResource.namespacePlaceholder')">
                 <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="名称" required>
-              <el-input v-model="deploymentForm.name" placeholder="请输入Deployment名称" />
+            <el-form-item :label="t('common.name')" required>
+              <el-input v-model="deploymentForm.name" :placeholder="t('createResource.deploymentNamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="镜像" required>
-              <el-input v-model="deploymentForm.image" placeholder="例如: nginx:1.25.3" />
+            <el-form-item :label="t('job.image')" required>
+              <el-input v-model="deploymentForm.image" :placeholder="t('createResource.imageNamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="副本数" required>
+            <el-form-item :label="t('createResource.replicas')" required>
               <el-input-number v-model="deploymentForm.replicas" :min="1" :max="100" />
             </el-form-item>
-            <el-form-item label="容器端口">
-              <el-input v-model="deploymentForm.containerPort" placeholder="例如: 80" />
+            <el-form-item :label="t('createResource.containerPort')">
+              <el-input v-model="deploymentForm.containerPort" :placeholder="t('createResource.containerPortPlaceholder')" />
             </el-form-item>
-            <el-form-item label="资源限制">
+            <el-form-item :label="t('pod.resourceLimits')">
               <el-row :gutter="10">
                 <el-col span="12">
-                  <el-input v-model="deploymentForm.cpuLimit" placeholder="CPU限制: 例如 1000m" />
+                  <el-input v-model="deploymentForm.cpuLimit" :placeholder="t('createResource.cpuLimitPlaceholder')" />
                 </el-col>
                 <el-col span="12">
-                  <el-input v-model="deploymentForm.memoryLimit" placeholder="内存限制: 例如 1Gi" />
+                  <el-input v-model="deploymentForm.memoryLimit" :placeholder="t('createResource.memoryLimitPlaceholder')" />
                 </el-col>
               </el-row>
             </el-form-item>
-            <el-form-item label="环境变量">
-              <el-input type="textarea" v-model="deploymentForm.env" placeholder="格式: KEY=VALUE，每行一个" :rows="3" />
+            <el-form-item :label="t('createResource.envVars')">
+              <el-input type="textarea" v-model="deploymentForm.env" :placeholder="t('createResource.envPlaceholder')" :rows="3" />
             </el-form-item>
-            <el-form-item label="卷映射">
+            <el-form-item :label="t('createResource.volumeMapping')">
               <div class="volume-mount-list">
                 <div v-for="(vm, index) in deploymentForm.volumeMounts" :key="index" class="volume-mount-row mb-2">
-                  <el-select v-model="vm.type" placeholder="卷类型" size="small" style="width: 110px" @change="onVolTypeChange(vm)">
+                  <el-select v-model="vm.type" :placeholder="t('createResource.volumeType')" size="small" style="width: 110px" @change="onVolTypeChange(vm)">
                     <el-option label="ConfigMap" value="configMap" />
                     <el-option label="Secret" value="secret" />
                     <el-option label="PVC" value="pvc" />
                     <el-option label="HostPath" value="hostPath" />
                   </el-select>
-                  <el-select v-if="vm.type === 'configMap'" v-model="vm.name" placeholder="选择ConfigMap" size="small" style="width: 200px" filterable>
+                  <el-select v-if="vm.type === 'configMap'" v-model="vm.name" :placeholder="t('createResource.selectConfigMap')" size="small" style="width: 200px" filterable>
                     <el-option v-for="cm in volConfigMaps" :key="cm" :label="cm" :value="cm" />
                   </el-select>
-                  <el-select v-else-if="vm.type === 'secret'" v-model="vm.name" placeholder="选择Secret" size="small" style="width: 200px" filterable>
+                  <el-select v-else-if="vm.type === 'secret'" v-model="vm.name" :placeholder="t('createResource.selectSecret')" size="small" style="width: 200px" filterable>
                     <el-option v-for="s in volSecrets" :key="s" :label="s" :value="s" />
                   </el-select>
-                  <el-select v-else-if="vm.type === 'pvc'" v-model="vm.name" placeholder="选择PVC" size="small" style="width: 200px" filterable>
+                  <el-select v-else-if="vm.type === 'pvc'" v-model="vm.name" :placeholder="t('createResource.selectPVC')" size="small" style="width: 200px" filterable>
                     <el-option v-for="p in volPvcs" :key="p" :label="p" :value="p" />
                   </el-select>
-                  <el-input v-else v-model="vm.name" placeholder="宿主机路径，如 /mnt/data" size="small" style="width: 200px" />
-                  <el-input v-model="vm.mountPath" placeholder="容器内路径，如 /data" size="small" style="width: 200px" />
+                  <el-input v-else v-model="vm.name" :placeholder="t('createResource.hostPathPlaceholder')" size="small" style="width: 200px" />
+                  <el-input v-model="vm.mountPath" :placeholder="t('createResource.containerPathPlaceholder')" size="small" style="width: 200px" />
                   <el-button @click="removeDeployVolumeMount(index)" type="danger" size="small" circle>
                     <el-icon><Delete /></el-icon>
                   </el-button>
                 </div>
               </div>
               <el-button @click="addDeployVolumeMount" type="primary" size="small" plain :loading="loadingVolResources">
-                <el-icon><Plus /></el-icon> 添加卷映射
+                <el-icon><Plus /></el-icon> {{ t('createResource.addVolumeMapping') }}
               </el-button>
             </el-form-item>
           </el-form>
@@ -1360,72 +1361,72 @@
 
         <el-tab-pane label="Job" name="job">
           <el-form :model="jobForm" label-width="120px">
-            <el-form-item label="命名空间" required>
-              <el-select v-model="jobForm.namespace" placeholder="请选择命名空间">
+            <el-form-item :label="t('common.namespace')" required>
+              <el-select v-model="jobForm.namespace" :placeholder="t('createResource.namespacePlaceholder')">
                 <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="名称" required>
-              <el-input v-model="jobForm.name" placeholder="请输入Job名称" />
+            <el-form-item :label="t('common.name')" required>
+              <el-input v-model="jobForm.name" :placeholder="t('createResource.jobNamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="镜像" required>
-              <el-input v-model="jobForm.image" placeholder="例如: busybox" />
+            <el-form-item :label="t('job.image')" required>
+              <el-input v-model="jobForm.image" :placeholder="t('createResource.jobImagePlaceholder')" />
             </el-form-item>
-            <el-form-item label="完成次数">
+            <el-form-item :label="t('createResource.completions')">
               <el-input-number v-model="jobForm.completions" :min="1" :max="100" />
             </el-form-item>
-            <el-form-item label="并行数">
+            <el-form-item :label="t('createResource.parallelism')">
               <el-input-number v-model="jobForm.parallelism" :min="1" :max="100" />
             </el-form-item>
-            <el-form-item label="重启策略">
-              <el-select v-model="jobForm.restartPolicy" placeholder="请选择重启策略">
+            <el-form-item :label="t('pod.restartPolicy')">
+              <el-select v-model="jobForm.restartPolicy" :placeholder="t('createResource.restartPolicyPlaceholder')">
                 <el-option label="Never" value="Never" />
                 <el-option label="OnFailure" value="OnFailure" />
               </el-select>
             </el-form-item>
-            <el-form-item label="启动命令">
-              <el-input v-model="jobForm.command" placeholder="例如: /bin/sh -c 'echo hello'" />
+            <el-form-item :label="t('createResource.startCommand')">
+              <el-input v-model="jobForm.command" :placeholder="t('createResource.startCommandPlaceholder')" />
             </el-form-item>
-            <el-form-item label="资源限制">
+            <el-form-item :label="t('pod.resourceLimits')">
               <el-row :gutter="10">
                 <el-col span="12">
-                  <el-input v-model="jobForm.cpuLimit" placeholder="CPU限制: 例如 1000m" />
+                  <el-input v-model="jobForm.cpuLimit" :placeholder="t('createResource.cpuLimitPlaceholder')" />
                 </el-col>
                 <el-col span="12">
-                  <el-input v-model="jobForm.memoryLimit" placeholder="内存限制: 例如 1Gi" />
+                  <el-input v-model="jobForm.memoryLimit" :placeholder="t('createResource.memoryLimitPlaceholder')" />
                 </el-col>
               </el-row>
             </el-form-item>
-            <el-form-item label="环境变量">
-              <el-input type="textarea" v-model="jobForm.env" placeholder="格式: KEY=VALUE，每行一个" :rows="3" />
+            <el-form-item :label="t('createResource.envVars')">
+              <el-input type="textarea" v-model="jobForm.env" :placeholder="t('createResource.envPlaceholder')" :rows="3" />
             </el-form-item>
-            <el-form-item label="卷映射">
+            <el-form-item :label="t('createResource.volumeMapping')">
               <div class="volume-mount-list">
                 <div v-for="(vm, index) in jobForm.volumeMounts" :key="index" class="volume-mount-row mb-2">
-                  <el-select v-model="vm.type" placeholder="卷类型" size="small" style="width: 110px" @change="onVolTypeChange(vm)">
+                  <el-select v-model="vm.type" :placeholder="t('createResource.volumeType')" size="small" style="width: 110px" @change="onVolTypeChange(vm)">
                     <el-option label="ConfigMap" value="configMap" />
                     <el-option label="Secret" value="secret" />
                     <el-option label="PVC" value="pvc" />
                     <el-option label="HostPath" value="hostPath" />
                   </el-select>
-                  <el-select v-if="vm.type === 'configMap'" v-model="vm.name" placeholder="选择ConfigMap" size="small" style="width: 200px" filterable>
+                  <el-select v-if="vm.type === 'configMap'" v-model="vm.name" :placeholder="t('createResource.selectConfigMap')" size="small" style="width: 200px" filterable>
                     <el-option v-for="cm in volConfigMaps" :key="cm" :label="cm" :value="cm" />
                   </el-select>
-                  <el-select v-else-if="vm.type === 'secret'" v-model="vm.name" placeholder="选择Secret" size="small" style="width: 200px" filterable>
+                  <el-select v-else-if="vm.type === 'secret'" v-model="vm.name" :placeholder="t('createResource.selectSecret')" size="small" style="width: 200px" filterable>
                     <el-option v-for="s in volSecrets" :key="s" :label="s" :value="s" />
                   </el-select>
-                  <el-select v-else-if="vm.type === 'pvc'" v-model="vm.name" placeholder="选择PVC" size="small" style="width: 200px" filterable>
+                  <el-select v-else-if="vm.type === 'pvc'" v-model="vm.name" :placeholder="t('createResource.selectPVC')" size="small" style="width: 200px" filterable>
                     <el-option v-for="p in volPvcs" :key="p" :label="p" :value="p" />
                   </el-select>
-                  <el-input v-else v-model="vm.name" placeholder="宿主机路径，如 /mnt/data" size="small" style="width: 200px" />
-                  <el-input v-model="vm.mountPath" placeholder="容器内路径，如 /data" size="small" style="width: 200px" />
+                  <el-input v-else v-model="vm.name" :placeholder="t('createResource.hostPathPlaceholder')" size="small" style="width: 200px" />
+                  <el-input v-model="vm.mountPath" :placeholder="t('createResource.containerPathPlaceholder')" size="small" style="width: 200px" />
                   <el-button @click="removeJobVolumeMount(index)" type="danger" size="small" circle>
                     <el-icon><Delete /></el-icon>
                   </el-button>
                 </div>
               </div>
               <el-button @click="addJobVolumeMount" type="primary" size="small" plain :loading="loadingVolResources">
-                <el-icon><Plus /></el-icon> 添加卷映射
+                <el-icon><Plus /></el-icon> {{ t('createResource.addVolumeMapping') }}
               </el-button>
             </el-form-item>
           </el-form>
@@ -1433,52 +1434,52 @@
 
         <el-tab-pane label="Service" name="service">
           <el-form :model="serviceForm" label-width="120px">
-            <el-form-item label="命名空间" required>
-              <el-select v-model="serviceForm.namespace" placeholder="请选择命名空间">
+            <el-form-item :label="t('common.namespace')" required>
+              <el-select v-model="serviceForm.namespace" :placeholder="t('createResource.namespacePlaceholder')">
                 <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="名称" required>
-              <el-input v-model="serviceForm.name" placeholder="请输入Service名称" />
+            <el-form-item :label="t('common.name')" required>
+              <el-input v-model="serviceForm.name" :placeholder="t('createResource.serviceNamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="类型" required>
-              <el-select v-model="serviceForm.type" placeholder="请选择Service类型">
+            <el-form-item :label="t('common.type')" required>
+              <el-select v-model="serviceForm.type" :placeholder="t('createResource.serviceTypePlaceholder')">
                 <el-option label="ClusterIP" value="ClusterIP" />
                 <el-option label="NodePort" value="NodePort" />
                 <el-option label="LoadBalancer" value="LoadBalancer" />
               </el-select>
             </el-form-item>
-            <el-form-item label="端口配置" required>
+            <el-form-item :label="t('service.portConfig')" required>
               <el-row :gutter="10">
                 <el-col span="8">
-                  <el-input v-model="serviceForm.port" placeholder="服务端口" />
+                  <el-input v-model="serviceForm.port" :placeholder="t('createResource.servicePortPlaceholder')" />
                 </el-col>
                 <el-col span="8">
-                  <el-input v-model="serviceForm.targetPort" placeholder="容器端口" />
+                  <el-input v-model="serviceForm.targetPort" :placeholder="t('createResource.containerPortPlaceholder')" />
                 </el-col>
                 <el-col span="8">
-                  <el-input v-model="serviceForm.nodePort" placeholder="NodePort端口(可选)" :disabled="serviceForm.type !== 'NodePort'" />
+                  <el-input v-model="serviceForm.nodePort" :placeholder="t('createResource.nodePortPlaceholder')" :disabled="serviceForm.type !== 'NodePort'" />
                 </el-col>
               </el-row>
             </el-form-item>
-            <el-form-item label="选择器">
-              <el-input type="textarea" v-model="serviceForm.selector" placeholder="格式: app=nginx，每行一个" :rows="3" />
+            <el-form-item :label="t('createResource.selector')">
+              <el-input type="textarea" v-model="serviceForm.selector" :placeholder="t('createResource.selectorPlaceholder')" :rows="3" />
             </el-form-item>
           </el-form>
         </el-tab-pane>
 
         <el-tab-pane label="PVC" name="pvc">
           <el-form :model="pvcForm" label-width="120px">
-            <el-form-item label="命名空间" required>
-              <el-select v-model="pvcForm.namespace" placeholder="请选择命名空间">
+            <el-form-item :label="t('common.namespace')" required>
+              <el-select v-model="pvcForm.namespace" :placeholder="t('createResource.namespacePlaceholder')">
                 <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="名称" required>
-              <el-input v-model="pvcForm.name" placeholder="请输入PVC名称" />
+            <el-form-item :label="t('common.name')" required>
+              <el-input v-model="pvcForm.name" :placeholder="t('createResource.pvcNamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="存储类" required>
-              <el-select v-model="pvcForm.storageClass" placeholder="请选择存储类" filterable allow-create style="width: 100%">
+            <el-form-item :label="t('pvc.storageClass')" required>
+              <el-select v-model="pvcForm.storageClass" :placeholder="t('createResource.storageClassPlaceholder')" filterable allow-create style="width: 100%">
                 <el-option
                   v-for="sc in storageClassList"
                   :key="sc.metadata?.name"
@@ -1486,15 +1487,15 @@
                   :value="sc.metadata?.name"
                 >
                   <span>{{ sc.metadata?.name }}</span>
-                  <span v-if="sc.metadata?.annotations?.['storageclass.kubernetes.io/is-default-class']" class="text-primary ml-2">(默认)</span>
+                  <span v-if="sc.metadata?.annotations?.['storageclass.kubernetes.io/is-default-class']" class="text-primary ml-2">{{ t('common.defaultParen') }}</span>
                 </el-option>
               </el-select>
             </el-form-item>
-            <el-form-item label="存储大小" required>
-              <el-input v-model="pvcForm.storage" placeholder="例如: 10Gi" />
+            <el-form-item :label="t('createResource.storageSize')" required>
+              <el-input v-model="pvcForm.storage" :placeholder="t('createResource.storageSizePlaceholder')" />
             </el-form-item>
-            <el-form-item label="访问模式" required>
-              <el-select v-model="pvcForm.accessModes" multiple placeholder="请选择访问模式">
+            <el-form-item :label="t('pvc.accessModes')" required>
+              <el-select v-model="pvcForm.accessModes" multiple :placeholder="t('createResource.accessModePlaceholder')">
                 <el-option label="ReadWriteOnce" value="ReadWriteOnce" />
                 <el-option label="ReadOnlyMany" value="ReadOnlyMany" />
                 <el-option label="ReadWriteMany" value="ReadWriteMany" />
@@ -1505,19 +1506,19 @@
 
         <el-tab-pane label="ConfigMap" name="configmap">
           <el-form :model="configMapForm" label-width="120px">
-            <el-form-item label="命名空间" required>
-              <el-select v-model="configMapForm.namespace" placeholder="请选择命名空间">
+            <el-form-item :label="t('common.namespace')" required>
+              <el-select v-model="configMapForm.namespace" :placeholder="t('createResource.namespacePlaceholder')">
                 <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="名称" required>
-              <el-input v-model="configMapForm.name" placeholder="请输入ConfigMap名称" />
+            <el-form-item :label="t('common.name')" required>
+              <el-input v-model="configMapForm.name" :placeholder="t('createResource.configmapNamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="数据配置" required>
+            <el-form-item :label="t('configmap.dataConfig')" required>
               <el-input
                 type="textarea"
                 v-model="configMapForm.dataText"
-                placeholder="格式: KEY=VALUE，每行一个&#10;例如:&#10;database.host=mysql.default.svc&#10;database.port=3306"
+                :placeholder="t('createResource.configmapDataPlaceholder')"
                 :rows="6"
               />
             </el-form-item>
@@ -1526,16 +1527,16 @@
 
         <el-tab-pane label="Secret" name="secret">
           <el-form :model="secretForm" label-width="120px">
-            <el-form-item label="命名空间" required>
-              <el-select v-model="secretForm.namespace" placeholder="请选择命名空间">
+            <el-form-item :label="t('common.namespace')" required>
+              <el-select v-model="secretForm.namespace" :placeholder="t('createResource.namespacePlaceholder')">
                 <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="名称" required>
-              <el-input v-model="secretForm.name" placeholder="请输入Secret名称" />
+            <el-form-item :label="t('common.name')" required>
+              <el-input v-model="secretForm.name" :placeholder="t('createResource.secretNamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="类型">
-              <el-select v-model="secretForm.type" placeholder="请选择Secret类型">
+            <el-form-item :label="t('common.type')">
+              <el-select v-model="secretForm.type" :placeholder="t('createResource.secretTypePlaceholder')">
                 <el-option label="Opaque" value="Opaque" />
                 <el-option label="kubernetes.io/dockerconfigjson" value="kubernetes.io/dockerconfigjson" />
                 <el-option label="kubernetes.io/tls" value="kubernetes.io/tls" />
@@ -1544,11 +1545,11 @@
                 <el-option label="bootstrap.kubernetes.io/token" value="bootstrap.kubernetes.io/token" />
               </el-select>
             </el-form-item>
-            <el-form-item label="数据配置" required>
+            <el-form-item :label="t('configmap.dataConfig')" required>
               <el-input
                 type="textarea"
                 v-model="secretForm.dataText"
-                placeholder="格式: KEY=VALUE，每行一个（值将自动Base64编码）&#10;例如:&#10;username=admin&#10;password=secret123"
+                :placeholder="t('createResource.secretDataPlaceholder')"
                 :rows="6"
               />
             </el-form-item>
@@ -1557,89 +1558,89 @@
 
         <el-tab-pane label="Ingress" name="ingress">
           <el-form :model="ingressForm" label-width="120px">
-            <el-form-item label="命名空间" required>
-              <el-select v-model="ingressForm.namespace" placeholder="请选择命名空间">
+            <el-form-item :label="t('common.namespace')" required>
+              <el-select v-model="ingressForm.namespace" :placeholder="t('createResource.namespacePlaceholder')">
                 <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="名称" required>
-              <el-input v-model="ingressForm.name" placeholder="请输入Ingress名称" />
+            <el-form-item :label="t('common.name')" required>
+              <el-input v-model="ingressForm.name" :placeholder="t('createResource.ingressNamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="域名" required>
-              <el-input v-model="ingressForm.host" placeholder="例如: example.com" />
+            <el-form-item :label="t('createResource.domain')" required>
+              <el-input v-model="ingressForm.host" :placeholder="t('createResource.domainPlaceholder')" />
             </el-form-item>
-            <el-form-item label="路径配置" required>
+            <el-form-item :label="t('createResource.pathConfig')" required>
               <el-row :gutter="10">
                 <el-col span="8">
-                  <el-input v-model="ingressForm.path" placeholder="路径: 例如 /" />
+                  <el-input v-model="ingressForm.path" :placeholder="t('createResource.pathPlaceholder')" />
                 </el-col>
                 <el-col span="8">
-                  <el-input v-model="ingressForm.serviceName" placeholder="关联Service名称" />
+                  <el-input v-model="ingressForm.serviceName" :placeholder="t('createResource.relatedServicePlaceholder')" />
                 </el-col>
                 <el-col span="8">
-                  <el-input v-model="ingressForm.servicePort" placeholder="Service端口" />
+                  <el-input v-model="ingressForm.servicePort" :placeholder="t('createResource.servicePortPlaceholder')" />
                 </el-col>
               </el-row>
             </el-form-item>
-            <el-form-item label="TLS配置">
-              <el-checkbox v-model="ingressForm.enableTls">启用HTTPS</el-checkbox>
-              <el-input v-model="ingressForm.tlsSecretName" placeholder="TLS Secret名称" style="margin-top: 10px;" :disabled="!ingressForm.enableTls" />
+            <el-form-item :label="t('createResource.tls')">
+              <el-checkbox v-model="ingressForm.enableTls">{{ t('createResource.enableHttps') }}</el-checkbox>
+              <el-input v-model="ingressForm.tlsSecretName" :placeholder="t('createResource.tlsSecretPlaceholder')" style="margin-top: 10px;" :disabled="!ingressForm.enableTls" />
             </el-form-item>
           </el-form>
         </el-tab-pane>
       </el-tabs>
       <template #footer>
-        <el-button @click="showCreateResourceDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateResource" :loading="createLoading">创建</el-button>
+        <el-button @click="showCreateResourceDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleCreateResource" :loading="createLoading">{{ t('common.create') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- Pod详情弹窗 -->
-    <el-dialog v-model="showPodDetailDialog" title="Pod详情" width="900px">
+    <el-dialog v-model="showPodDetailDialog" :title="t('pod.detail')" width="900px">
       <div v-if="selectedPod" class="detail-container">
         <el-tabs v-model="activePodTab" type="border-card">
-          <el-tab-pane label="基本信息" name="podBase">
+          <el-tab-pane :label="t('common.basicInfo')" name="podBase">
             <el-descriptions border column="2" size="small">
-              <el-descriptions-item label="名称">
+              <el-descriptions-item :label="t('common.name')">
                 {{ selectedPod.metadata?.name }}
               </el-descriptions-item>
-              <el-descriptions-item label="命名空间">
+              <el-descriptions-item :label="t('common.namespace')">
                 {{ selectedPod.metadata?.namespace }}
               </el-descriptions-item>
-              <el-descriptions-item label="状态">
+              <el-descriptions-item :label="t('common.status')">
                 <el-tag :type="getPodStatusType(selectedPod.status?.phase)">
                   {{ selectedPod.status?.phase || '-' }}
                 </el-tag>
               </el-descriptions-item>
-              <el-descriptions-item label="QoS 类型">
+              <el-descriptions-item :label="t('pod.qos')">
                 <el-tag size="small">{{ selectedPod.status?.qosClass || '-' }}</el-tag>
               </el-descriptions-item>
               <el-descriptions-item label="Pod IP">{{ selectedPod.status?.podIP || '-' }}</el-descriptions-item>
               <el-descriptions-item label="Host IP">{{ selectedPod.status?.hostIP || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="节点">{{ selectedPod.spec?.nodeName || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="重启策略">{{ selectedPod.spec?.restartPolicy || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="优先级类">{{ selectedPod.spec?.priorityClassName || '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('pod.node')">{{ selectedPod.spec?.nodeName || '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('pod.restartPolicy')">{{ selectedPod.spec?.restartPolicy || '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('pod.priorityClass')">{{ selectedPod.spec?.priorityClassName || '-' }}</el-descriptions-item>
               <el-descriptions-item label="ServiceAccount">{{ selectedPod.spec?.serviceAccountName || '-' }}</el-descriptions-item>
               <el-descriptions-item label="UID" span="2">
                 <el-text size="small" truncated>{{ selectedPod.metadata?.uid }}</el-text>
               </el-descriptions-item>
-              <el-descriptions-item label="创建时间" span="2">{{ selectedPod.metadata?.creationTimestamp }}</el-descriptions-item>
+              <el-descriptions-item :label="t('common.createdAt')" span="2">{{ selectedPod.metadata?.creationTimestamp }}</el-descriptions-item>
             </el-descriptions>
             <div v-if="selectedPod.metadata?.labels" class="mt-4">
-              <h4>标签</h4>
+              <h4>{{ t('common.labels') }}</h4>
               <el-tag v-for="(value, key) in selectedPod.metadata.labels" :key="key" size="small" class="mr-1 mb-1">
                 {{ key }}: {{ value }}
               </el-tag>
             </div>
             <div v-if="selectedPod.metadata?.annotations" class="mt-3">
-              <h4>注解</h4>
+              <h4>{{ t('common.annotations') }}</h4>
               <el-tag v-for="(value, key) in selectedPod.metadata.annotations" :key="key" size="small" class="mr-1 mb-1" type="info">
                 {{ key }}: {{ value }}
               </el-tag>
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="容器信息" name="podContainers">
+          <el-tab-pane :label="t('pod.containerInfo')" name="podContainers">
             <div v-if="selectedPod.spec?.containers">
               <el-card
                 v-for="(container, cIdx) in selectedPod.spec.containers"
@@ -1652,8 +1653,8 @@
                   <el-tag size="small" class="ml-2">{{ container.image }}</el-tag>
                 </template>
                 <el-descriptions border column="2" size="small">
-                  <el-descriptions-item label="镜像拉取策略">{{ container.imagePullPolicy }}</el-descriptions-item>
-                  <el-descriptions-item label="端口">
+                  <el-descriptions-item :label="t('pod.imagePullPolicy')">{{ container.imagePullPolicy }}</el-descriptions-item>
+                  <el-descriptions-item :label="t('pod.ports')">
                     <el-tag
                       v-for="(port, pIdx) in container.ports"
                       :key="pIdx"
@@ -1662,56 +1663,56 @@
                     >{{ port.name || port.containerPort }}: {{ port.containerPort }}/{{ port.protocol }}</el-tag>
                     <span v-if="!container.ports || container.ports.length === 0">-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="资源请求">
+                  <el-descriptions-item :label="t('pod.resourceRequests')">
                     <template v-if="container.resources?.requests">
                       <div v-if="container.resources.requests.cpu">CPU: {{ container.resources.requests.cpu }}</div>
-                      <div v-if="container.resources.requests.memory">内存: {{ container.resources.requests.memory }}</div>
+                      <div v-if="container.resources.requests.memory">{{ t('pod.memory') }}: {{ container.resources.requests.memory }}</div>
                     </template>
                     <span v-else>-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="资源限制">
+                  <el-descriptions-item :label="t('pod.resourceLimits')">
                     <template v-if="container.resources?.limits">
                       <div v-if="container.resources.limits.cpu">CPU: {{ container.resources.limits.cpu }}</div>
-                      <div v-if="container.resources.limits.memory">内存: {{ container.resources.limits.memory }}</div>
+                      <div v-if="container.resources.limits.memory">{{ t('pod.memory') }}: {{ container.resources.limits.memory }}</div>
                     </template>
                     <span v-else>-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="就绪探针" span="2">
+                  <el-descriptions-item :label="t('pod.readinessProbe')" span="2">
                     <template v-if="container.readinessProbe">
-                      <el-tag size="small" class="mr-1">探针类型: {{ container.readinessProbe.httpGet ? 'HTTP' : container.readinessProbe.tcpSocket ? 'TCP' : container.readinessProbe.exec ? 'Exec' : '其他' }}</el-tag>
+                      <el-tag size="small" class="mr-1">{{ t('pod.probeType') }}: {{ container.readinessProbe.httpGet ? 'HTTP' : container.readinessProbe.tcpSocket ? 'TCP' : container.readinessProbe.exec ? 'Exec' : t('common.other') }}</el-tag>
                       <span v-if="container.readinessProbe.httpGet">
                         {{ container.readinessProbe.httpGet.path }}:{{ container.readinessProbe.httpGet.port }}
                       </span>
-                      <span class="ml-1">间隔{{ container.readinessProbe.periodSeconds }}s / 超时{{ container.readinessProbe.timeoutSeconds }}s</span>
+                      <span class="ml-1">{{ t('pod.interval') }}{{ container.readinessProbe.periodSeconds }}s / {{ t('pod.timeout') }}{{ container.readinessProbe.timeoutSeconds }}s</span>
                     </template>
                     <span v-else>-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="存活探针" span="2">
+                  <el-descriptions-item :label="t('pod.livenessProbe')" span="2">
                     <template v-if="container.livenessProbe">
-                      <el-tag size="small" class="mr-1">探针类型: {{ container.livenessProbe.httpGet ? 'HTTP' : container.livenessProbe.tcpSocket ? 'TCP' : container.livenessProbe.exec ? 'Exec' : '其他' }}</el-tag>
+                      <el-tag size="small" class="mr-1">{{ t('pod.probeType') }}: {{ container.livenessProbe.httpGet ? 'HTTP' : container.livenessProbe.tcpSocket ? 'TCP' : container.livenessProbe.exec ? 'Exec' : t('common.other') }}</el-tag>
                       <span v-if="container.livenessProbe.httpGet">
                         {{ container.livenessProbe.httpGet.path }}:{{ container.livenessProbe.httpGet.port }}
                       </span>
-                      <span class="ml-1">间隔{{ container.livenessProbe.periodSeconds }}s / 超时{{ container.livenessProbe.timeoutSeconds }}s</span>
+                      <span class="ml-1">{{ t('pod.interval') }}{{ container.livenessProbe.periodSeconds }}s / {{ t('pod.timeout') }}{{ container.livenessProbe.timeoutSeconds }}s</span>
                     </template>
                     <span v-else>-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="卷挂载" span="2">
+                  <el-descriptions-item :label="t('pod.volumeMounts')" span="2">
                     <div v-for="(vm, vmIdx) in container.volumeMounts" :key="vmIdx" class="mb-1">
                       <el-tag size="small" type="warning">{{ vm.name }}</el-tag>
                       <span class="ml-1">{{ vm.mountPath }}</span>
-                      <el-tag v-if="vm.readOnly" size="small" type="info" class="ml-1">只读</el-tag>
+                      <el-tag v-if="vm.readOnly" size="small" type="info" class="ml-1">{{ t('common.readOnly') }}</el-tag>
                     </div>
                     <span v-if="!container.volumeMounts || container.volumeMounts.length === 0">-</span>
                   </el-descriptions-item>
                 </el-descriptions>
               </el-card>
             </div>
-            <el-empty v-else description="无容器信息" />
+            <el-empty v-else :description="t('pod.noContainer')" />
           </el-tab-pane>
 
-          <el-tab-pane label="状态详情" name="podStatus">
-            <h4 class="mb-2">容器状态</h4>
+          <el-tab-pane :label="t('pod.statusDetail')" name="podStatus">
+            <h4 class="mb-2">{{ t('pod.containerStatus') }}</h4>
             <div v-if="selectedPod.status?.containerStatuses">
               <el-card
                 v-for="(cs, csIdx) in selectedPod.status.containerStatuses"
@@ -1727,7 +1728,7 @@
                     class="ml-2"
                   >{{ cs.ready ? 'Ready' : 'NotReady' }}</el-tag>
                   <el-tag v-if="cs.restartCount > 0" type="warning" size="small" class="ml-1">
-                    重启: {{ cs.restartCount }}次
+                    {{ t('pod.restartCount', { n: cs.restartCount }) }}
                   </el-tag>
                 </template>
                 <el-descriptions border column="2" size="small">
@@ -1738,8 +1739,8 @@
                   <el-descriptions-item label="ContainerID" span="2">
                     <el-text size="small" truncated>{{ cs.containerID }}</el-text>
                   </el-descriptions-item>
-                  <el-descriptions-item label="Started">{{ cs.started ? '是' : '否' }}</el-descriptions-item>
-                  <el-descriptions-item label="当前状态">
+                  <el-descriptions-item label="Started">{{ cs.started ? t('common.yes') : t('common.no') }}</el-descriptions-item>
+                  <el-descriptions-item :label="t('pod.currentState')">
                     <template v-if="cs.state?.running">
                       <el-tag type="success" size="small">Running</el-tag>
                       <span class="ml-1">since {{ cs.state.running.startedAt }}</span>
@@ -1755,7 +1756,7 @@
                 </el-descriptions>
               </el-card>
             </div>
-            <el-empty v-else description="无容器状态" />
+            <el-empty v-else :description="t('pod.noContainerStatus')" />
 
             <h4 class="mb-2 mt-4">Conditions</h4>
             <el-timeline v-if="selectedPod.status?.conditions">
@@ -1769,22 +1770,22 @@
                 <span class="ml-2">{{ condition.status }}</span>
               </el-timeline-item>
             </el-timeline>
-            <el-empty v-else description="无Condition信息" />
+            <el-empty v-else :description="t('pod.noCondition')" />
 
-            <h4 class="mb-2 mt-4">Volumes</h4>
+            <h4 class="mb-2 mt-4">{{ t('common.volumes') }}</h4>
             <el-table
               v-if="selectedPod.spec?.volumes"
               :data="selectedPod.spec.volumes"
               size="small"
               border
             >
-              <el-table-column prop="name" label="名称" />
-              <el-table-column label="类型">
+              <el-table-column prop="name" :label="t('common.name')" />
+              <el-table-column :label="t('common.type')">
                 <template #default="scope">
-                  <el-tag size="small">{{ scope.row.configMap ? 'ConfigMap' : scope.row.secret ? 'Secret' : scope.row.projected ? 'Projected' : scope.row.emptyDir ? 'EmptyDir' : scope.row.hostPath ? 'HostPath' : scope.row.persistentVolumeClaim ? 'PVC' : '其他' }}</el-tag>
+                  <el-tag size="small">{{ scope.row.configMap ? 'ConfigMap' : scope.row.secret ? 'Secret' : scope.row.projected ? 'Projected' : scope.row.emptyDir ? 'EmptyDir' : scope.row.hostPath ? 'HostPath' : scope.row.persistentVolumeClaim ? 'PVC' : t('common.other') }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="详情" show-overflow-tooltip>
+              <el-table-column :label="t('common.details')" show-overflow-tooltip>
                 <template #default="scope">
                   <span v-if="scope.row.configMap">ConfigMap: {{ scope.row.configMap.name }}</span>
                   <span v-else-if="scope.row.secret">Secret: {{ scope.row.secret.secretName }}</span>
@@ -1794,49 +1795,49 @@
                 </template>
               </el-table-column>
             </el-table>
-            <el-empty v-else description="无Volume信息" />
+            <el-empty v-else :description="t('pod.noVolume')" />
           </el-tab-pane>
         </el-tabs>
       </div>
     </el-dialog>
 
     <!-- Pod日志弹窗 -->
-    <el-dialog v-model="showPodLogsDialog" title="Pod日志" width="1000px">
+    <el-dialog v-model="showPodLogsDialog" :title="t('pod.logs')" width="1000px">
       <el-card class="log-card">
         <pre class="log-content">{{ podLogsContent }}</pre>
       </el-card>
       <template #footer>
-        <el-button @click="showPodLogsDialog = false">关闭</el-button>
+        <el-button @click="showPodLogsDialog = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- Deployment详情弹窗 -->
-    <el-dialog v-model="showDeploymentDetailDialog" title="Deployment详情" width="950px">
+    <el-dialog v-model="showDeploymentDetailDialog" :title="t('deployment.detail')" width="950px">
       <div v-if="deploymentDetail" class="detail-container">
         <el-tabs v-model="activeDetailTab" type="border-card">
-          <el-tab-pane label="基本信息" name="deployBase">
+          <el-tab-pane :label="t('common.basicInfo')" name="deployBase">
             <el-descriptions border column="2" size="small">
-              <el-descriptions-item label="名称">
+              <el-descriptions-item :label="t('common.name')">
                 {{ deploymentDetail.metadata?.name }}
               </el-descriptions-item>
-              <el-descriptions-item label="命名空间">
+              <el-descriptions-item :label="t('common.namespace')">
                 {{ deploymentDetail.metadata?.namespace }}
               </el-descriptions-item>
-              <el-descriptions-item label="期望副本">
+              <el-descriptions-item :label="t('deployment.desired')">
                 <el-tag type="primary">{{ deploymentDetail.spec?.replicas }}</el-tag>
               </el-descriptions-item>
-              <el-descriptions-item label="可用副本">
+              <el-descriptions-item :label="t('deployment.available')">
                 <el-tag :type="deploymentDetail.status?.availableReplicas ? 'success' : 'warning'">
                   {{ deploymentDetail.status?.availableReplicas ?? 0 }}
                 </el-tag>
               </el-descriptions-item>
-              <el-descriptions-item label="就绪副本">
+              <el-descriptions-item :label="t('deployment.ready')">
                 {{ deploymentDetail.status?.readyReplicas ?? 0 }}
               </el-descriptions-item>
-              <el-descriptions-item label="更新副本">
+              <el-descriptions-item :label="t('deployment.updated')">
                 {{ deploymentDetail.status?.updatedReplicas ?? 0 }}
               </el-descriptions-item>
-              <el-descriptions-item label="更新策略">
+              <el-descriptions-item :label="t('deployment.updateStrategy')">
                 {{ deploymentDetail.spec?.strategy?.type || '-' }}
               </el-descriptions-item>
               <el-descriptions-item label="RollingUpdate">
@@ -1846,22 +1847,22 @@
                 </template>
                 <span v-else>-</span>
               </el-descriptions-item>
-              <el-descriptions-item label="版本记录数">{{ deploymentDetail.spec?.revisionHistoryLimit ?? '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.versionCount')">{{ deploymentDetail.spec?.revisionHistoryLimit ?? '-' }}</el-descriptions-item>
               <el-descriptions-item label="ProgressDeadline">{{ deploymentDetail.spec?.progressDeadlineSeconds }}s</el-descriptions-item>
               <el-descriptions-item label="ObservedGen">{{ deploymentDetail.status?.observedGeneration ?? '-' }}</el-descriptions-item>
-              <el-descriptions-item label="创建时间">{{ deploymentDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+              <el-descriptions-item :label="t('common.createdAt')">{{ deploymentDetail.metadata?.creationTimestamp }}</el-descriptions-item>
             </el-descriptions>
             <div v-if="deploymentDetail.spec?.selector?.matchLabels" class="mt-4">
-              <h4>标签选择器</h4>
+              <h4>{{ t('deployment.labelSelector') }}</h4>
               <el-tag v-for="(value, key) in deploymentDetail.spec.selector.matchLabels" :key="key" size="small" class="mr-1 mb-1">{{ key }}: {{ value }}</el-tag>
             </div>
             <div v-if="deploymentDetail.metadata?.annotations" class="mt-3">
-              <h4>注解</h4>
+              <h4>{{ t('common.annotations') }}</h4>
               <el-tag v-for="(value, key) in deploymentDetail.metadata.annotations" :key="key" size="small" type="info" class="mr-1 mb-1">{{ key }}: {{ value }}</el-tag>
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="Pod模板" name="deployPod">
+          <el-tab-pane :label="t('common.podTemplate')" name="deployPod">
             <div v-if="deploymentDetail.spec?.template?.spec?.containers">
               <el-card
                 v-for="(container, cIdx) in deploymentDetail.spec.template.spec.containers"
@@ -1874,22 +1875,22 @@
                   <el-tag size="small" class="ml-2">{{ container.image }}</el-tag>
                 </template>
                 <el-descriptions border column="2" size="small">
-                  <el-descriptions-item label="镜像拉取策略">{{ container.imagePullPolicy || '-' }}</el-descriptions-item>
-                  <el-descriptions-item label="端口">
+                  <el-descriptions-item :label="t('pod.imagePullPolicy')">{{ container.imagePullPolicy || '-' }}</el-descriptions-item>
+                  <el-descriptions-item :label="t('pod.ports')">
                     <el-tag v-for="(port, pIdx) in container.ports" :key="pIdx" size="small" class="mr-1">{{ port.name || port.containerPort }}: {{ port.containerPort }}/{{ port.protocol }}</el-tag>
                     <span v-if="!container.ports || container.ports.length === 0">-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="资源请求">
+                  <el-descriptions-item :label="t('pod.resourceRequests')">
                     <template v-if="container.resources?.requests && Object.keys(container.resources.requests).length">
                       <div v-if="container.resources.requests.cpu">CPU: {{ container.resources.requests.cpu }}</div>
-                      <div v-if="container.resources.requests.memory">内存: {{ container.resources.requests.memory }}</div>
+                      <div v-if="container.resources.requests.memory">{{ t('pod.memory') }}: {{ container.resources.requests.memory }}</div>
                     </template>
                     <span v-else>-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="资源限制">
+                  <el-descriptions-item :label="t('pod.resourceLimits')">
                     <template v-if="container.resources?.limits && Object.keys(container.resources.limits).length">
                       <div v-if="container.resources.limits.cpu">CPU: {{ container.resources.limits.cpu }}</div>
-                      <div v-if="container.resources.limits.memory">内存: {{ container.resources.limits.memory }}</div>
+                      <div v-if="container.resources.limits.memory">{{ t('pod.memory') }}: {{ container.resources.limits.memory }}</div>
                     </template>
                     <span v-else>-</span>
                   </el-descriptions-item>
@@ -1905,7 +1906,7 @@
                     </template>
                     <span v-else>-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="环境变量" span="2">
+                  <el-descriptions-item :label="t('createResource.envVars')" span="2">
                     <template v-if="container.env && container.env.length">
                       <div v-for="(env, eIdx) in container.env" :key="eIdx" class="mb-1">
                         <el-tag size="small">{{ env.name }}</el-tag>
@@ -1917,21 +1918,21 @@
                     </template>
                     <span v-else>-</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="卷挂载" span="2">
+                  <el-descriptions-item :label="t('pod.volumeMounts')" span="2">
                     <div v-for="(vm, vmIdx) in container.volumeMounts" :key="vmIdx" class="mb-1">
                       <el-tag size="small" type="warning">{{ vm.name }}</el-tag>
                       <span class="ml-1">{{ vm.mountPath }}</span>
-                      <el-tag v-if="vm.readOnly" size="small" type="info" class="ml-1">只读</el-tag>
+                      <el-tag v-if="vm.readOnly" size="small" type="info" class="ml-1">{{ t('common.readOnly') }}</el-tag>
                     </div>
                     <span v-if="!container.volumeMounts || container.volumeMounts.length === 0">-</span>
                   </el-descriptions-item>
                 </el-descriptions>
               </el-card>
             </div>
-            <el-empty v-else description="无容器信息" />
+            <el-empty v-else :description="t('pod.noContainer')" />
 
             <el-descriptions border column="2" size="small" class="mt-3">
-              <el-descriptions-item label="重启策略">
+              <el-descriptions-item :label="t('pod.restartPolicy')">
                 {{ deploymentDetail.spec?.template?.spec?.restartPolicy || '-' }}
               </el-descriptions-item>
               <el-descriptions-item label="ServiceAccount">
@@ -1946,23 +1947,23 @@
             </el-descriptions>
 
             <div v-if="deploymentDetail.spec?.template?.spec?.nodeSelector" class="mt-3">
-              <h4>节点选择器</h4>
+              <h4>{{ t('deployment.nodeSelector') }}</h4>
               <el-tag v-for="(value, key) in deploymentDetail.spec.template.spec.nodeSelector" :key="key" size="small" class="mr-1 mb-1">{{ key }}: {{ value }}</el-tag>
             </div>
             <div v-if="deploymentDetail.spec?.template?.spec?.tolerations" class="mt-3">
-              <h4>容忍</h4>
+              <h4>{{ t('deployment.tolerations') }}</h4>
               <el-tag v-for="(tol, tIdx) in deploymentDetail.spec.template.spec.tolerations" :key="tIdx" size="small" class="mr-1 mb-1">{{ tol.key }}: {{ tol.operator }} {{ tol.effect }}</el-tag>
             </div>
             <div v-if="deploymentDetail.spec?.template?.spec?.volumes" class="mt-3">
-              <h4>Volumes</h4>
+              <h4>{{ t('common.volumes') }}</h4>
               <el-table :data="deploymentDetail.spec.template.spec.volumes" size="small" border>
-                <el-table-column prop="name" label="名称" />
-                <el-table-column label="类型">
+                <el-table-column prop="name" :label="t('common.name')" />
+                <el-table-column :label="t('common.type')">
                   <template #default="scope">
-                    <el-tag size="small">{{ scope.row.configMap ? 'ConfigMap' : scope.row.secret ? 'Secret' : scope.row.projected ? 'Projected' : scope.row.emptyDir ? 'EmptyDir' : scope.row.hostPath ? 'HostPath' : scope.row.persistentVolumeClaim ? 'PVC' : '其他' }}</el-tag>
+                    <el-tag size="small">{{ scope.row.configMap ? 'ConfigMap' : scope.row.secret ? 'Secret' : scope.row.projected ? 'Projected' : scope.row.emptyDir ? 'EmptyDir' : scope.row.hostPath ? 'HostPath' : scope.row.persistentVolumeClaim ? 'PVC' : t('common.other') }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="详情" show-overflow-tooltip>
+                <el-table-column :label="t('common.details')" show-overflow-tooltip>
                   <template #default="scope">
                     <span v-if="scope.row.configMap">ConfigMap: {{ scope.row.configMap.name }}</span>
                     <span v-else-if="scope.row.secret">Secret: {{ scope.row.secret.secretName }}</span>
@@ -1975,16 +1976,16 @@
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="状态 & Conditions" name="deployStatus">
+          <el-tab-pane :label="t('deployment.statusAndConditions')" name="deployStatus">
             <el-descriptions border column="2" size="small">
-              <el-descriptions-item label="期望副本">{{ deploymentDetail.spec?.replicas }}</el-descriptions-item>
-              <el-descriptions-item label="运行副本">{{ deploymentDetail.status?.replicas ?? 0 }}</el-descriptions-item>
-              <el-descriptions-item label="就绪副本">{{ deploymentDetail.status?.readyReplicas ?? 0 }}</el-descriptions-item>
-              <el-descriptions-item label="可用副本">{{ deploymentDetail.status?.availableReplicas ?? 0 }}</el-descriptions-item>
-              <el-descriptions-item label="更新副本">{{ deploymentDetail.status?.updatedReplicas ?? 0 }}</el-descriptions-item>
-              <el-descriptions-item label="不可用副本">{{ deploymentDetail.status?.unavailableReplicas ?? 0 }}</el-descriptions-item>
-              <el-descriptions-item label="碰撞次数">{{ deploymentDetail.status?.collisionCount ?? 0 }}</el-descriptions-item>
-              <el-descriptions-item label="观察版本">{{ deploymentDetail.status?.observedGeneration ?? '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.desired')">{{ deploymentDetail.spec?.replicas }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.runningReplicas')">{{ deploymentDetail.status?.replicas ?? 0 }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.ready')">{{ deploymentDetail.status?.readyReplicas ?? 0 }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.available')">{{ deploymentDetail.status?.availableReplicas ?? 0 }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.updated')">{{ deploymentDetail.status?.updatedReplicas ?? 0 }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.unavailable')">{{ deploymentDetail.status?.unavailableReplicas ?? 0 }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.collisions')">{{ deploymentDetail.status?.collisionCount ?? 0 }}</el-descriptions-item>
+              <el-descriptions-item :label="t('deployment.observed')">{{ deploymentDetail.status?.observedGeneration ?? '-' }}</el-descriptions-item>
             </el-descriptions>
 
             <h4 class="mt-4 mb-2">Conditions</h4>
@@ -2001,34 +2002,34 @@
                   </el-tag>
                   <el-tag size="small" class="ml-2">{{ condition.status }}</el-tag>
                 </template>
-                <p><strong>原因:</strong> {{ condition.reason }}</p>
-                <p><strong>消息:</strong> {{ condition.message }}</p>
+                <p><strong>{{ t('common.reason') }}:</strong> {{ condition.reason }}</p>
+                <p><strong>{{ t('common.message') }}:</strong> {{ condition.message }}</p>
                 <p class="text-muted">
-                  <strong>最后变更:</strong> {{ condition.lastTransitionTime }}
-                  <span v-if="condition.lastUpdateTime" class="ml-3"><strong>最后更新:</strong> {{ condition.lastUpdateTime }}</span>
+                  <strong>{{ t('common.lastTransition') }}:</strong> {{ condition.lastTransitionTime }}
+                  <span v-if="condition.lastUpdateTime" class="ml-3"><strong>{{ t('common.lastUpdate') }}:</strong> {{ condition.lastUpdateTime }}</span>
                 </p>
               </el-card>
             </div>
-            <el-empty v-else description="无Condition信息" />
+            <el-empty v-else :description="t('pod.noCondition')" />
           </el-tab-pane>
         </el-tabs>
       </div>
       <template #footer>
-        <el-button @click="showDeploymentDetailDialog = false">关闭</el-button>
+        <el-button @click="showDeploymentDetailDialog = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- Service详情弹窗 -->
-    <el-dialog v-model="showServiceDetailDialog" title="Service详情" width="800px">
+    <el-dialog v-model="showServiceDetailDialog" :title="t('service.detail')" width="800px">
       <div v-if="serviceDetail" class="detail-container">
         <el-descriptions border column="2" size="small">
-          <el-descriptions-item label="名称">
+          <el-descriptions-item :label="t('common.name')">
             {{ serviceDetail.name || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="命名空间">
+          <el-descriptions-item :label="t('common.namespace')">
             {{ serviceDetail.namespace || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="类型">
+          <el-descriptions-item :label="t('common.type')">
             <el-tag :type="getServiceTypeTag(serviceDetail.type)">
               {{ serviceDetail.type || '-' }}
             </el-tag>
@@ -2036,38 +2037,38 @@
           <el-descriptions-item label="ClusterIP">
             {{ serviceDetail.clusterIP || serviceDetail.clusterIp || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">
-            {{ serviceDetail.creationTimestamp ? new Date(serviceDetail.creationTimestamp).toLocaleString('zh-CN') : '-' }}
+          <el-descriptions-item :label="t('common.createdAt')">
+            {{ serviceDetail.creationTimestamp ? new Date(serviceDetail.creationTimestamp).toLocaleString(dateLocale()) : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="选择器" span="2">
+          <el-descriptions-item :label="t('service.selector')" span="2">
             <template v-if="serviceDetail.selector && Object.keys(serviceDetail.selector).length > 0">
               <el-tag v-for="(value, key) in serviceDetail.selector" :key="key" class="mr-1 mb-1">
                 {{ key }}={{ value }}
               </el-tag>
             </template>
-            <span v-else>无选择器</span>
+            <span v-else>{{ t('service.noSelector') }}</span>
           </el-descriptions-item>
         </el-descriptions>
 
         <div class="mt-4">
-          <h4>端口配置</h4>
+          <h4>{{ t('service.portConfig') }}</h4>
           <el-table :data="serviceDetail.ports || []" border stripe size="small" class="mt-2 service-detail-table" fit>
-            <el-table-column label="名称" prop="name" min-width="100" align="center" show-overflow-tooltip>
+            <el-table-column :label="t('common.name')" prop="name" min-width="100" align="center" show-overflow-tooltip>
               <template #default="scope">
                 {{ scope.row.name || '-' }}
               </template>
             </el-table-column>
-            <el-table-column label="协议" prop="protocol" min-width="70" align="center">
+            <el-table-column :label="t('service.protocol')" prop="protocol" min-width="70" align="center">
               <template #default="scope">
                 {{ scope.row.protocol || '-' }}
               </template>
             </el-table-column>
-            <el-table-column label="服务端口" prop="port" min-width="80" align="center">
+            <el-table-column :label="t('service.servicePort')" prop="port" min-width="80" align="center">
               <template #default="scope">
                 {{ scope.row.port ?? '-' }}
               </template>
             </el-table-column>
-            <el-table-column label="目标端口" prop="targetPort" min-width="80" align="center">
+            <el-table-column :label="t('service.targetPort')" prop="targetPort" min-width="80" align="center">
               <template #default="scope">
                 {{ scope.row.targetPort ?? '-' }}
               </template>
@@ -2081,38 +2082,38 @@
         </div>
       </div>
       <template #footer>
-        <el-button @click="showServiceDetailDialog = false">关闭</el-button>
+        <el-button @click="showServiceDetailDialog = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- PVC存储卷详情弹窗 -->
-    <el-dialog v-model="showPvcDetailDialog" title="存储卷详情" width="800px">
+    <el-dialog v-model="showPvcDetailDialog" :title="t('pvc.detail')" width="800px">
       <div v-if="pvcDetail" class="detail-container">
         <el-descriptions border column="2" size="small">
-          <el-descriptions-item label="名称">
+          <el-descriptions-item :label="t('common.name')">
             {{ pvcDetail.name || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="命名空间">
+          <el-descriptions-item :label="t('common.namespace')">
             {{ pvcDetail.namespace || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="状态">
+          <el-descriptions-item :label="t('common.status')">
             <el-tag :type="getPvcStatusType(pvcDetail)">
               {{ pvcDetail.phase || 'Pending' }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="存储类">
+          <el-descriptions-item :label="t('pvc.storageClass')">
             {{ pvcDetail.storageClassName || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="容量">
+          <el-descriptions-item :label="t('pvc.capacity')">
             {{ pvcDetail.capacity?.storage || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="挂载卷名称">
+          <el-descriptions-item :label="t('pvc.mountVolumeName')">
             {{ pvcDetail.volumeName || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">
-            {{ pvcDetail.creationTimestamp ? new Date(pvcDetail.creationTimestamp).toLocaleString('zh-CN') : '-' }}
+          <el-descriptions-item :label="t('common.createdAt')">
+            {{ pvcDetail.creationTimestamp ? new Date(pvcDetail.creationTimestamp).toLocaleString(dateLocale()) : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="访问模式" span="2">
+          <el-descriptions-item :label="t('pvc.accessModes')" span="2">
             <template v-if="pvcDetail.accessModes && pvcDetail.accessModes.length > 0">
               <el-tag v-for="(mode, index) in pvcDetail.accessModes" :key="index" class="mr-1 mb-1">
                 {{ mode }}
@@ -2120,56 +2121,56 @@
             </template>
             <span v-else>-</span>
           </el-descriptions-item>
-          <el-descriptions-item label="标签" span="2">
+          <el-descriptions-item :label="t('common.labels')" span="2">
             <template v-if="pvcDetail.labels && Object.keys(pvcDetail.labels).length > 0">
               <el-tag v-for="(value, key) in pvcDetail.labels" :key="key" class="mr-1 mb-1">
                 {{ key }}={{ value }}
               </el-tag>
             </template>
-            <span v-else>无标签</span>
+            <span v-else>{{ t('pvc.noLabel') }}</span>
           </el-descriptions-item>
         </el-descriptions>
 
         <div class="mt-4" v-if="pvcDetail.conditions && pvcDetail.conditions.length > 0">
-          <h4>状态变更记录</h4>
+          <h4>{{ t('job.statusHistory') }}</h4>
           <el-timeline class="mt-3">
             <el-timeline-item
               v-for="(condition, index) in pvcDetail.conditions"
               :key="index"
-              :timestamp="condition.lastTransitionTime ? new Date(condition.lastTransitionTime).toLocaleString('zh-CN') : ''"
+              :timestamp="condition.lastTransitionTime ? new Date(condition.lastTransitionTime).toLocaleString(dateLocale()) : ''"
             >
               <h5>{{ condition.type }}</h5>
-              <p>{{ condition.status === 'True' ? '已完成' : '处理中' }}</p>
+              <p>{{ condition.status === 'True' ? t('pvc.completed') : t('pvc.processing') }}</p>
               <p v-if="condition.message">{{ condition.message }}</p>
-              <p v-if="condition.reason">原因: {{ condition.reason }}</p>
+              <p v-if="condition.reason">{{ t('common.reason') }}: {{ condition.reason }}</p>
             </el-timeline-item>
           </el-timeline>
         </div>
       </div>
       <template #footer>
-        <el-button @click="showPvcDetailDialog = false">关闭</el-button>
+        <el-button @click="showPvcDetailDialog = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- Ingress路由详情弹窗 -->
-    <el-dialog v-model="showIngressDetailDialog" title="路由详情" width="900px">
+    <el-dialog v-model="showIngressDetailDialog" :title="t('ingress.detail')" width="900px">
       <div v-if="ingressDetail" class="detail-container">
         <el-descriptions border column="2" size="small">
-          <el-descriptions-item label="名称">
+          <el-descriptions-item :label="t('common.name')">
             {{ ingressDetail.name || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="命名空间">
+          <el-descriptions-item :label="t('common.namespace')">
             {{ ingressDetail.namespace || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="状态">
+          <el-descriptions-item :label="t('common.status')">
             <el-tag :type="getIngressStatusType(ingressDetail)">
-              {{ getIngressStatusType(ingressDetail) === 'success' ? '正常' : '待调度' }}
+              {{ getIngressStatusType(ingressDetail) === 'success' ? t('ingress.normal') : t('ingress.pending') }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="Ingress类">
+          <el-descriptions-item :label="t('ingress.ingressClass')">
             {{ ingressDetail.ingressClassName || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="负载均衡地址" span="2">
+          <el-descriptions-item :label="t('ingress.loadBalancerAddr')" span="2">
             <template v-if="ingressDetail.loadBalancer?.ingress && ingressDetail.loadBalancer.ingress.length > 0">
               <div v-for="(addr, index) in ingressDetail.loadBalancer.ingress" :key="index" class="mb-1">
                 {{ addr.ip || addr.hostname }}
@@ -2177,55 +2178,55 @@
             </template>
             <span v-else>-</span>
           </el-descriptions-item>
-          <el-descriptions-item label="TLS配置">
-            <el-tag v-if="ingressDetail.tls && ingressDetail.tls.length > 0" type="success">已启用</el-tag>
-            <el-tag v-else type="info">未启用</el-tag>
+          <el-descriptions-item :label="t('ingress.tls')">
+            <el-tag v-if="ingressDetail.tls && ingressDetail.tls.length > 0" type="success">{{ t('common.enabled') }}</el-tag>
+            <el-tag v-else type="info">{{ t('common.notEnabled') }}</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">
-            {{ ingressDetail.creationTimestamp ? new Date(ingressDetail.creationTimestamp).toLocaleString('zh-CN') : '-' }}
+          <el-descriptions-item :label="t('common.createdAt')">
+            {{ ingressDetail.creationTimestamp ? new Date(ingressDetail.creationTimestamp).toLocaleString(dateLocale()) : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="注解" span="2">
+          <el-descriptions-item :label="t('common.annotations')" span="2">
             <template v-if="ingressDetail.annotations && Object.keys(ingressDetail.annotations).length > 0">
               <el-tag v-for="(value, key) in ingressDetail.annotations" :key="key" class="mr-1 mb-1" size="small">
                 {{ key }}: {{ value }}
               </el-tag>
             </template>
-            <span v-else>无注解</span>
+            <span v-else>{{ t('ingress.noAnnotation') }}</span>
           </el-descriptions-item>
         </el-descriptions>
 
         <div class="mt-4" v-if="ingressDetail.tls && ingressDetail.tls.length > 0">
-          <h4>TLS配置</h4>
+          <h4>{{ t('ingress.tls') }}</h4>
           <el-table :data="ingressDetail.tls" border stripe size="small" class="mt-2" fit>
-            <el-table-column label="域名列表" min-width="300">
+            <el-table-column :label="t('ingress.hostList')" min-width="300">
               <template #default="scope">
                 <div v-for="(host, index) in scope.row.hosts" :key="index" class="mb-1">
                   {{ host }}
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="证书名称" prop="secretName" min-width="200" />
+            <el-table-column :label="t('ingress.certName')" prop="secretName" min-width="200" />
           </el-table>
         </div>
 
         <div class="mt-4">
-          <h4>路由规则</h4>
+          <h4>{{ t('ingress.rules') }}</h4>
           <el-collapse v-model="activeRuleIndex" class="mt-2">
             <el-collapse-item
               v-for="(rule, index) in ingressDetail.rules"
               :key="index"
-              :title="`规则 ${index + 1}: ${rule.host || '默认域名'}`"
+              :title="t('ingress.rule', { index: index + 1, host: rule.host || t('ingress.defaultHost') })"
               :name="index"
             >
               <el-table :data="rule.http?.paths || []" border stripe size="small" fit>
-                <el-table-column label="路径" min-width="200" prop="path" />
-                <el-table-column label="路径类型" prop="pathType" />
-                <el-table-column label="关联服务" min-width="200">
+                <el-table-column :label="t('ingress.path')" min-width="200" prop="path" />
+                <el-table-column :label="t('ingress.pathType')" prop="pathType" />
+                <el-table-column :label="t('ingress.relatedService')" min-width="200">
                   <template #default="scope">
                     {{ scope.row.backend?.service?.name || '-' }}
                   </template>
                 </el-table-column>
-                <el-table-column label="服务端口">
+                <el-table-column :label="t('ingress.servicePort')">
                   <template #default="scope">
                     {{ scope.row.backend?.service?.port?.number || scope.row.backend?.service?.port?.name || '-' }}
                   </template>
@@ -2236,36 +2237,36 @@
         </div>
 
         <div class="mt-4" v-if="ingressDetail.conditions && ingressDetail.conditions.length > 0">
-          <h4>状态变更记录</h4>
+          <h4>{{ t('job.statusHistory') }}</h4>
           <el-timeline class="mt-3">
             <el-timeline-item
               v-for="(condition, index) in ingressDetail.conditions"
               :key="index"
-              :timestamp="condition.lastTransitionTime ? new Date(condition.lastTransitionTime).toLocaleString('zh-CN') : ''"
+              :timestamp="condition.lastTransitionTime ? new Date(condition.lastTransitionTime).toLocaleString(dateLocale()) : ''"
             >
               <h5>{{ condition.type }}</h5>
-              <p>{{ condition.status === 'True' ? '已完成' : '处理中' }}</p>
+              <p>{{ condition.status === 'True' ? t('pvc.completed') : t('pvc.processing') }}</p>
               <p v-if="condition.message">{{ condition.message }}</p>
-              <p v-if="condition.reason">原因: {{ condition.reason }}</p>
+              <p v-if="condition.reason">{{ t('common.reason') }}: {{ condition.reason }}</p>
             </el-timeline-item>
           </el-timeline>
         </div>
       </div>
       <template #footer>
-        <el-button @click="showIngressDetailDialog = false">关闭</el-button>
+        <el-button @click="showIngressDetailDialog = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- CRD详情弹窗 -->
-    <el-dialog v-model="showCrdDetailDialog" :title="`CRD详情: ${crdDetail?.metadata?.name || ''}`" width="1000px">
+    <el-dialog v-model="showCrdDetailDialog" :title="t('crd.detail', { name: crdDetail?.metadata?.name || '' })" width="1000px">
       <div v-if="crdDetail" class="detail-container">
         <el-tabs v-model="activeCrdTab" type="border-card">
-          <el-tab-pane label="基本信息" name="crdBase">
+          <el-tab-pane :label="t('common.basicInfo')" name="crdBase">
             <el-descriptions border column="2" size="small">
-              <el-descriptions-item label="名称">{{ crdDetail.metadata?.name || '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('common.name')">{{ crdDetail.metadata?.name || '-' }}</el-descriptions-item>
               <el-descriptions-item label="UID">{{ crdDetail.metadata?.uid || '-' }}</el-descriptions-item>
               <el-descriptions-item label="ResourceVersion">{{ crdDetail.metadata?.resourceVersion || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="创建时间">{{ formatTimestamp(crdDetail.metadata?.creationTimestamp) }}</el-descriptions-item>
+              <el-descriptions-item :label="t('common.createdAt')">{{ formatTimestamp(crdDetail.metadata?.creationTimestamp) }}</el-descriptions-item>
               <el-descriptions-item label="Group">{{ crdDetail.spec?.group || '-' }}</el-descriptions-item>
               <el-descriptions-item label="Scope">
                 <el-tag :type="crdDetail.spec?.scope === 'Namespaced' ? 'primary' : 'warning'" size="small">
@@ -2276,7 +2277,7 @@
               <el-descriptions-item label="Singular">{{ crdDetail.spec?.names?.singular || '-' }}</el-descriptions-item>
               <el-descriptions-item label="Plural">{{ crdDetail.spec?.names?.plural || '-' }}</el-descriptions-item>
               <el-descriptions-item label="ListKind">{{ crdDetail.spec?.names?.listKind || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="简称" span="2">
+              <el-descriptions-item :label="t('crd.shortName')" span="2">
                 <template v-if="crdDetail.spec?.names?.shortNames && crdDetail.spec.names.shortNames.length > 0">
                   <el-tag v-for="(name, idx) in crdDetail.spec.names.shortNames" :key="idx" size="small" class="mr-1 mb-1">
                     {{ name }}
@@ -2286,20 +2287,20 @@
               </el-descriptions-item>
             </el-descriptions>
             <div v-if="crdDetail.metadata?.labels" class="mt-4">
-              <h4>标签</h4>
+              <h4>{{ t('common.labels') }}</h4>
               <el-tag v-for="(value, key) in crdDetail.metadata.labels" :key="key" size="small" class="mr-1 mb-1">
                 {{ key }}: {{ value }}
               </el-tag>
             </div>
             <div v-if="crdDetail.metadata?.annotations" class="mt-3">
-              <h4>注解</h4>
+              <h4>{{ t('common.annotations') }}</h4>
               <el-tag v-for="(value, key) in crdDetail.metadata.annotations" :key="key" size="small" type="info" class="mr-1 mb-1" style="max-width: 100%; overflow: hidden; text-overflow: ellipsis;">
                 {{ key }}: {{ value }}
               </el-tag>
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="版本信息" name="crdVersions">
+          <el-tab-pane :label="t('crd.versionInfo')" name="crdVersions">
             <div v-if="crdDetail.spec?.versions && crdDetail.spec.versions.length > 0">
               <el-collapse v-model="activeCrdVersions" accordion>
                 <el-collapse-item v-for="(version, idx) in crdDetail.spec.versions" :key="idx" :name="idx">
@@ -2314,15 +2315,15 @@
                   </template>
                   <div class="version-content">
                     <el-descriptions border column="1" size="small" v-if="version.schema?.openAPIV3Schema">
-                      <el-descriptions-item label="描述">
+                      <el-descriptions-item :label="t('crd.description')">
                         {{ version.schema.openAPIV3Schema.description || '-' }}
                       </el-descriptions-item>
-                      <el-descriptions-item label="类型">
+                      <el-descriptions-item :label="t('common.type')">
                         {{ version.schema.openAPIV3Schema.type || '-' }}
                       </el-descriptions-item>
                     </el-descriptions>
                     <div v-if="version.schema?.openAPIV3Schema" class="mt-3">
-                      <h5>Schema 结构</h5>
+                      <h5>{{ t('crd.schemaStruct') }}</h5>
                       <el-tree
                         :data="transformSchemaToTree(version.schema.openAPIV3Schema)"
                         :props="{ label: 'label', children: 'children' }"
@@ -2339,48 +2340,48 @@
                       </el-tree>
                     </div>
                     <div v-if="version.subresources" class="mt-3">
-                      <h5>子资源</h5>
+                      <h5>{{ t('crd.subResources') }}</h5>
                       <el-descriptions border column="2" size="small">
                         <el-descriptions-item label="Status">
                           <el-tag :type="version.subresources.status ? 'success' : 'info'" size="small">
-                            {{ version.subresources.status ? '启用' : '禁用' }}
+                            {{ version.subresources.status ? t('common.enable') : t('common.disable') }}
                           </el-tag>
                         </el-descriptions-item>
                         <el-descriptions-item label="Scale">
                           <el-tag :type="version.subresources.scale ? 'success' : 'info'" size="small">
-                            {{ version.subresources.scale ? '启用' : '禁用' }}
+                            {{ version.subresources.scale ? t('common.enable') : t('common.disable') }}
                           </el-tag>
                         </el-descriptions-item>
                       </el-descriptions>
                     </div>
                     <div v-if="version.additionalPrinterColumns && version.additionalPrinterColumns.length > 0" class="mt-3">
-                      <h5>附加列</h5>
+                      <h5>{{ t('crd.extraColumns') }}</h5>
                       <el-table :data="version.additionalPrinterColumns" size="small" border>
-                        <el-table-column prop="name" label="名称" />
-                        <el-table-column prop="type" label="类型" />
+                        <el-table-column prop="name" :label="t('common.name')" />
+                        <el-table-column prop="type" :label="t('common.type')" />
                         <el-table-column prop="jsonPath" label="JSONPath" min-width="200" show-overflow-tooltip />
-                        <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
+                        <el-table-column prop="description" :label="t('crd.description')" min-width="150" show-overflow-tooltip />
                       </el-table>
                     </div>
                   </div>
                 </el-collapse-item>
               </el-collapse>
             </div>
-            <el-empty v-else description="无版本信息" />
+            <el-empty v-else :description="t('crd.noVersion')" />
           </el-tab-pane>
 
-          <el-tab-pane label="状态信息" name="crdStatus">
+          <el-tab-pane :label="t('crd.statusInfo')" name="crdStatus">
             <el-descriptions border column="2" size="small" v-if="crdDetail.status">
               <el-descriptions-item label="Accepted Kind">{{ crdDetail.status.acceptedNames?.kind || '-' }}</el-descriptions-item>
               <el-descriptions-item label="Accepted Plural">{{ crdDetail.status.acceptedNames?.plural || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="存储版本" span="2">
+              <el-descriptions-item :label="t('crd.storedVersion')" span="2">
                 <el-tag v-for="(v, idx) in crdDetail.status.storedVersions" :key="idx" size="small" type="warning" class="mr-1 mb-1">
                   {{ v }}
                 </el-tag>
               </el-descriptions-item>
             </el-descriptions>
             <div v-if="crdDetail.status?.conditions && crdDetail.status.conditions.length > 0" class="mt-4">
-              <h4>状态条件</h4>
+              <h4>{{ t('crd.statusConditions') }}</h4>
               <el-timeline>
                 <el-timeline-item
                   v-for="(condition, index) in crdDetail.status.conditions"
@@ -2389,15 +2390,15 @@
                   :timestamp="formatTimestamp(condition.lastTransitionTime)"
                 >
                   <h5>{{ condition.type }}</h5>
-                  <p><strong>状态:</strong> {{ condition.status }}</p>
-                  <p v-if="condition.reason"><strong>原因:</strong> {{ condition.reason }}</p>
-                  <p v-if="condition.message"><strong>消息:</strong> {{ condition.message }}</p>
+                  <p><strong>{{ t('common.status') }}:</strong> {{ condition.status }}</p>
+                  <p v-if="condition.reason"><strong>{{ t('common.reason') }}:</strong> {{ condition.reason }}</p>
+                  <p v-if="condition.message"><strong>{{ t('common.message') }}:</strong> {{ condition.message }}</p>
                 </el-timeline-item>
               </el-timeline>
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="原始数据" name="crdRaw">
+          <el-tab-pane :label="t('crd.rawData')" name="crdRaw">
             <el-card>
               <pre class="code-display">{{ JSON.stringify(crdDetail, null, 2) }}</pre>
             </el-card>
@@ -2405,97 +2406,97 @@
         </el-tabs>
       </div>
       <template #footer>
-        <el-button @click="showCrdDetailDialog = false">关闭</el-button>
+        <el-button @click="showCrdDetailDialog = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 扩缩容弹窗 -->
-    <el-dialog v-model="showScaleDialog" title="Deployment扩缩容" width="500px">
+    <el-dialog v-model="showScaleDialog" :title="t('scale.title')" width="500px">
       <el-form :model="scaleForm" label-width="100px">
-        <el-form-item label="当前副本数">
+        <el-form-item :label="t('scale.current')">
           <span>{{ selectedDeployment?.spec?.replicas || 0 }}</span>
         </el-form-item>
-        <el-form-item label="目标副本数" required>
+        <el-form-item :label="t('scale.target')" required>
           <el-input-number v-model="scaleForm.replicas" :min="0" :max="100" style="width: 100%;" />
         </el-form-item>
-        <el-form-item label="说明">
+        <el-form-item :label="t('scale.note')">
           <el-alert
-            title="提示"
+            :title="t('scale.tip')"
             type="info"
-            description="副本数设置为0将会停止该Deployment下的所有Pod"
+            :description="t('scale.tipContent')"
             show-icon
             :closable="false"
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showScaleDialog = false">取消</el-button>
-        <el-button type="primary" @click="confirmScale">确定</el-button>
+        <el-button @click="showScaleDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="confirmScale">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 用户信息维护弹窗 -->
-    <el-dialog v-model="showUserProfileDialog" title="用户信息维护" width="600px">
+    <el-dialog v-model="showUserProfileDialog" :title="t('profile.title')" width="600px">
       <el-tabs v-model="userProfileActiveTab" type="border-card">
-        <el-tab-pane label="基本信息" name="info">
+        <el-tab-pane :label="t('common.basicInfo')" name="info">
           <el-form :model="userProfileForm" label-width="80px">
-            <el-form-item label="账号">
+            <el-form-item :label="t('profile.account')">
               <span>{{ userInfo.account }}</span>
             </el-form-item>
-            <el-form-item label="用户名" prop="username">
-              <el-input v-model="userProfileForm.username" placeholder="请输入用户名" />
+            <el-form-item :label="t('profile.username')" prop="username">
+              <el-input v-model="userProfileForm.username" :placeholder="t('profile.usernamePlaceholder')" />
             </el-form-item>
-            <el-form-item label="头像">
+            <el-form-item :label="t('profile.avatar')">
               <div class="avatar-group">
                 <el-avatar :size="60">
-                  <img v-if="userProfileForm.avatar" :src="userProfileForm.avatar" alt="头像" style="width: 100%; height: 100%; object-fit: cover;">
-                  <span v-else>加载中...</span>
+                  <img v-if="userProfileForm.avatar" :src="userProfileForm.avatar" :alt="t('profile.avatar')" style="width: 100%; height: 100%; object-fit: cover;">
+                  <span v-else>{{ t('common.loading') }}</span>
                 </el-avatar>
-                <el-button type="primary" size="small" @click="handleGetRandomAvatar">换一个头像</el-button>
+                <el-button type="primary" size="small" @click="handleGetRandomAvatar">{{ t('profile.changeAvatar') }}</el-button>
               </div>
             </el-form-item>
-            <el-form-item label="邮箱" prop="email">
-              <el-input v-model="userProfileForm.email" placeholder="请输入邮箱" />
+            <el-form-item :label="t('profile.email')" prop="email">
+              <el-input v-model="userProfileForm.email" :placeholder="t('profile.emailPlaceholder')" />
             </el-form-item>
-            <el-form-item label="手机号" prop="phone">
-              <el-input v-model="userProfileForm.phone" placeholder="请输入手机号" />
+            <el-form-item :label="t('profile.phone')" prop="phone">
+              <el-input v-model="userProfileForm.phone" :placeholder="t('profile.phonePlaceholder')" />
             </el-form-item>
           </el-form>
         </el-tab-pane>
-        <el-tab-pane label="修改密码" name="password">
+        <el-tab-pane :label="t('profile.changePassword')" name="password">
           <el-form :model="passwordForm" label-width="100px">
-            <el-form-item label="旧密码" prop="oldPassword">
-              <el-input v-model="passwordForm.oldPassword" type="password" placeholder="请输入旧密码" show-password />
+            <el-form-item :label="t('profile.oldPassword')" prop="oldPassword">
+              <el-input v-model="passwordForm.oldPassword" type="password" :placeholder="t('profile.oldPasswordPlaceholder')" show-password />
             </el-form-item>
-            <el-form-item label="新密码" prop="newPassword">
-              <el-input v-model="passwordForm.newPassword" type="password" placeholder="请输入新密码" show-password />
+            <el-form-item :label="t('profile.newPassword')" prop="newPassword">
+              <el-input v-model="passwordForm.newPassword" type="password" :placeholder="t('profile.newPasswordPlaceholder')" show-password />
             </el-form-item>
-            <el-form-item label="确认密码" prop="confirmPassword">
-              <el-input v-model="passwordForm.confirmPassword" type="password" placeholder="请再次输入新密码" show-password />
+            <el-form-item :label="t('profile.confirmPassword')" prop="confirmPassword">
+              <el-input v-model="passwordForm.confirmPassword" type="password" :placeholder="t('profile.confirmPasswordPlaceholder')" show-password />
             </el-form-item>
           </el-form>
         </el-tab-pane>
       </el-tabs>
       <template #footer>
-        <el-button @click="showUserProfileDialog = false">取消</el-button>
-        <el-button v-if="userProfileActiveTab === 'info'" type="primary" @click="handleUpdateUserInfo" :loading="userProfileLoading">保存</el-button>
-        <el-button v-if="userProfileActiveTab === 'password'" type="primary" @click="handleUpdatePassword" :loading="passwordLoading">修改密码</el-button>
+        <el-button @click="showUserProfileDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button v-if="userProfileActiveTab === 'info'" type="primary" @click="handleUpdateUserInfo" :loading="userProfileLoading">{{ t('common.save') }}</el-button>
+        <el-button v-if="userProfileActiveTab === 'password'" type="primary" @click="handleUpdatePassword" :loading="passwordLoading">{{ t('profile.changePassword') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 收件箱弹窗 -->
-    <el-dialog v-model="showInboxDialog" title="收件箱" width="700px">
+    <el-dialog v-model="showInboxDialog" :title="t('inbox.title')" width="700px">
       <div class="inbox-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-weight: 500;">
-          共 {{ siteMessageList.length }} 条消息
-          <span v-if="unreadCount > 0" style="color: #f56c6c; margin-left: 8px;">({{ unreadCount }} 条未读)</span>
+          {{ t('inbox.total', { n: siteMessageList.length }) }}
+          <span v-if="unreadCount > 0" style="color: #f56c6c; margin-left: 8px;">{{ t('inbox.unreadCount', { n: unreadCount }) }}</span>
         </span>
         <el-button type="primary" size="small" link @click="handleMarkAllRead" v-if="unreadCount > 0">
-          全部标为已读
+          {{ t('inbox.markAllRead') }}
         </el-button>
       </div>
       <div class="inbox-list" style="max-height: 500px; overflow-y: auto;">
-        <el-empty v-if="siteMessageList.length === 0" description="暂无消息" />
+        <el-empty v-if="siteMessageList.length === 0" :description="t('inbox.empty')" />
         <div v-for="msg in siteMessageList" :key="msg.id" class="message-item-wrapper" style="margin-bottom: 12px;">
           <el-card :shadow="isMessageRead(msg.id) ? 'never' : 'hover'" class="message-card" :class="{ 'unread': !isMessageRead(msg.id), ['msg-' + (msg.type || 'INFO').toLowerCase()]: true }">
             <div class="message-header" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
@@ -2508,14 +2509,14 @@
                   {{ getMessageTypeText(msg.type) }}
                 </el-tag>
                 <span class="message-title" style="font-weight: 600; font-size: 15px;">{{ msg.title }}</span>
-                <el-tag v-if="!isMessageRead(msg.id)" type="danger" size="small" effect="dark">未读</el-tag>
+                <el-tag v-if="!isMessageRead(msg.id)" type="danger" size="small" effect="dark">{{ t('inbox.unread') }}</el-tag>
               </div>
               <div class="message-time" style="color: #999; font-size: 12px;">{{ formatTime(msg.createdTime) }}</div>
             </div>
             <div class="message-content" style="color: #606266; line-height: 1.6; white-space: pre-wrap;">{{ msg.content }}</div>
             <div class="message-footer" style="margin-top: 12px; text-align: right;">
               <el-button type="primary" size="small" link @click="handleMarkRead(msg.id)" v-if="!isMessageRead(msg.id)">
-                标为已读
+                {{ t('inbox.markRead') }}
               </el-button>
             </div>
           </el-card>
@@ -2531,7 +2532,7 @@
     <!-- AI聊天弹窗 - 完全重构版 -->
     <el-dialog
       v-model="showAIChat"
-      title="智能助手"
+      :title="t('ai.title')"
       width="100vw"
       top="0"
       :close-on-click-modal="false"
@@ -2546,7 +2547,7 @@
         <div class="ai-chat-sidebar">
           <div class="ai-chat-sidebar-header">
             <el-button type="primary" @click="createNewConversation" style="width: 100%;">
-              <el-icon><Plus /></el-icon> 新对话
+              <el-icon><Plus /></el-icon> {{ t('ai.newChat') }}
             </el-button>
           </div>
           <div class="ai-chat-conversation-list" ref="conversationListRef">
@@ -2556,7 +2557,7 @@
               :class="['ai-chat-conversation-item', { active: conv.id === conversationId }]"
             >
               <div class="ai-chat-conversation-title" @click="switchConversation(conv.id)">
-                <span v-if="editingTitle !== conv.id">{{ conv.title || '新对话' }}</span>
+                <span v-if="editingTitle !== conv.id">{{ conv.title || t('ai.newChat') }}</span>
                 <el-input
                   v-else
                   v-model="newTitle"
@@ -2571,7 +2572,7 @@
                   link
                   size="small"
                   @click="startEditTitle(conv)"
-                  :title="'编辑标题'"
+                  :title="t('ai.editTitle')"
                 >
                   <el-icon><Edit /></el-icon>
                 </el-button>
@@ -2580,13 +2581,13 @@
                   size="small"
                   type="danger"
                   @click="deleteConversationItem(conv.id)"
-                  :title="'删除对话'"
+                  :title="t('ai.deleteChat')"
                 >
                   <el-icon><Delete /></el-icon>
                 </el-button>
               </div>
               <div class="ai-chat-conversation-time">
-                {{ new Date(conv.updatedAt).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
+                {{ new Date(conv.updatedAt).toLocaleString(dateLocale(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
               </div>
             </div>
           </div>
@@ -2625,7 +2626,7 @@
                 <el-icon size="20" color="#409eff"><ChatDotRound /></el-icon>
               </div>
               <div class="ai-chat-message-content thinking">
-                <span class="dot">思考中</span>
+                <span class="dot">{{ t('ai.thinking') }}</span>
               </div>
             </div>
           </div>
@@ -2633,7 +2634,7 @@
           <!-- Agent专家区域 -->
           <div class="expert-prompts" v-if="expertList.length > 0">
             <div class="expert-header">
-              <span class="expert-title">专家 Agent</span>
+              <span class="expert-title">{{ t('ai.expertTitle') }}</span>
               <div class="expert-header-actions">
                 <el-button
                   type="primary"
@@ -2641,7 +2642,7 @@
                   size="small"
                   @click="showExpertList = !showExpertList"
                 >
-                  {{ showExpertList ? '收起' : '展开' }}
+                  {{ showExpertList ? t('ai.collapse') : t('ai.expand') }}
                 </el-button>
                 <el-button
                   v-if="activeExpert"
@@ -2650,7 +2651,7 @@
                   size="small"
                   @click="deselectExpert"
                 >
-                  取消选择
+                  {{ t('ai.clearSelection') }}
                 </el-button>
                 <el-button
                   type="primary"
@@ -2658,7 +2659,7 @@
                   size="small"
                   @click="showExpertManager = true"
                 >
-                  管理
+                  {{ t('ai.manage') }}
                 </el-button>
               </div>
             </div>
@@ -2674,7 +2675,7 @@
                   <div class="expert-name">{{ expert.name }}</div>
                   <div class="expert-desc">{{ expert.description }}</div>
                 </div>
-                <el-tag v-if="activeExpert?.id === expert.id" size="small" type="warning" effect="dark" class="expert-tag">已选</el-tag>
+                <el-tag v-if="activeExpert?.id === expert.id" size="small" type="warning" effect="dark" class="expert-tag">{{ t('ai.selected') }}</el-tag>
               </div>
             </div>
           </div>
@@ -2682,7 +2683,7 @@
           <!-- 专家管理对话框 -->
           <el-dialog
             v-model="showExpertManager"
-            title="管理专家"
+            :title="t('ai.manageExpert')"
             width="650px"
             :close-on-click-modal="false"
           >
@@ -2696,47 +2697,47 @@
                   </div>
                 </div>
                 <div class="expert-manager-actions">
-                  <el-tag v-if="expert.isSystem" size="small">系统</el-tag>
-                  <el-button v-if="!expert.isSystem" type="primary" link size="small" @click="editExpert(expert)">编辑</el-button>
-                  <el-button v-if="!expert.isSystem" type="danger" link size="small" @click="handleDeleteExpert(expert.id)">删除</el-button>
+                  <el-tag v-if="expert.isSystem" size="small">{{ t('ai.system') }}</el-tag>
+                  <el-button v-if="!expert.isSystem" type="primary" link size="small" @click="editExpert(expert)">{{ t('common.edit') }}</el-button>
+                  <el-button v-if="!expert.isSystem" type="danger" link size="small" @click="handleDeleteExpert(expert.id)">{{ t('common.delete') }}</el-button>
                 </div>
               </div>
             </div>
             <template #footer>
-              <el-button type="primary" @click="showExpertForm = true">添加专家</el-button>
-              <el-button @click="showExpertManager = false">关闭</el-button>
+              <el-button type="primary" @click="showExpertForm = true">{{ t('ai.addExpert') }}</el-button>
+              <el-button @click="showExpertManager = false">{{ t('common.close') }}</el-button>
             </template>
           </el-dialog>
 
           <!-- 专家表单对话框 -->
           <el-dialog
             v-model="showExpertForm"
-            :title="editingExpertId ? '编辑专家' : '添加专家'"
+            :title="editingExpertId ? t('ai.editExpert') : t('ai.addExpert')"
             width="550px"
             :close-on-click-modal="false"
           >
             <el-form :model="expertForm" label-width="100px">
-              <el-form-item label="专家名称" required>
-                <el-input v-model="expertForm.name" placeholder="请输入专家名称" />
+              <el-form-item :label="t('ai.expertName')" required>
+                <el-input v-model="expertForm.name" :placeholder="t('ai.expertNamePlaceholder')" />
               </el-form-item>
-              <el-form-item label="描述">
-                <el-input v-model="expertForm.description" placeholder="请输入专家描述" />
+              <el-form-item :label="t('ai.description')">
+                <el-input v-model="expertForm.description" :placeholder="t('ai.descriptionPlaceholder')" />
               </el-form-item>
-              <el-form-item label="图标">
-                <el-input v-model="expertForm.icon" placeholder="emoji 图标（如 ☸️）" />
+              <el-form-item :label="t('ai.icon')">
+                <el-input v-model="expertForm.icon" :placeholder="t('ai.iconPlaceholder')" />
               </el-form-item>
-              <el-form-item label="系统提示词" required>
+              <el-form-item :label="t('ai.systemPrompt')" required>
                 <el-input
                   v-model="expertForm.systemPrompt"
                   type="textarea"
                   :rows="6"
-                  placeholder="请输入系统提示词，定义该专家的行为"
+                  :placeholder="t('ai.systemPromptPlaceholder')"
                 />
               </el-form-item>
             </el-form>
             <template #footer>
-              <el-button type="primary" :loading="savingExpert" @click="saveExpert">保存</el-button>
-              <el-button @click="showExpertForm = false">取消</el-button>
+              <el-button type="primary" :loading="savingExpert" @click="saveExpert">{{ t('common.save') }}</el-button>
+              <el-button @click="showExpertForm = false">{{ t('common.cancel') }}</el-button>
             </template>
           </el-dialog>
 
@@ -2760,7 +2761,7 @@
                   @click="removeAttachment(index)"
                   :disabled="uploadingFile || aiThinking"
                 >
-                  删除
+                  {{ t('common.delete') }}
                 </el-button>
               </div>
             </div>
@@ -2781,18 +2782,18 @@
                   :disabled="aiThinking"
                   circle
                   size="small"
-                  title="上传附件"
+                  :title="t('ai.uploadAttachment')"
                 />
               </el-upload>
               <el-input
                 v-model="inputMessage"
-                placeholder="输入你的问题..."
+                :placeholder="t('ai.inputPlaceholder')"
                 :rows="1"
                 @keyup.enter="sendMessage"
                 :disabled="aiThinking || uploadingFile"
               />
               <el-button type="primary" @click="sendMessage" :loading="aiThinking" :disabled="uploadingFile">
-                发送
+                {{ t('ai.send') }}
               </el-button>
             </div>
           </div>
@@ -2818,6 +2819,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Monitor, DataAnalysis, Box, Service, ArrowDown, Plus,
@@ -2881,6 +2885,7 @@ import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css' // 代码高亮主题
 
 const router = useRouter()
+const { t } = useI18n({ useScope: 'global' })
 const activeMenu = ref('overview')
 const showCreateNamespaceDialog = ref(false)
 const showCreateResourceDialog = ref(false)
@@ -2946,7 +2951,7 @@ const refreshTimer = ref(null)
 // AI助手相关
 const showAIChat = ref(false)
 const messageList = ref([
-  { role: 'assistant', content: '你好！我是DSSP智能助手，有什么可以帮你的吗？' }
+  { role: 'assistant', content: t('ai.welcome') }
 ])
 const inputMessage = ref('')
 const aiThinking = ref(false)
@@ -3150,14 +3155,14 @@ const createNewConversation = async () => {
   try {
     conversationId.value = null
     messageList.value = [
-      { role: 'assistant', content: '你好！我是DSSP智能助手，有什么可以帮你的吗？' }
+      { role: 'assistant', content: t('ai.welcome') }
     ]
     await getConversationId()
     await loadConversationList()
     // 等待DOM更新后滚动
     nextTick(scrollChatToBottom)
   } catch (error) {
-    ElMessage.error('创建新对话失败')
+    ElMessage.error(t('ai.newChatFailed'))
   }
 }
 
@@ -3179,7 +3184,7 @@ const selectExpert = (expert) => {
     activeExpert.value = expert
     messageList.value.push({
       role: 'assistant',
-      content: `已切换到 **${expert.name}**，您可以向我咨询相关领域的问题。`
+      content: t('ai.switchedExpert', { name: expert.name })
     })
     scrollChatToBottom()
   }
@@ -3190,7 +3195,7 @@ const deselectExpert = () => {
   activeExpert.value = null
   messageList.value.push({
     role: 'assistant',
-    content: '已切换回普通对话模式。'
+    content: t('ai.switchedNormal')
   })
   scrollChatToBottom()
 }
@@ -3208,17 +3213,17 @@ const editExpert = (expert) => {
 // 保存专家
 const saveExpert = async () => {
   if (!expertForm.name || !expertForm.systemPrompt) {
-    ElMessage.warning('请填写专家名称和系统提示词')
+    ElMessage.warning(t('ai.expertNameRequired'))
     return
   }
   savingExpert.value = true
   try {
     if (editingExpertId.value) {
       await updateAiExpert(editingExpertId.value, expertForm)
-      ElMessage.success('专家已更新')
+      ElMessage.success(t('ai.expertUpdated'))
     } else {
       await createAiExpert(expertForm)
-      ElMessage.success('专家已创建')
+      ElMessage.success(t('ai.expertCreated'))
     }
     showExpertForm.value = false
     resetExpertForm()
@@ -3233,13 +3238,13 @@ const saveExpert = async () => {
 // 删除专家
 const handleDeleteExpert = async (id) => {
   try {
-    await ElMessageBox.confirm('确定要删除这个专家吗？删除后无法恢复。', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('ai.expertDeleteConfirm'), t('common.tip'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
     await deleteAiExpert(id)
-    ElMessage.success('专家已删除')
+    ElMessage.success(t('ai.expertDeleted'))
     if (activeExpert.value?.id === id) {
       activeExpert.value = null
     }
@@ -3247,7 +3252,7 @@ const handleDeleteExpert = async (id) => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除专家失败:', error)
-      ElMessage.error('删除专家失败，请稍后重试')
+      ElMessage.error(t('ai.expertDeleteFailed'))
     }
   }
 }
@@ -3265,11 +3270,11 @@ const resetExpertForm = () => {
 const beforeFileUpload = (file) => {
   const maxSize = 50 * 1024 * 1024 // 50MB
   if (file.size > maxSize) {
-    ElMessage.error('文件大小不能超过50MB')
+    ElMessage.error(t('ai.fileTooLarge'))
     return false
   }
   if (currentAttachments.value.length >= 5) {
-    ElMessage.error('最多只能上传5个附件')
+    ElMessage.error(t('ai.tooManyFiles'))
     return false
   }
   return true
@@ -3296,15 +3301,15 @@ const handleChatFileUpload = async (options) => {
         url: fileUrl,
         type: file.raw?.type || file.type
       })
-      ElMessage.success(`文件 ${file.name} 上传成功`)
+      ElMessage.success(t('oss.uploadSuccess', { name: file.name }))
       onSuccess(res, file)
     } else {
-      ElMessage.error(res.message || '文件上传失败')
-      onError(new Error(res.message || '文件上传失败'))
+      ElMessage.error(res.message || t('ai.uploadFailed'))
+      onError(new Error(res.message || t('ai.uploadFailed')))
     }
   } catch (error) {
     console.error('上传失败:', error)
-    ElMessage.error('文件上传失败，请稍后重试')
+    ElMessage.error(t('ai.uploadRetry'))
     onError(error)
   } finally {
     uploadingFile.value = false
@@ -3330,7 +3335,7 @@ const loadBucketList = async () => {
     }
   } catch (error) {
     console.error('加载Bucket列表失败:', error)
-    ElMessage.error('加载Bucket列表失败')
+    ElMessage.error(t('oss.loadBucketsFailed'))
   }
 }
 
@@ -3344,7 +3349,7 @@ const loadFileList = async (bucketName) => {
     ossFileList.value = res.data || []
   } catch (error) {
     console.error('加载文件列表失败:', error)
-    ElMessage.error('加载文件列表失败')
+    ElMessage.error(t('oss.loadFilesFailed'))
   } finally {
     ossLoading.value = false
   }
@@ -3379,19 +3384,19 @@ const navigateToBreadcrumb = async (index) => {
 const handleCreateFolder = async () => {
   const name = newFolderName.value.trim()
   if (!name) {
-    ElMessage.warning('请输入文件夹名称')
+    ElMessage.warning(t('oss.folderNameRequired'))
     return
   }
   creatingFolder.value = true
   try {
     await createFolder(selectedBucket.value, currentPrefix.value, name)
-    ElMessage.success(`文件夹 "${name}" 创建成功`)
+    ElMessage.success(t('oss.folderCreated', { name }))
     showCreateFolderDialog.value = false
     newFolderName.value = ''
     await loadFileList(selectedBucket.value)
   } catch (error) {
     console.error('创建文件夹失败:', error)
-    ElMessage.error('创建文件夹失败')
+    ElMessage.error(t('oss.createFolderFailed'))
   } finally {
     creatingFolder.value = false
   }
@@ -3401,13 +3406,13 @@ const handleCreateFolder = async () => {
 const handleCreateBucket = async () => {
   const name = newBucketName.value.trim()
   if (!name) {
-    ElMessage.warning('请输入Bucket名称')
+    ElMessage.warning(t('oss.bucketNameRequired'))
     return
   }
   creatingBucket.value = true
   try {
     await createBucket(name)
-    ElMessage.success(`Bucket "${name}" 创建成功`)
+    ElMessage.success(t('oss.bucketCreated', { name }))
     showCreateBucketDialog.value = false
     newBucketName.value = ''
     await loadBucketList()
@@ -3417,7 +3422,7 @@ const handleCreateBucket = async () => {
     }
   } catch (error) {
     console.error('创建Bucket失败:', error)
-    ElMessage.error('创建Bucket失败')
+    ElMessage.error(t('oss.createBucketFailed'))
   } finally {
     creatingBucket.value = false
   }
@@ -3441,11 +3446,11 @@ const handleFileUpload = async (event) => {
         uploadProgress.value = Math.round((progressEvent.loaded / progressEvent.total) * 100)
       }
     })
-    ElMessage.success(`文件 ${file.name} 上传成功`)
+    ElMessage.success(t('oss.uploadSuccess', { name: file.name }))
     await loadFileList(selectedBucket.value)
   } catch (error) {
     console.error('上传文件失败:', error)
-    ElMessage.error('上传文件失败')
+    ElMessage.error(t('oss.uploadFailed'))
   } finally {
     uploadingFile.value = false
     uploadingFileName.value = ''
@@ -3458,11 +3463,11 @@ const handleFileUpload = async (event) => {
 
 // 删除对象
 const handleDeleteObject = async (objectName, isFolder) => {
-  const label = isFolder ? `文件夹 "${objectName}"` : `文件 "${objectName}"`
+  const label = `${isFolder ? t('oss.folder') : t('oss.file')} "${objectName}"`
   try {
-    await ElMessageBox.confirm(`确定要删除${label}吗？删除后无法恢复！`, '确认删除', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('oss.deleteConfirm', { label }), t('common.confirmDelete'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
   } catch {
@@ -3470,11 +3475,11 @@ const handleDeleteObject = async (objectName, isFolder) => {
   }
   try {
     await deleteObject(selectedBucket.value, currentPrefix.value, objectName)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     await loadFileList(selectedBucket.value)
   } catch (error) {
     console.error('删除失败:', error)
-    ElMessage.error('删除失败')
+    ElMessage.error(t('common.deleteFailed'))
   }
 }
 
@@ -3486,7 +3491,7 @@ const handleOssSelectionChange = (selection) => {
 // 批量删除对象
 const handleBatchDelete = async () => {
   if (selectedOssFiles.value.length === 0) {
-    ElMessage.warning('请先选择要删除的对象')
+    ElMessage.warning(t('oss.selectToDelete'))
     return
   }
 
@@ -3496,17 +3501,17 @@ const handleBatchDelete = async () => {
   // 构建确认提示文本
   let confirmText = ''
   if (folderCount > 0 && fileCount > 0) {
-    confirmText = `确定要删除选中的 ${folderCount} 个文件夹和 ${fileCount} 个文件吗？删除后无法恢复！`
+    confirmText = t('oss.deleteSelectedConfirm', { folders: folderCount, files: fileCount })
   } else if (folderCount > 0) {
-    confirmText = `确定要删除选中的 ${folderCount} 个文件夹吗？删除后无法恢复！`
+    confirmText = t('oss.deleteFoldersConfirm', { folders: folderCount })
   } else {
-    confirmText = `确定要删除选中的 ${fileCount} 个文件吗？删除后无法恢复！`
+    confirmText = t('oss.deleteFilesConfirm', { files: fileCount })
   }
 
   try {
-    await ElMessageBox.confirm(confirmText, '确认批量删除', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(confirmText, t('oss.batchDeleteTitle'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
   } catch {
@@ -3520,7 +3525,7 @@ const handleBatchDelete = async () => {
     )
     await Promise.all(deletePromises)
 
-    ElMessage.success(`成功删除 ${selectedOssFiles.value.length} 个对象`)
+    ElMessage.success(t('oss.batchDeleteSuccess', { n: selectedOssFiles.value.length }))
     // 清空选中状态
     selectedOssFiles.value = []
     ossTableRef.value?.clearSelection()
@@ -3528,7 +3533,7 @@ const handleBatchDelete = async () => {
     await loadFileList(selectedBucket.value)
   } catch (error) {
     console.error('批量删除失败:', error)
-    ElMessage.error('部分对象删除失败，请稍后重试')
+    ElMessage.error(t('oss.batchDeleteFailed'))
     // 刷新列表显示最新状态
     await loadFileList(selectedBucket.value)
   }
@@ -3563,7 +3568,7 @@ const previewTextFile = async (objectName) => {
     showTextPreviewDialog.value = true
   } catch (error) {
     console.error('预览文本文件失败:', error)
-    ElMessage.error('预览文本文件失败')
+    ElMessage.error(t('oss.previewFailed'))
   }
 }
 
@@ -3571,9 +3576,9 @@ const previewTextFile = async (objectName) => {
 const copyDownloadUrl = async (url) => {
   try {
     await navigator.clipboard.writeText(url)
-    ElMessage.success('下载链接已复制到剪贴板')
+    ElMessage.success(t('oss.copyLink'))
   } catch {
-    ElMessage.error('复制失败')
+    ElMessage.error(t('oss.copyFailed'))
   }
 }
 
@@ -3599,7 +3604,7 @@ const loadRegistryRepos = async () => {
     registryRepos.value = res.data || []
   } catch (error) {
     console.error('加载仓库列表失败:', error)
-    ElMessage.error('加载仓库列表失败')
+    ElMessage.error(t('registry.loadReposFailed'))
   } finally {
     registryLoading.value = false
   }
@@ -3613,7 +3618,7 @@ const loadConfigMapList = async () => {
     configMapList.value = res.data || []
   } catch (error) {
     console.error('加载ConfigMap列表失败:', error)
-    ElMessage.error('加载ConfigMap列表失败')
+    ElMessage.error(t('configmap.loadFailed'))
   } finally {
     configMapLoading.value = false
   }
@@ -3623,7 +3628,7 @@ const viewConfigMapDetail = (cm) => {
   const data = cm.data || {}
   const content = Object.entries(data).map(([k, v]) => `${k} = ${v}`).join('\n')
   ElMessageBox.alert(content, `ConfigMap: ${cm.metadata.name}`, {
-    confirmButtonText: '关闭',
+    confirmButtonText: t('common.close'),
     customClass: 'configmap-detail-msgbox'
   }).catch(() => {})
 }
@@ -3631,17 +3636,17 @@ const viewConfigMapDetail = (cm) => {
 const handleDeleteConfigMap = async (cm) => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除ConfigMap "${cm.metadata.name}" 吗？`,
-      '确认删除',
+      t('configmap.confirmDelete', { name: cm.metadata.name }),
+      t('common.confirmDelete'),
       { type: 'warning' }
     )
     await deleteConfigMap(cm.metadata.namespace, cm.metadata.name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadConfigMapList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除ConfigMap失败:', error)
-      ElMessage.error('删除ConfigMap失败')
+      ElMessage.error(t('configmap.deleteFailed'))
     }
   }
 }
@@ -3654,7 +3659,7 @@ const loadSecretList = async () => {
     secretList.value = res.data || []
   } catch (error) {
     console.error('加载Secret列表失败:', error)
-    ElMessage.error('加载Secret列表失败')
+    ElMessage.error(t('secret.loadFailed'))
   } finally {
     secretLoading.value = false
   }
@@ -3670,7 +3675,7 @@ const viewSecretDetail = (secret) => {
     }
   }).join('\n')
   ElMessageBox.alert(decoded, `Secret: ${secret.metadata.name}`, {
-    confirmButtonText: '关闭',
+    confirmButtonText: t('common.close'),
     customClass: 'configmap-detail-msgbox'
   }).catch(() => {})
 }
@@ -3678,17 +3683,17 @@ const viewSecretDetail = (secret) => {
 const handleDeleteSecret = async (secret) => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除Secret "${secret.metadata.name}" 吗？`,
-      '确认删除',
+      t('secret.confirmDelete', { name: secret.metadata.name }),
+      t('common.confirmDelete'),
       { type: 'warning' }
     )
     await deleteSecret(secret.metadata.namespace, secret.metadata.name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadSecretList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除Secret失败:', error)
-      ElMessage.error('删除Secret失败')
+      ElMessage.error(t('secret.deleteFailed'))
     }
   }
 }
@@ -3701,7 +3706,7 @@ const loadCrdList = async () => {
     crdList.value = res.data || []
   } catch (error) {
     console.error('加载CRD列表失败:', error)
-    ElMessage.error('加载CRD列表失败')
+    ElMessage.error(t('crd.loadFailed'))
   } finally {
     crdLoading.value = false
   }
@@ -3726,7 +3731,7 @@ const loadJobList = async () => {
     jobList.value = res.data || []
   } catch (error) {
     console.error('加载Job列表失败:', error)
-    ElMessage.error('加载Job列表失败')
+    ElMessage.error(t('job.loadFailed'))
   } finally {
     jobLoading.value = false
   }
@@ -3741,7 +3746,7 @@ const viewJobDetail = async (job) => {
     jobDetail.value = res.data || {}
   } catch (error) {
     console.error('获取Job详情失败:', error)
-    ElMessage.error('获取Job详情失败')
+    ElMessage.error(t('job.getDetailFailed'))
     return
   }
   showJobDetailDialog.value = true
@@ -3750,17 +3755,17 @@ const viewJobDetail = async (job) => {
 const handleDeleteJob = async (job) => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除Job "${job.metadata.name}" 吗？`,
-      '确认删除',
+      t('job.confirmDelete', { name: job.metadata.name }),
+      t('common.confirmDelete'),
       { type: 'warning' }
     )
     await deleteJob(job.metadata.namespace, job.metadata.name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadJobList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除Job失败:', error)
-      ElMessage.error('删除Job失败')
+      ElMessage.error(t('job.deleteFailed'))
     }
   }
 }
@@ -3778,7 +3783,7 @@ const viewJobLogs = async (job) => {
     }
   } catch (error) {
     console.error('获取Job日志失败:', error)
-    ElMessage.error('获取Job日志失败')
+    ElMessage.error(t('job.getLogsFailed'))
     return
   }
   showJobLogsDialog.value = true
@@ -3844,7 +3849,7 @@ const loadEventList = async () => {
     })
   } catch (error) {
     console.error('加载Event列表失败:', error)
-    ElMessage.error('加载Event列表失败')
+    ElMessage.error(t('event.loadFailed'))
   } finally {
     eventLoading.value = false
   }
@@ -3860,7 +3865,7 @@ const selectRepo = async (repo) => {
     currentRepoData.value = res.data
   } catch (error) {
     console.error('加载Tags失败:', error)
-    ElMessage.error('加载Tags失败')
+    ElMessage.error(t('registry.loadTagsFailed'))
   }
 }
 
@@ -3873,7 +3878,7 @@ const selectTag = async (tag) => {
     registryManifest.value = res.data
   } catch (error) {
     console.error('加载Manifest失败:', error)
-    ElMessage.error('加载Manifest失败')
+    ElMessage.error(t('registry.loadManifestFailed'))
   } finally {
     manifestLoading.value = false
   }
@@ -3884,9 +3889,9 @@ const copyImagePath = (tag) => {
   const host = currentRepoData.value?.registryHost || ''
   const fullPath = host ? `${host}/${selectedRepo.value}:${tag}` : `${selectedRepo.value}:${tag}`
   navigator.clipboard.writeText(fullPath).then(() => {
-    ElMessage.success(`已复制: ${fullPath}`)
+    ElMessage.success(t('registry.copyPath', { path: fullPath }))
   }).catch(() => {
-    ElMessage.error('复制失败')
+    ElMessage.error(t('oss.copyFailed'))
   })
 }
 
@@ -3894,7 +3899,7 @@ const copyImagePath = (tag) => {
 const handleDeleteTag = async (tag) => {
   try {
     await deleteImage(selectedRepo.value, tag)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     // 刷新tags列表
     const res = await listTags(selectedRepo.value)
     currentRepoData.value = res.data
@@ -3904,7 +3909,7 @@ const handleDeleteTag = async (tag) => {
     }
   } catch (error) {
     console.error('删除tag失败:', error)
-    ElMessage.error('删除tag失败')
+    ElMessage.error(t('registry.deleteTagFailed'))
   }
 }
 
@@ -3925,7 +3930,7 @@ const switchConversation = async (convId) => {
     // 如果没有历史消息，显示欢迎语
     if (messageList.value.length === 0) {
       messageList.value = [
-        { role: 'assistant', content: '你好！我是DSSP智能助手，有什么可以帮你的吗？' }
+        { role: 'assistant', content: t('ai.welcome') }
       ]
     }
     // 等待DOM更新后滚动
@@ -3933,21 +3938,21 @@ const switchConversation = async (convId) => {
     // 再加一次保险
     setTimeout(scrollChatToBottom, 100)
   } catch (error) {
-    ElMessage.error('加载对话历史失败')
+    ElMessage.error(t('ai.historyFailed'))
   }
 }
 
 // 删除对话
 const deleteConversationItem = async (convId) => {
   try {
-    await ElMessageBox.confirm('确定要删除这个对话吗？删除后无法恢复！', '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('ai.deleteChatConfirm'), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
 
     await deleteConversation(convId)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
 
     // 如果删除的是当前对话，切换到第一个对话或者创建新对话
     if (convId === conversationId.value) {
@@ -3968,7 +3973,7 @@ const deleteConversationItem = async (convId) => {
     await loadConversationList()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      ElMessage.error(t('common.deleteFailed'))
     }
   }
 }
@@ -3997,14 +4002,14 @@ const saveTitle = async (convId) => {
 
   try {
     await updateConversationTitle(convId, newTitle.value.trim())
-    ElMessage.success('标题更新成功')
+    ElMessage.success(t('ai.titleUpdated'))
     // 更新本地列表
     const conv = conversationList.value.find(c => c.id === convId)
     if (conv) {
       conv.title = newTitle.value.trim()
     }
   } catch (error) {
-    ElMessage.error('更新标题失败')
+    ElMessage.error(t('ai.titleUpdateFailed'))
   } finally {
     editingTitle.value = null
     newTitle.value = ''
@@ -4074,8 +4079,8 @@ const k8sStats = reactive({
   readyNodeCount: 0,
   // 资源使用详情
   cpuUsage: 0,
-  cpuUsed: '0核',
-  cpuTotal: '0核',
+  cpuUsed: t('overview.cpuZero'),
+  cpuTotal: t('overview.cpuZero'),
   memoryUsage: 0,
   memoryUsed: '0Gi',
   memoryTotal: '0Gi',
@@ -4223,21 +4228,21 @@ const loadNamespaceList = async () => {
     namespaceList.value = res.data.items.map(item => ({
       name: item.metadata.name,
       status: item.status.phase,
-      creationTimestamp: new Date(item.metadata.creationTimestamp).toLocaleString('zh-CN'),
+      creationTimestamp: new Date(item.metadata.creationTimestamp).toLocaleString(dateLocale()),
       labels: item.metadata.labels || {}
     }))
     // 更新统计数
     k8sStats.namespaceCount = namespaceList.value.length
   } catch (error) {
     console.error('加载命名空间列表失败:', error)
-    ElMessage.error('加载命名空间列表失败：' + (error.message || '网络异常'))
+    ElMessage.error(t('common.loadNamespacesFailed') + '：' + (error.message || t('common.networkError')))
   }
 }
 
 // 创建命名空间
 const handleCreateNamespace = async () => {
   if (!namespaceForm.name) {
-    ElMessage.error('请输入命名空间名称')
+    ElMessage.error(t('namespace.nameRequired'))
     return
   }
   createLoading.value = true
@@ -4247,13 +4252,13 @@ const handleCreateNamespace = async () => {
         name: namespaceForm.name
       }
     })
-    ElMessage.success('创建成功')
+    ElMessage.success(t('common.createSuccess'))
     showCreateNamespaceDialog.value = false
     namespaceForm.name = ''
     loadNamespaceList()
   } catch (error) {
     console.error('创建命名空间失败:', error)
-    ElMessage.error('创建失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('createResource.createFailed') + ': ' + (error.message || t('common.unknownError')))
   } finally {
     createLoading.value = false
   }
@@ -4262,18 +4267,18 @@ const handleCreateNamespace = async () => {
 // 删除命名空间
 const handleDeleteNamespace = async (name) => {
   try {
-    await ElMessageBox.confirm(`确定要删除命名空间 ${name} 吗？删除后无法恢复！`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('namespace.confirmDelete', { name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
     await deleteNamespace(name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadNamespaceList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除命名空间失败:', error)
-      ElMessage.error('删除失败: ' + (error.message || '未知错误'))
+      ElMessage.error(t('common.deleteFailed') + ': ' + (error.message || t('common.unknownError')))
     }
   }
 }
@@ -4306,14 +4311,14 @@ const loadPodList = async () => {
     // 格式化UTC时间为本地友好显示
     podList.value.forEach(pod => {
       if (pod.metadata?.creationTimestamp) {
-        pod.metadata.creationTimestamp = new Date(pod.metadata.creationTimestamp).toLocaleString('zh-CN')
+        pod.metadata.creationTimestamp = new Date(pod.metadata.creationTimestamp).toLocaleString(dateLocale())
       }
       if (pod.status?.startTime) {
-        pod.status.startTime = new Date(pod.status.startTime).toLocaleString('zh-CN')
+        pod.status.startTime = new Date(pod.status.startTime).toLocaleString(dateLocale())
       }
     })
   } catch (error) {
-    ElMessage.error('加载Pod列表失败: ' + (error.message || '网络异常'))
+    ElMessage.error(t('pod.loadFailed') + ': ' + (error.message || t('common.networkError')))
     podList.value = []
   } finally {
     podLoading.value = false
@@ -4327,7 +4332,7 @@ const viewPodDetail = async (row) => {
     selectedPod.value = res.data
   } catch (error) {
     console.error('获取Pod详情失败:', error)
-    ElMessage.error('获取Pod详情失败')
+    ElMessage.error(t('common.getDetailFailed'))
     selectedPod.value = row // fallback to list data
   }
   showPodDetailDialog.value = true
@@ -4339,32 +4344,32 @@ const viewPodLogs = async (row) => {
     const res = await getPodLogs(row.metadata.namespace, row.metadata.name)
     // 兼容后端返回结构：成功时优先显示data，data为空显示message
     if (res.ok || res.code === 0 || res.code === 200) {
-      podLogsContent.value = res.data || res.message || '暂无日志内容'
+      podLogsContent.value = res.data || res.message || t('common.noLogContent')
       showPodLogsDialog.value = true
     } else {
-      ElMessage.error('获取日志失败: ' + (res.message || '未知错误'))
+      ElMessage.error(t('common.getLogsFailed') + ': ' + (res.message || t('common.unknownError')))
     }
   } catch (error) {
-    ElMessage.error('获取日志失败: ' + (error.message || '网络异常'))
+    ElMessage.error(t('common.getLogsFailed') + ': ' + (error.message || t('common.networkError')))
   }
 }
 
 // 删除Pod
 const handleDeletePod = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除Pod ${row.metadata.name} 吗？`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('pod.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
     // 调用导入的deletePod API
     await deletePod(row.metadata.namespace, row.metadata.name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadPodList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除Pod失败:', error)
-      ElMessage.error('删除失败: ' + (error.message || '未知错误'))
+      ElMessage.error(t('common.deleteFailed') + ': ' + (error.message || t('common.unknownError')))
     }
   }
 }
@@ -4402,11 +4407,11 @@ const loadDeploymentList = async () => {
     // 格式化时间
     deploymentList.value.forEach(deploy => {
       if (deploy.metadata?.creationTimestamp) {
-        deploy.metadata.creationTimestamp = new Date(deploy.metadata.creationTimestamp).toLocaleString('zh-CN')
+        deploy.metadata.creationTimestamp = new Date(deploy.metadata.creationTimestamp).toLocaleString(dateLocale())
       }
     })
   } catch (error) {
-    ElMessage.error('加载Deployment列表失败: ' + (error.message || '网络异常'))
+    ElMessage.error(t('deployment.loadFailed') + ': ' + (error.message || t('common.networkError')))
     deploymentList.value = []
   } finally {
     deploymentLoading.value = false
@@ -4435,7 +4440,7 @@ const viewDeploymentDetail = async (row) => {
     showDeploymentDetailDialog.value = true
   } catch (error) {
     console.error('获取Deployment详情失败:', error)
-    ElMessage.error('获取详情失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('common.getDetailFailed') + ': ' + (error.message || t('common.unknownError')))
   }
 }
 
@@ -4450,30 +4455,30 @@ const handleScaleDeployment = (row) => {
 const confirmScale = async () => {
   try {
     await scaleDeployment(selectedDeployment.value.metadata.namespace, selectedDeployment.value.metadata.name, scaleForm.replicas)
-    ElMessage.success('扩缩容操作成功')
+    ElMessage.success(t('deployment.scaleSuccess'))
     showScaleDialog.value = false
     loadDeploymentList()
   } catch (error) {
     console.error('扩缩容失败:', error)
-    ElMessage.error('扩缩容失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('deployment.scaleFailed') + ': ' + (error.message || t('common.unknownError')))
   }
 }
 
 // 重启Deployment
 const handleRestartDeployment = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要重启Deployment ${row.metadata.name} 吗？`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('deployment.confirmRestart', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
     await restartDeployment(row.metadata.namespace, row.metadata.name)
-    ElMessage.success('重启操作已触发')
+    ElMessage.success(t('deployment.restartSuccess'))
     loadDeploymentList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('重启Deployment失败:', error)
-      ElMessage.error('重启失败: ' + (error.message || '未知错误'))
+      ElMessage.error(t('deployment.restartFailed') + ': ' + (error.message || t('common.unknownError')))
     }
   }
 }
@@ -4481,18 +4486,18 @@ const handleRestartDeployment = async (row) => {
 // 删除Deployment
 const handleDeleteDeployment = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除Deployment ${row.metadata.name} 吗？删除后无法恢复！`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('deployment.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
     await deleteDeployment(row.metadata.namespace, row.metadata.name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadDeploymentList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除Deployment失败:', error)
-      ElMessage.error('删除失败: ' + (error.message || '未知错误'))
+      ElMessage.error(t('common.deleteFailed') + ': ' + (error.message || t('common.unknownError')))
     }
   }
 }
@@ -4530,11 +4535,11 @@ const loadServiceList = async () => {
     // 格式化时间
     serviceList.value.forEach(service => {
       if (service.metadata?.creationTimestamp) {
-        service.metadata.creationTimestamp = new Date(service.metadata.creationTimestamp).toLocaleString('zh-CN')
+        service.metadata.creationTimestamp = new Date(service.metadata.creationTimestamp).toLocaleString(dateLocale())
       }
     })
   } catch (error) {
-    ElMessage.error('加载Service列表失败: ' + (error.message || '网络异常'))
+    ElMessage.error(t('service.loadFailed') + ': ' + (error.message || t('common.networkError')))
     serviceList.value = []
   } finally {
     serviceLoading.value = false
@@ -4562,25 +4567,25 @@ const viewServiceDetail = async (row) => {
     showServiceDetailDialog.value = true
   } catch (error) {
     console.error('获取Service详情失败:', error)
-    ElMessage.error('获取详情失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('common.getDetailFailed') + ': ' + (error.message || t('common.unknownError')))
   }
 }
 
 // 删除Service
 const handleDeleteService = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除Service ${row.metadata.name} 吗？删除后无法恢复！`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('service.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
     await deleteService(row.metadata.namespace, row.metadata.name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadServiceList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除Service失败:', error)
-      ElMessage.error('删除失败: ' + (error.message || '未知错误'))
+      ElMessage.error(t('common.deleteFailed') + ': ' + (error.message || t('common.unknownError')))
     }
   }
 }
@@ -4631,12 +4636,12 @@ const loadPvcList = async () => {
     // 格式化时间
     pvcList.value.forEach(pvc => {
       if (pvc.metadata?.creationTimestamp) {
-        pvc.metadata.creationTimestamp = new Date(pvc.metadata.creationTimestamp).toLocaleString('zh-CN')
+        pvc.metadata.creationTimestamp = new Date(pvc.metadata.creationTimestamp).toLocaleString(dateLocale())
       }
     })
   } catch (error) {
     console.error('获取PVC列表失败:', error)
-    ElMessage.error('获取存储卷列表失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('pvc.loadFailed') + ': ' + (error.message || t('common.unknownError')))
   } finally {
     pvcLoading.value = false
   }
@@ -4667,25 +4672,25 @@ const viewPvcDetail = async (row) => {
     showPvcDetailDialog.value = true
   } catch (error) {
     console.error('获取PVC详情失败:', error)
-    ElMessage.error('获取详情失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('common.getDetailFailed') + ': ' + (error.message || t('common.unknownError')))
   }
 }
 
 // 删除PVC
 const handleDeletePvc = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除存储卷 ${row.metadata.name} 吗？删除后无法恢复！`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('pvc.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
     await deletePvc(row.metadata.namespace, row.metadata.name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadPvcList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除PVC失败:', error)
-      ElMessage.error('删除失败: ' + (error.message || '未知错误'))
+      ElMessage.error(t('common.deleteFailed') + ': ' + (error.message || t('common.unknownError')))
     }
   }
 }
@@ -4723,12 +4728,12 @@ const loadIngressList = async () => {
     // 格式化时间
     ingressList.value.forEach(ingress => {
       if (ingress.metadata?.creationTimestamp) {
-        ingress.metadata.creationTimestamp = new Date(ingress.metadata.creationTimestamp).toLocaleString('zh-CN')
+        ingress.metadata.creationTimestamp = new Date(ingress.metadata.creationTimestamp).toLocaleString(dateLocale())
       }
     })
   } catch (error) {
     console.error('获取Ingress列表失败:', error)
-    ElMessage.error('获取路由列表失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('ingress.loadFailed') + ': ' + (error.message || t('common.unknownError')))
   } finally {
     ingressLoading.value = false
   }
@@ -4762,32 +4767,32 @@ const viewIngressDetail = async (row) => {
     showIngressDetailDialog.value = true
   } catch (error) {
     console.error('获取Ingress详情失败:', error)
-    ElMessage.error('获取详情失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('common.getDetailFailed') + ': ' + (error.message || t('common.unknownError')))
   }
 }
 
 // 删除Ingress
 const handleDeleteIngress = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除路由 ${row.metadata.name} 吗？删除后无法恢复！`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('ingress.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
       type: 'warning'
     })
     await deleteIngress(row.metadata.namespace, row.metadata.name)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('common.deleteSuccess'))
     loadIngressList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除Ingress失败:', error)
-      ElMessage.error('删除失败: ' + (error.message || '未知错误'))
+      ElMessage.error(t('common.deleteFailed') + ': ' + (error.message || t('common.unknownError')))
     }
   }
 }
 
 const formatTimestamp = (ts) => {
   if (!ts) return '-'
-  return new Date(ts).toLocaleString('zh-CN')
+  return new Date(ts).toLocaleString(dateLocale())
 }
 
 let schemaNodeId = 0
@@ -4830,9 +4835,9 @@ const transformSchemaToTree = (schema, prefix = '') => {
 const copyCellText = (text) => {
   if (!text) return
   navigator.clipboard.writeText(text).then(() => {
-    ElMessage.success('已复制')
+    ElMessage.success(t('common.copied'))
   }).catch(() => {
-    ElMessage.error('复制失败')
+    ElMessage.error(t('oss.copyFailed'))
   })
 }
 
@@ -5105,7 +5110,7 @@ const handleCreateResource = async () => {
         break
       }
     }
-    ElMessage.success('创建成功')
+    ElMessage.success(t('common.createSuccess'))
     showCreateResourceDialog.value = false
     // 清空表单
     Object.assign(deploymentForm, { namespace: 'default', name: '', image: '', replicas: 1, containerPort: '80', cpuLimit: '1000m', memoryLimit: '1Gi', env: '', volumeMounts: [] })
@@ -5127,7 +5132,7 @@ const handleCreateResource = async () => {
     }
   } catch (error) {
     console.error('创建资源失败:', error)
-    ElMessage.error('创建失败: ' + (error.message || '未知错误'))
+    ElMessage.error(t('createResource.createFailed') + ': ' + (error.message || t('common.unknownError')))
   } finally {
     createLoading.value = false
   }
@@ -5140,7 +5145,7 @@ const handleCommand = async (command) => {
       await logout()
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
-      ElMessage.success('退出成功')
+      ElMessage.success(t('profile.logoutSuccess'))
       router.push('/login')
     } catch (error) {
       console.error('退出失败:', error)
@@ -5154,13 +5159,13 @@ const handleCommand = async (command) => {
     await openInboxDialog()
   } else if (command === 'check-cluster') {
     try {
-      ElMessage.info('开始集群巡检...')
+      ElMessage.info(t('cluster.inspectStart'))
       await triggerClusterCheck()
       await loadMessages()
-      ElMessage.success('集群巡检完成！')
+      ElMessage.success(t('cluster.inspectDone'))
     } catch (error) {
       console.error('巡检失败:', error)
-      ElMessage.error('巡检失败：' + (error.message || '未知错误'))
+      ElMessage.error(t('cluster.inspectFailed') + '：' + (error.message || t('common.unknownError')))
     }
   }
 }
@@ -5191,7 +5196,7 @@ const openUserProfileDialog = async () => {
     showUserProfileDialog.value = true
   } catch (error) {
     console.error('加载用户信息失败:', error)
-    ElMessage.error('加载用户信息失败')
+    ElMessage.error(t('profile.loadFailed'))
   }
 }
 
@@ -5208,11 +5213,11 @@ const handleUpdateUserInfo = async () => {
     // 更新本地userInfo
     Object.assign(userInfo, userProfileForm)
     localStorage.setItem('userInfo', JSON.stringify(userInfo))
-    ElMessage.success('更新成功')
+    ElMessage.success(t('common.updateSuccess'))
     showUserProfileDialog.value = false
   } catch (error) {
     console.error('更新用户信息失败:', error)
-    ElMessage.error(error.message || '更新失败')
+    ElMessage.error(error.message || t('profile.updateFailed'))
   } finally {
     userProfileLoading.value = false
   }
@@ -5221,15 +5226,15 @@ const handleUpdateUserInfo = async () => {
 // 更新密码
 const handleUpdatePassword = async () => {
   if (!passwordForm.oldPassword) {
-    ElMessage.warning('请输入旧密码')
+    ElMessage.warning(t('profile.oldPasswordRequired'))
     return
   }
   if (!passwordForm.newPassword) {
-    ElMessage.warning('请输入新密码')
+    ElMessage.warning(t('profile.newPasswordRequired'))
     return
   }
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    ElMessage.warning('两次输入的密码不一致')
+    ElMessage.warning(t('profile.passwordMismatch'))
     return
   }
   passwordLoading.value = true
@@ -5238,7 +5243,7 @@ const handleUpdatePassword = async () => {
       oldPassword: passwordForm.oldPassword,
       newPassword: passwordForm.newPassword
     })
-    ElMessage.success('密码修改成功，请重新登录')
+    ElMessage.success(t('profile.passwordChanged'))
     showUserProfileDialog.value = false
     // 退出登录
     localStorage.removeItem('token')
@@ -5246,7 +5251,7 @@ const handleUpdatePassword = async () => {
     router.push('/login')
   } catch (error) {
     console.error('更新密码失败:', error)
-    ElMessage.error(error.message || '更新失败')
+    ElMessage.error(error.message || t('profile.updateFailed'))
   } finally {
     passwordLoading.value = false
   }
@@ -5266,7 +5271,7 @@ const loadMessages = async () => {
     readMessageIds.value = res.data.readMessageIds || []
   } catch (error) {
     console.error('加载消息失败:', error)
-    ElMessage.error('加载消息失败')
+    ElMessage.error(t('inbox.loadFailed'))
   }
 }
 
@@ -5282,10 +5287,10 @@ const handleMarkRead = async (id) => {
     if (!readMessageIds.value.includes(id)) {
       readMessageIds.value.push(id)
     }
-    ElMessage.success('已标为已读')
+    ElMessage.success(t('inbox.markedRead'))
   } catch (error) {
     console.error('标记已读失败:', error)
-    ElMessage.error('操作失败')
+    ElMessage.error(t('common.operateFailed'))
   }
 }
 
@@ -5295,10 +5300,10 @@ const handleMarkAllRead = async () => {
     await markAllAsRead()
     // 更新所有消息为已读
     readMessageIds.value = siteMessageList.value.map(msg => msg.id)
-    ElMessage.success('已全部标为已读')
+    ElMessage.success(t('inbox.allMarkedRead'))
   } catch (error) {
     console.error('标记全部已读失败:', error)
-    ElMessage.error('操作失败')
+    ElMessage.error(t('common.operateFailed'))
   }
 }
 
@@ -5320,13 +5325,13 @@ const getMessageTypeTag = (type) => {
 const getMessageTypeText = (type) => {
   switch (type?.toUpperCase()) {
     case 'WARNING':
-      return '警告'
+      return t('common.warning')
     case 'ERROR':
-      return '错误'
+      return t('common.error')
     case 'SUCCESS':
-      return '成功'
+      return t('common.success')
     default:
-      return '通知'
+      return t('common.notice')
   }
 }
 
@@ -5339,15 +5344,15 @@ const formatTime = (timeStr) => {
 
   // 1分钟内
   if (diff < 60 * 1000) {
-    return '刚刚'
+    return t('common.justNow')
   }
   // 1小时内
   if (diff < 60 * 60 * 1000) {
-    return Math.floor(diff / (60 * 1000)) + '分钟前'
+    return t('common.minutesAgo', { n: Math.floor(diff / (60 * 1000)) })
   }
   // 1天内
   if (diff < 24 * 60 * 60 * 1000) {
-    return Math.floor(diff / (60 * 60 * 1000)) + '小时前'
+    return t('common.hoursAgo', { n: Math.floor(diff / (60 * 60 * 1000)) })
   }
   // 超过1天显示日期
   const year = date.getFullYear()
@@ -5456,7 +5461,7 @@ const sendMessage = async () => {
     })
 
     if (!response.ok) {
-      throw new Error(`请求失败: ${response.status}`)
+      throw new Error(`${t('error.requestFailed')}: ${response.status}`)
     }
 
     const reader = response.body.getReader()
@@ -5507,8 +5512,8 @@ const sendMessage = async () => {
 
   } catch (error) {
     if (error.name !== 'AbortError') {
-      ElMessage.error('AI助手请求失败，请稍后重试')
-      messageList.value[aiMsgIndex].content = '抱歉，我现在无法回答你的问题，请稍后再试。'
+      ElMessage.error(t('ai.requestFailed'))
+      messageList.value[aiMsgIndex].content = t('ai.errorMsg')
     }
   } finally {
     aiThinking.value = false
@@ -5649,7 +5654,7 @@ const loadClusterStats = async () => {
     }
   } catch (error) {
     console.error('加载集群统计失败:', error)
-    ElMessage.warning('集群监控数据加载失败，显示本地缓存数据')
+    ElMessage.warning(t('cluster.monitorLoadFailed'))
   }
 }
 
@@ -6110,6 +6115,30 @@ onUnmounted(() => {
 }
 .ai-assistant-btn:hover {
   transform: scale(1.1);
+}
+
+/* AI助手悬浮按钮外围呼吸灯效果 */
+.ai-assistant-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.6);
+  animation: ai-btn-breath 2s ease-in-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes ai-btn-breath {
+  0% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(102, 126, 234, 0);
+  }
 }
 
 /* 增大右上角创建资源按钮 */
