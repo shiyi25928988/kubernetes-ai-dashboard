@@ -2603,7 +2603,7 @@
                 <el-icon v-else size="20" color="#409eff"><ChatDotRound /></el-icon>
               </div>
               <div class="ai-chat-message-content">
-                <div class="markdown-content" v-html="parseMarkdown(msg.content)"></div>
+                <div class="markdown-content" v-html="msg.renderedContent"></div>
                 <!-- 附件列表 -->
                 <div v-if="msg.attachments && msg.attachments.length > 0" class="message-attachments">
                   <div
@@ -3115,14 +3115,26 @@ marked.setOptions({
   gfm: true // 支持GitHub Flavored Markdown
 })
 
-// Markdown解析函数
+// 最轻量 HTML 转义，用于降级路径，保证 v-html 安全
+const escapeHtml = (s) => String(s)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;')
+
+// Markdown 解析函数：永远返回 string，绝不让 v-html 拿到原始 markdown 或 Promise
+// （marked v5+ 在某些情况仍可能返回 Promise；此时降级为简单换行处理）
 const parseMarkdown = (content) => {
   if (!content) return ''
   try {
-    return marked.parse(content)
+    const result = marked.parse(content, { async: false })
+    if (typeof result === 'string' && result.length > 0) return result
+    // 降级：marked 返回了空串或非 string（罕见），做最基本的安全转义 + 换行
+    return escapeHtml(content).replace(/\n/g, '<br>')
   } catch (e) {
     console.error('Markdown解析失败:', e)
-    return content // 解析失败返回原始内容
+    return escapeHtml(content).replace(/\n/g, '<br>')
   }
 }
 
@@ -3155,7 +3167,7 @@ const createNewConversation = async () => {
   try {
     conversationId.value = null
     messageList.value = [
-      { role: 'assistant', content: t('ai.welcome') }
+      { role: 'assistant', content: t('ai.welcome'), renderedContent: parseMarkdown(t('ai.welcome')) }
     ]
     await getConversationId()
     await loadConversationList()
@@ -3182,9 +3194,11 @@ const selectExpert = (expert) => {
     deselectExpert()
   } else {
     activeExpert.value = expert
+    const msgText = t('ai.switchedExpert', { name: expert.name })
     messageList.value.push({
       role: 'assistant',
-      content: t('ai.switchedExpert', { name: expert.name })
+      content: msgText,
+      renderedContent: parseMarkdown(msgText)
     })
     scrollChatToBottom()
   }
@@ -3193,9 +3207,11 @@ const selectExpert = (expert) => {
 // 取消选中专家
 const deselectExpert = () => {
   activeExpert.value = null
+  const msgText = t('ai.switchedNormal')
   messageList.value.push({
     role: 'assistant',
-    content: t('ai.switchedNormal')
+    content: msgText,
+    renderedContent: parseMarkdown(msgText)
   })
   scrollChatToBottom()
 }
@@ -3923,14 +3939,19 @@ const switchConversation = async (convId) => {
     const res = await getConversationHistory(convId)
     const messages = res.data || []
     // 转换消息格式
-    messageList.value = messages.map(msg => ({
-      role: msg.messageType === 'USER' ? 'user' : 'assistant',
-      content: msg.text
-    }))
+    messageList.value = messages.map(msg => {
+      const text = msg.text || ''
+      return {
+        role: msg.messageType === 'USER' ? 'user' : 'assistant',
+        content: text,
+        renderedContent: parseMarkdown(text)
+      }
+    })
     // 如果没有历史消息，显示欢迎语
     if (messageList.value.length === 0) {
+      const welcome = t('ai.welcome')
       messageList.value = [
-        { role: 'assistant', content: t('ai.welcome') }
+        { role: 'assistant', content: welcome, renderedContent: parseMarkdown(welcome) }
       ]
     }
     // 等待DOM更新后滚动
@@ -5413,6 +5434,7 @@ const sendMessage = async () => {
   messageList.value.push({
     role: 'user',
     content: content,
+    renderedContent: parseMarkdown(content),
     attachments: [...currentAttachments.value]
   })
 
@@ -5427,7 +5449,8 @@ const sendMessage = async () => {
   const aiMsgIndex = messageList.value.length
   messageList.value.push({
     role: 'assistant',
-    content: ''
+    content: '',
+    renderedContent: ''
   })
 
   try {
@@ -5474,33 +5497,34 @@ const sendMessage = async () => {
 
       // 解码响应片段
       const chunk = decoder.decode(value, { stream: true })
-      console.log('收到流式片段:', chunk) // 调试日志
       buffer += chunk
 
-      // 统一处理所有data:前缀，不管格式
-      // 先把所有data:替换掉，包括可能没有空格的情况
-      let processedBuffer = buffer.replace(/^data:\s?/gm, '')
+      // 按 SSE 消息边界（\n\n）分割，逐条处理完整消息；
+      // 最后一段可能不完整，保留为 buffer 等待下一帧
+      const messages = buffer.split('\n\n')
+      buffer = messages.pop() || ''
 
-      // 检查是否有结束标记
-      if (processedBuffer.includes('[DONE]')) {
-        processedBuffer = processedBuffer.replace(/\[DONE\]/g, '')
-        buffer = '' // 清空buffer，结束处理
-      }
+      for (const message of messages) {
+        const line = message.replace(/^data:\s?/gm, '').trim()
+        if (!line || line === '[DONE]') continue
 
-      // 尝试解析JSON（如果是JSON格式）
-      let content = processedBuffer.trim()
-      if (content) {
+        let content
+        // 优先按 OpenAI 兼容协议解析（choices[0].delta.content），
+        // 兼容其他常见字段，最后兜底为整行（纯文本流）
         try {
-          // 尝试解析JSON
-          const res = JSON.parse(content)
-          content = res.content || res.text || res.data || res.response || content
+          const res = JSON.parse(line)
+          const delta = res.choices?.[0]?.delta?.content
+          content = delta !== undefined && delta !== null
+            ? delta
+            : (res.content ?? res.text ?? res.data ?? res.response)
+          if (content === undefined || content === null) continue
         } catch (e) {
-          // 不是JSON，直接用原始内容
+          // 非 JSON 格式：后端直接流式输出纯文本
+          content = line
         }
 
-        if (content.trim()) {
+        if (content) {
           appendContent(aiMsgIndex, content)
-          buffer = '' // 处理完清空buffer
         }
       }
     }
@@ -5513,9 +5537,43 @@ const sendMessage = async () => {
   } catch (error) {
     if (error.name !== 'AbortError') {
       ElMessage.error(t('ai.requestFailed'))
-      messageList.value[aiMsgIndex].content = t('ai.errorMsg')
+      const errText = t('ai.errorMsg')
+      const msg = messageList.value[aiMsgIndex]
+      if (msg) {
+        msg.content = errText
+        msg.renderedContent = parseMarkdown(errText)
+      }
     }
   } finally {
+    // 流式结束后，从后端 Spring AI memory 拉取一次完整消息，
+    // 用后端权威的 assistant content 覆写前端消息并重渲。
+    // 表格/代码块等需要完整结构才能正确解析的 markdown，
+    // 在流式中间态被 marked 渲染成段落/文本，Vue 对相同字符串的 v-html
+    // 更新会去重；用后端 memory 的完整内容作为权威源，强制走一次新字符串。
+    // 短暂等待确保 MessageChatMemoryAdvisor 已把响应写入 SPRING_AI_CHAT_MEMORY
+    if (conversationId.value) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 150))
+        const res = await getConversationHistory(conversationId.value)
+        const msgs = res.data || []
+        // 从后往前找最后一条 ASSISTANT 消息
+        for (let i = msgs.length - 1; i >= 0; i--) {
+          const m = msgs[i]
+          const mt = m.messageType
+          if (mt === 'ASSISTANT' || mt === 'assistant') {
+            const text = m.content || m.text || ''
+            const aiMsg = messageList.value[aiMsgIndex]
+            if (aiMsg && text) {
+              aiMsg.content = text
+              aiMsg.renderedContent = parseMarkdown(text)
+            }
+            break
+          }
+        }
+      } catch (e) {
+        console.error('流式结束后刷新后端 memory 失败:', e)
+      }
+    }
     aiThinking.value = false
     controller.value = null
     scrollChatToBottom()
@@ -5526,20 +5584,25 @@ const sendMessage = async () => {
 const appendContent = (msgIndex, newContent) => {
   if (!newContent) return
 
-  const currentContent = messageList.value[msgIndex].content
+  const msg = messageList.value[msgIndex]
+  if (!msg) return
+  const currentContent = msg.content || ''
 
   // 处理英文单词空格
   if (currentContent && newContent) {
     const lastChar = currentContent.slice(-1)
     const firstChar = newContent.slice(0, 1)
     if (/[a-zA-Z0-9]/.test(lastChar) && /[a-zA-Z0-9]/.test(firstChar)) {
-      messageList.value[msgIndex].content += ' ' + newContent
+      msg.content = currentContent + ' ' + newContent
     } else {
-      messageList.value[msgIndex].content += newContent
+      msg.content = currentContent + newContent
     }
   } else {
-    messageList.value[msgIndex].content += newContent
+    msg.content = currentContent + newContent
   }
+
+  // 显式同步重算渲染后的 HTML，绕过 computed 依赖追踪的潜在异步问题
+  msg.renderedContent = parseMarkdown(msg.content)
 
   scrollChatToBottom()
 }
