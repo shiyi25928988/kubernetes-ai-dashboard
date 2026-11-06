@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Kubernetes AI Dashboard</h1>
-  <p><b>K8s 集群管理 + AI 智能助手平台</b></p>
+  <p><b>K8s Cluster Management + AI Assistant Platform</b></p>
   <img alt="Java" src="https://img.shields.io/badge/Java-21-orange">
   <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3.5.8-green">
   <img alt="Vue" src="https://img.shields.io/badge/Vue-3.5-brightgreen">
@@ -9,103 +9,105 @@
 </div>
 
 <p align="center">
-  🇨🇳 <a href="./README.md">简体中文</a> | 🇺🇸 <a href="./README.en.md">English</a>
+  🇺🇸 <a href="./README.md">English</a> | 🇨🇳 <a href="./README.zh-CN.md">简体中文</a>
 </p>
 
-## 目录
+## Table of Contents
 
-- [简介](#简介)
-- [功能特性](#功能特性)
-- [技术栈](#技术栈)
-- [项目结构](#项目结构)
-- [快速开始](#快速开始)
-- [配置](#配置)
-- [API 参考](#api-参考)
-- [部署](#部署)
-- [贡献](#贡献)
-- [许可证](#许可证)
+- [Introduction](#introduction)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [API Reference](#api-reference)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
 
-## 简介
+## Introduction
 
-Kubernetes AI Dashboard 是一个面向**运维人员**的 Kubernetes 管理平台，集成 AI 智能助手与 MCP 工具链。基于 Fabric8 Kubernetes Client 管理集群全量资源，通过 Spring AI 提供工具调用与智能对话，并内置 A2A（Agent-to-Agent）协议框架。
+Kubernetes AI Dashboard is an operations-oriented Kubernetes management platform with an integrated AI assistant. Built on the Fabric8 Kubernetes Client for full-resource cluster operations, Spring AI for tool-calling and chat, and a built-in A2A (Agent-to-Agent) protocol framework.
 
 > [!NOTE]
-> 本平台面向运维场景，提供 K8s 集群资源的统一管理界面与 AI 辅助运维能力。
+> Designed for ops scenarios — unified K8s cluster resource management with AI-assisted operations.
 
-## 功能特性
+## Features
 
-- ☸️ **K8s 全量资源管理**：Namespace / Pod / Deployment / Service / Ingress / PVC / ConfigMap / Secret / Event / Job / CRD 的增删改查
-- 📊 **集群监控**：节点状态与资源使用统计
-- 🔒 **资源归属追踪**：平台创建的资源按用户归属记录，用户只能删除自己创建的资源
-- 🤖 **AI 智能对话**：Spring AI 集成，支持工具调用与流式响应，上下文记忆
-- 🔌 **MCP 工具链**：内置 7 个 MCP 工具服务（K8s / 系统信息 / 命令行 / 文件 / SSH / OSS / Docker 注册表）
-- 🤝 **A2A 协议框架**：Agent-to-Agent JSON-RPC 2.0 端点，预留扩展点
-- 💾 **对象存储**：MinIO 集成，自动创建 Bucket
-- 🔐 **认证授权**：Sa-Token，32 字符随机 Token，Redis 会话
+- ☸️ **Full K8s Resource Management** — CRUD for Namespace / Pod / Deployment / StatefulSet / DaemonSet / Service / Ingress / PVC / PersistentVolume / StorageClass / ConfigMap / Secret / Event / Job / CRD
+- ⚙️ **Ops-Focused K8s Views** — Node management (read-only), HPA autoscaling (view + min/max tuning), NetworkPolicy, RBAC (ServiceAccount / Role / ClusterRole / RoleBinding / ClusterRoleBinding), ResourceQuota (with usage-vs-limit view and CRUD)
+- 🌍 **Multi-Cluster Management** — upload multiple kubeconfigs via the UI (persisted in MySQL), activate one cluster at a time, hot-switch without app restart
+- 📊 **Cluster Overview** — node health and resource usage statistics
+- 📁 **Object Storage Browser** — MinIO buckets, folder navigation, drag-and-drop upload, image/text preview
+- 🐳 **Image Registry Browser** — Docker Registry v2 catalog, tags, manifest detail, image path copy
+- 🔒 **Resource Ownership Tracking** — platform-created resources are labeled and audited per user; users can only delete what they created
+- 🤖 **AI Chat** — Spring AI integration with tool-calling, streaming responses, and JDBC-backed conversation memory
+- 🔌 **MCP Toolchain** — 7 built-in MCP tool services (K8s / System Info / Command Line / File / SSH / OSS / Docker Registry)
+- 🤝 **A2A Protocol Framework** — Agent-to-Agent JSON-RPC 2.0 endpoint with a reserved `SolverProvider` extension point
+- 🔐 **Auth** — Sa-Token, 32-char random token, Redis-backed sessions; zh-CN/en-US UI language switching
 
-## 技术栈
+## Tech Stack
 
-| 类别 | 技术 | 版本 |
-|------|------|------|
-| 语言 | Java | 21 |
-| 框架 | Spring Boot | 3.5.8 |
-| AI 框架 | Spring AI | 1.1.4 |
-| K8s 客户端 | Fabric8 Kubernetes Client | 6.9.2 |
+| Category | Technology | Version |
+|----------|------------|---------|
+| Language | Java | 21 |
+| Framework | Spring Boot | 3.5.8 |
+| AI Framework | Spring AI | 1.1.6 |
+| K8s Client | Fabric8 Kubernetes Client | 7.3.1 |
 | ORM | MyBatis Plus | 3.5.14 |
-| 认证 | Sa-Token | 1.44.0 |
-| 对象存储 | MinIO | 8.6.0 |
-| 数据库 | MySQL | 8.0+ |
-| 缓存 | Redis | 7.0+ |
-| 前端框架 | Vue | 3.5 |
-| 前端构建 | Vite | 8 |
-| UI 组件 | Element Plus | 2.13 |
+| Auth | Sa-Token | 1.44.0 |
+| Object Storage | MinIO | 8.6.0 |
+| Database | MySQL | 8.0+ |
+| Cache | Redis | 7.0+ |
+| Frontend Framework | Vue | 3.5 |
+| Frontend Build | Vite | 8 |
+| UI Components | Element Plus | 2.13 |
 
-## 项目结构
+## Project Structure
 
 ```mermaid
-<!-- Experimental: if rendering fails, preview on GitHub -->
 graph TD
-    A[kubernetes-ai-dashboard] --> B[dashboard 后端应用]
-    A --> C[dashboard-fe 前端]
-    A --> D[common 公共模块]
-    A --> E[ai-base AI 基础]
-    A --> F[oss 对象存储]
-    A --> G[user 用户认证]
-    A --> H[search 全文检索]
-    A --> I[message 站内消息]
+    A[kubernetes-ai-dashboard] --> B[dashboard backend app]
+    A --> C[dashboard-fe frontend]
+    A --> D[common shared module]
+    A --> E[ai-base AI core]
+    A --> F[oss object storage]
+    A --> G[user auth]
+    A --> H[search full-text search]
+    A --> I[message site messages]
 ```
 
 ```
 kubernetes-ai-dashboard/
-├── dashboard/              # 后端主应用（cc.shiyi.dashboard）
-├── dashboard-fe/           # 前端应用（Vue 3）
-├── common/                 # 公共模块（AOP 注解、工具类）
-├── ai-base/                # AI 基础（ChatClient 池、聊天记忆）
-├── oss/                    # 对象存储（MinIO）
-├── user/                   # 用户认证（Sa-Token）
-├── search/                 # 全文检索（Lucene）
-├── message/                # 站内消息
+├── dashboard/              # Backend main app (cc.shiyi.dashboard)
+├── dashboard-fe/           # Frontend app (Vue 3)
+├── common/                 # Shared module (AOP annotations, utils)
+├── ai-base/                # AI core (ChatClient pool, chat memory)
+├── oss/                    # Object storage (MinIO)
+├── user/                   # Auth (Sa-Token)
+├── search/                 # Full-text search (Lucene)
+├── message/                # Site messages
 └── pom.xml
 ```
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Prerequisites
 
 - JDK 21+
 - Maven 3.9+
 - Node.js 18+
 - Docker & Docker Compose
-- Kubernetes 集群 v1.24+
+- Kubernetes cluster v1.24+
 
-### 启动依赖服务
+### Start Dependencies
 
 ```bash
 cd docker
 docker-compose up -d mysql redis minio
 ```
 
-### 后端编译运行
+### Backend
 
 ```bash
 mvn clean install -DskipTests
@@ -113,9 +115,9 @@ cd dashboard
 mvn spring-boot:run
 ```
 
-后端启动于 http://localhost:8080
+Backend runs at http://localhost:8080
 
-### 前端开发
+### Frontend
 
 ```bash
 cd dashboard-fe
@@ -123,81 +125,85 @@ npm install
 npm run dev
 ```
 
-前端启动于 http://localhost:3000
+Frontend runs at http://localhost:3000
 
-## 配置
+## Configuration
 
-配置文件 `dashboard/src/main/resources/application.yml`，所有值支持 `${ENV_VAR:default}` 环境变量覆盖。
+Config file: `dashboard/src/main/resources/application.yml`. All values support `${ENV_VAR:default}` overrides.
 
-| 环境变量 | 说明 | 默认值 |
-|----------|------|--------|
-| `SPRING_DATASOURCE_URL` | MySQL JDBC 地址 | jdbc:mysql://localhost:3306/mpi_dashboard |
-| `SPRING_DATA_REDIS_HOST` | Redis 地址 | localhost |
-| `MINIO_ENDPOINT` | MinIO 地址 | http://localhost:9000 |
-| `SPRING_AI_OPENAI_BASE_URL` | AI API 地址 | https://api.deepseek.com |
+| Env Var | Description | Default |
+|---------|-------------|---------|
+| `SPRING_DATASOURCE_URL` | MySQL JDBC URL | jdbc:mysql://localhost:3306/mpi_dashboard |
+| `SPRING_DATA_REDIS_HOST` | Redis host | localhost |
+| `MINIO_ENDPOINT` | MinIO URL | http://localhost:9000 |
+| `SPRING_AI_OPENAI_BASE_URL` | AI API URL | https://api.deepseek.com |
 | `SPRING_AI_OPENAI_API_KEY` | AI API Key | `<YOUR_API_KEY>` |
-| `KUBERNETES_CLIENT_CONFIG_URL` | kubeconfig 下载 URL | - |
-| `KUBERNETES_CLIENT_CONFIG_PATH` | kubeconfig 本地路径 | - |
-| `KUBERNETES_CLIENT_TRUST_CERTS` | 信任 K8s API 证书 | true |
-| `A2A_API_KEY` | A2A 协议 API Key | `<YOUR_API_KEY>` |
+| `KUBERNETES_CLIENT_TRUST_CERTS` | Trust K8s API certs | true |
+| `DOCKER_REGISTRY_URL` | Docker Registry v2 address | - |
+| `DOCKER_REGISTRY_USERNAME` | Docker Registry username | - |
+| `DOCKER_REGISTRY_PASSWORD` | Docker Registry password | - |
+| `A2A_API_KEY` | A2A protocol API Key | `<YOUR_API_KEY>` |
 
 > [!IMPORTANT]
-> Kubernetes 客户端必须显式配置 kubeconfig（`KUBERNETES_CLIENT_CONFIG_URL` 或 `KUBERNETES_CLIENT_CONFIG_PATH`），否则启动失败。不支持集群内 ServiceAccount 自动检测。
+> There is **no kubeconfig entry point in config files**. Upload kubeconfigs on the **Cluster Config** page of the web UI — they are stored in MySQL, several clusters may coexist, but exactly one is active and all K8s operations target the active cluster. Switching clusters takes effect immediately (no restart).
 
-## API 参考
+## API Reference
 
-### 内部管理 API（`/api/v1/*`，需 Sa-Token 登录）
+### Internal API (`/api/v1/*`, Sa-Token login required)
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/v1/ai/chat` | AI 对话（流式/非流式） |
-| GET/POST/PUT/DELETE | `/api/v1/k8s/*` | K8s 资源管理 |
-| GET | `/api/v1/k8s/cluster/stats` | 集群统计 |
-| GET | `/api/v1/resources/ownership` | 资源归属查询 |
-| POST/GET | `/api/v1/user/*` | 用户管理 |
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/v1/ai/chat` | AI chat (streaming/non-streaming) |
+| GET/POST/PUT/DELETE | `/api/v1/k8s/*` | K8s resource management (namespaced + cluster-scoped) |
+| POST/GET/DELETE | `/api/v1/k8s/cluster-config*` | kubeconfig upload / list / activate / delete / test |
+| GET | `/api/v1/k8s/cluster/stats` | Cluster statistics |
+| GET | `/api/v1/resources/ownership` | Resource ownership query |
+| GET | `/api/v1/oss/*` | Object storage (buckets / files / folders) |
+| GET | `/api/v1/registry/*` | Image registry (repositories / tags / manifests) |
+| POST/GET | `/api/v1/user/*` | User management |
 
-### A2A 协议（`/a2a`，API Key 认证）
+### A2A Protocol (`/a2a`, API Key auth)
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/a2a/card` | 获取 AgentCard |
-| GET | `/.well-known/agent-card.json` | 标准发现端点 |
-| POST | `/a2a` | JSON-RPC 2.0（message/send、tasks/get、tasks/cancel） |
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/a2a/card` | Get AgentCard |
+| GET | `/.well-known/agent-card.json` | Standard discovery endpoint |
+| POST | `/a2a` | JSON-RPC 2.0 (message/send, tasks/get, tasks/cancel) |
 
 <details>
-<summary>MCP 工具列表（7 个）</summary>
+<summary>MCP Tools (7)</summary>
 
-| 工具服务 | 能力 |
-|----------|------|
-| KubernetesMcpService | 命名空间/Pod/Deployment 等资源操作、集群统计 |
-| SystemInfoMcpService | CPU/内存/磁盘/运行时间 |
-| CommandLineMcpService | 命令执行（危险命令黑名单） |
-| FileMcpService | 文件读写（沙箱限制） |
-| SshMcpService | 远程 SSH 命令 |
-| OssMcpService | MinIO 上传/列表 |
-| DockerRegistryMcpService | Docker 镜像仓库查询 |
+| Tool Service | Capability |
+|--------------|------------|
+| KubernetesMcpService | Namespace/Pod/Deployment ops, cluster stats |
+| SystemInfoMcpService | CPU/memory/disk/uptime |
+| CommandLineMcpService | Command execution (dangerous-command blacklist) |
+| FileMcpService | File read/write (sandboxed) |
+| SshMcpService | Remote SSH commands |
+| OssMcpService | MinIO upload/list |
+| DockerRegistryMcpService | Docker registry query |
 
 </details>
 
-## 部署
+## Deployment
 
-Docker 部署详见 [DOCKER_README.md](DOCKER_README.md)。
+For Docker deployment see [DOCKER_README.md](DOCKER_README.md).
 
 ```bash
-# 构建后端镜像
+# Build backend image
 docker build -f dashboard/Dockerfile -t <REGISTRY>/mpi-dashboard-backend:latest .
 
-# 构建前端镜像
+# Build frontend image
 docker build -f dashboard-fe/Dockerfile -t <REGISTRY>/mpi-dashboard-frontend:latest ./dashboard-fe
 ```
 
-## 贡献
+## Contributing
 
-- [ ] 完善集群监控告警
-- [ ] 增加更多 K8s 资源类型支持
+- [ ] Improve cluster monitoring alerts
+- [ ] More K8s resource types
 
-欢迎提 Issue 与 Pull Request。
+Issues and Pull Requests are welcome.
 
-## 许可证
+## License
 
-本项目采用**内部许可证**（Internal License），未公开开源。
+This project uses an **Internal License** and is not open-sourced.
