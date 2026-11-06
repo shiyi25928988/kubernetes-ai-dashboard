@@ -97,3 +97,20 @@ export const triggerClusterCheck = () => {
     method: 'post'
   })
 }
+
+// 获取集群自动巡检设置
+export const getInspectionConfig = () => {
+  return request({
+    url: '/v1/messages/cluster/inspection-config',
+    method: 'get'
+  })
+}
+
+// 更新集群自动巡检设置（开关/间隔/AI Agent 诊断）
+export const updateInspectionConfig = (data) => {
+  return request({
+    url: '/v1/messages/cluster/inspection-config',
+    method: 'post',
+    data
+  })
+}

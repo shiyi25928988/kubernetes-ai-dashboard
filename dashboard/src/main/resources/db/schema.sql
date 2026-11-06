@@ -227,3 +227,18 @@ CREATE TABLE IF NOT EXISTS `cluster_config` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_cluster_name` (`cluster_name`)
 ) ENGINE=InnoDB COMMENT='Kubeconfig files uploaded from UI; only one cluster active at a time';
+
+CREATE TABLE IF NOT EXISTS `cluster_inspection_config` (
+    `id` BIGINT AUTO_INCREMENT COMMENT 'Primary key (singleton row: id=1)',
+    `enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Auto inspection enabled (0-off, 1-on)',
+    `interval_minutes` INT NOT NULL DEFAULT 5 COMMENT 'Inspection interval in minutes (1-1440)',
+    `ai_agent_enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Submit detected issues to AI agent for diagnosis',
+    `updated_by` BIGINT COMMENT 'Last updated user ID',
+    `updated_time` DATETIME NOT NULL COMMENT 'Last update time',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB COMMENT='Cluster auto inspection settings (singleton)';
+
+-- 初始化自动巡检设置单例行（默认关闭，间隔5分钟，AI诊断关闭）
+INSERT INTO `cluster_inspection_config` (`id`, `enabled`, `interval_minutes`, `ai_agent_enabled`, `updated_time`)
+SELECT 1, 0, 5, 0, NOW()
+WHERE NOT EXISTS (SELECT 1 FROM `cluster_inspection_config` WHERE `id` = 1);

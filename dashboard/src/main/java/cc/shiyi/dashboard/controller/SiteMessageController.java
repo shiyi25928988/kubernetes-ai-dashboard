@@ -5,6 +5,9 @@ import cc.shiyi.message.dto.SiteMessageCreateDTO;
 import cc.shiyi.message.dto.SiteMessageUpdateDTO;
 import cc.shiyi.message.service.SiteMessageService;
 import cc.shiyi.message.table.SiteMessage;
+import cc.shiyi.dashboard.db.table.ClusterInspectionConfig;
+import cc.shiyi.dashboard.config.ClusterMonitorScheduleConfig;
+import cc.shiyi.dashboard.service.ClusterInspectionConfigService;
 import cc.shiyi.dashboard.service.K8sClusterMonitorService;
 import cn.dev33.satoken.stp.StpUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,6 +28,8 @@ public class SiteMessageController {
 
     SiteMessageService siteMessageService;
     K8sClusterMonitorService k8sClusterMonitorService;
+    ClusterInspectionConfigService inspectionConfigService;
+    ClusterMonitorScheduleConfig inspectionScheduler;
 
     @Operation(summary = "Create a new message (admin only)")
     @PostMapping("/create")
@@ -175,6 +180,32 @@ public class SiteMessageController {
             return new ResponseWrapper().success("Cluster health check completed.");
         } catch (Exception e) {
             return new ResponseWrapper().fail("Check failed: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Get cluster auto inspection settings")
+    @GetMapping("/cluster/inspection-config")
+    public ResponseWrapper<ClusterInspectionConfig> getInspectionConfig() {
+        try {
+            return new ResponseWrapper<>().success(inspectionConfigService.getConfig());
+        } catch (Exception e) {
+            return new ResponseWrapper<>().fail("Failed to load inspection config: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Update cluster auto inspection settings (enabled / interval / AI agent)")
+    @PostMapping("/cluster/inspection-config")
+    public ResponseWrapper<ClusterInspectionConfig> updateInspectionConfig(@RequestBody ClusterInspectionConfig body) {
+        try {
+            Long userId = StpUtil.getLoginIdAsLong();
+            ClusterInspectionConfig config = inspectionConfigService.updateConfig(body, userId);
+            // 保存成功后立即重排定时巡检任务（无需重启）
+            inspectionScheduler.reschedule();
+            return new ResponseWrapper<>().success(config);
+        } catch (IllegalArgumentException e) {
+            return new ResponseWrapper<>().fail(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseWrapper<>().fail("Failed to update inspection config: " + e.getMessage());
         }
     }
 }

@@ -32,6 +32,10 @@
                 <el-icon><Refresh /></el-icon>
                 {{ t('header.manualInspect') }}
               </el-dropdown-item>
+              <el-dropdown-item command="inspection-settings">
+                <el-icon><Setting /></el-icon>
+                {{ t('header.inspectionSettings') }}
+              </el-dropdown-item>
               <el-dropdown-item command="profile">{{ t('header.profile') }}</el-dropdown-item>
               <el-dropdown-item command="logout">{{ t('header.logout') }}</el-dropdown-item>
             </el-dropdown-menu>
@@ -3993,6 +3997,43 @@
     </el-dialog>
   </div>
 
+  <!-- 自动巡检设置对话框 -->
+  <el-dialog
+    v-model="showInspectionConfig"
+    :title="t('header.inspectionSettings')"
+    width="500px"
+    :close-on-click-modal="false"
+  >
+    <el-form :model="inspectionForm" label-width="150px">
+      <el-form-item :label="t('cluster.inspectionEnabled')">
+        <el-switch v-model="inspectionForm.enabled" active-value="1" inactive-value="0" />
+      </el-form-item>
+      <el-form-item :label="t('cluster.inspectionInterval')">
+        <div class="inspection-interval-row">
+          <el-input-number
+            v-model="inspectionForm.intervalMinutes"
+            :min="1"
+            :max="1440"
+            :step="1"
+            step-strictly
+            :disabled="inspectionForm.enabled === '0'"
+          />
+          <span class="inspection-interval-unit">{{ t('cluster.inspectionMinutes') }}</span>
+        </div>
+      </el-form-item>
+      <el-form-item :label="t('cluster.inspectionAiAgent')">
+        <el-switch v-model="inspectionForm.aiAgentEnabled" active-value="1" inactive-value="0" />
+      </el-form-item>
+      <div class="inspection-config-hint">{{ t('cluster.inspectionHint') }}</div>
+    </el-form>
+    <template #footer>
+      <el-button @click="showInspectionConfig = false">{{ t('common.cancel') }}</el-button>
+      <el-button type="primary" :loading="savingInspectionConfig" @click="saveInspectionConfig">
+        {{ t('common.save') }}
+      </el-button>
+    </template>
+  </el-dialog>
+
   <!-- 后台上传浮动指示器 -->
   <div
     v-if="uploadingFile && uploadMinimized"
@@ -4022,7 +4063,8 @@ import {
   Bell, Message, InfoFilled, Warning, SuccessFilled, CircleCloseFilled, Paperclip,
   Connection, UploadFilled, Promotion, VideoPause,
   Collection, SetUp, Stopwatch, Position, Suitcase, Memo, Lock, Odometer,
-  Histogram, CreditCard, TrendCharts, Umbrella, UserFilled, PieChart, Briefcase, DataBoard
+  Histogram, CreditCard, TrendCharts, Umbrella, UserFilled, PieChart, Briefcase, DataBoard,
+  Setting
 } from '@element-plus/icons-vue'
 // 引入进度条组件
 import { ElProgress } from 'element-plus'
@@ -4033,7 +4075,9 @@ import {
   getUnreadMessages,
   markAsRead,
   markAllAsRead,
-  triggerClusterCheck
+  triggerClusterCheck,
+  getInspectionConfig,
+  updateInspectionConfig
 } from '@/api/message'
 import {
   getNamespaceList, createNamespace, deleteNamespace,
@@ -4212,6 +4256,16 @@ const expertForm = reactive({
   systemPrompt: ''
 }) // 专家表单
 const currentAttachments = ref([]) // 当前待发送的附件列表
+
+// 自动巡检设置
+const showInspectionConfig = ref(false)
+const savingInspectionConfig = ref(false)
+// 后端实体用 Integer(0/1)，前端用字符串 "1"/"0" 绑定 el-switch
+const inspectionForm = reactive({
+  enabled: '0',
+  intervalMinutes: 5,
+  aiAgentEnabled: '0'
+})
 
 // 镜像管理相关变量
 const registryRepos = ref([]) // 仓库列表
@@ -7153,6 +7207,41 @@ const handleCommand = async (command) => {
       console.error('巡检失败:', error)
       ElMessage.error(t('cluster.inspectFailed') + '：' + (error.message || t('common.unknownError')))
     }
+  } else if (command === 'inspection-settings') {
+    await openInspectionConfig()
+  }
+}
+
+// 打开自动巡检设置
+const openInspectionConfig = async () => {
+  try {
+    const res = await getInspectionConfig()
+    const cfg = res.data || {}
+    inspectionForm.enabled = cfg.enabled === 1 ? '1' : '0'
+    inspectionForm.intervalMinutes = cfg.intervalMinutes || 5
+    inspectionForm.aiAgentEnabled = cfg.aiAgentEnabled === 1 ? '1' : '0'
+  } catch (error) {
+    console.error('加载巡检设置失败:', error)
+  }
+  showInspectionConfig.value = true
+}
+
+// 保存自动巡检设置
+const saveInspectionConfig = async () => {
+  savingInspectionConfig.value = true
+  try {
+    await updateInspectionConfig({
+      enabled: inspectionForm.enabled === '1' ? 1 : 0,
+      intervalMinutes: inspectionForm.intervalMinutes,
+      aiAgentEnabled: inspectionForm.aiAgentEnabled === '1' ? 1 : 0
+    })
+    ElMessage.success(t('cluster.inspectionSaved'))
+    showInspectionConfig.value = false
+  } catch (error) {
+    console.error('保存巡检设置失败:', error)
+    ElMessage.error(t('cluster.inspectionSaveFailed') + '：' + (error.message || t('common.unknownError')))
+  } finally {
+    savingInspectionConfig.value = false
   }
 }
 
@@ -8843,6 +8932,27 @@ onUnmounted(() => {
   color: #a8abb2;
   text-align: center;
   user-select: none;
+}
+
+/* 自动巡检设置对话框 */
+.inspection-interval-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.inspection-interval-unit {
+  color: #606266;
+  font-size: 13px;
+}
+.inspection-config-hint {
+  margin: 4px 0 0 150px;
+  max-width: 260px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.7;
+  padding: 8px 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
 }
 /* 上传进度条 */
 .upload-progress {
