@@ -1,5 +1,7 @@
 package cc.shiyi.dashboard.service;
 
+import cc.shiyi.dashboard.config.KubernetesClientManager;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -9,7 +11,7 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressList;
 import io.fabric8.kubernetes.api.model.apps.DeploymentList;
-import io.fabric8.kubernetes.client.KubernetesClient;
+
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,14 +23,18 @@ import java.util.*;
 public class KubernetesService {
 
     @Autowired
-    private KubernetesClient kubernetesClient;
+    private KubernetesClientManager kubernetesClientManager;
+
+    private KubernetesClient client() {
+        return kubernetesClientManager.getClient();
+    }
 
     @Autowired
     private ResourceOwnershipService ownershipService;
 
     public Namespace createNamespace(Namespace namespace) {
         ownershipService.addOwnershipLabels(namespace.getMetadata());
-        Namespace result = kubernetesClient.resource(namespace).create();
+        Namespace result = client().resource(namespace).create();
         ownershipService.recordCreation("Namespace", "", result.getMetadata().getName());
         return result;
     }
@@ -36,23 +42,23 @@ public class KubernetesService {
     public List<StatusDetails> deleteNamespace(Namespace namespace) {
         ownershipService.requirePlatformManaged(namespace.getMetadata(),
                 "Namespace " + namespace.getMetadata().getName());
-        return kubernetesClient.resource(namespace).delete();
+        return client().resource(namespace).delete();
     }
 
     public NamespaceList listNamespaces() {
-        return kubernetesClient.namespaces().list();
+        return client().namespaces().list();
     }
 
     public Namespace getNamespace(String name) {
-        return kubernetesClient.namespaces().withName(name).get();
+        return client().namespaces().withName(name).get();
     }
 
     public void createPod(Pod pod, String namespace) {
-        kubernetesClient.resource(pod).inNamespace(namespace).create();
+        client().resource(pod).inNamespace(namespace).create();
     }
 
     public void deletePod(Pod pod, String namespace) {
-        kubernetesClient.resource(pod).inNamespace(namespace).delete();
+        client().resource(pod).inNamespace(namespace).delete();
     }
 
     /**
@@ -62,7 +68,7 @@ public class KubernetesService {
      * @return Pod对象，不存在则返回null
      */
     public Pod getPod(String namespace, String podName) {
-        return kubernetesClient.pods()
+        return client().pods()
                 .inNamespace(namespace)
                 .withName(podName)
                 .get();
@@ -74,7 +80,7 @@ public class KubernetesService {
      * @return Pod列表
      */
     public List<Pod> listPods(String namespace) {
-        return kubernetesClient.pods()
+        return client().pods()
                 .inNamespace(namespace)
                 .list()
                 .getItems();
@@ -85,7 +91,7 @@ public class KubernetesService {
      * @return Pod列表
      */
     public List<Pod> listAllPods() {
-        return kubernetesClient.pods()
+        return client().pods()
                 .list()
                 .getItems();
     }
@@ -101,7 +107,7 @@ public class KubernetesService {
         if (pod == null) {
             return null;
         }
-        return kubernetesClient.pods()
+        return client().pods()
                 .inNamespace(namespace)
                 .withName(podName)
                 .getLog();
@@ -143,38 +149,38 @@ public class KubernetesService {
 
     public void createDeployment(Deployment deployment, String namespace) {
         ownershipService.addOwnershipLabels(deployment.getMetadata());
-        kubernetesClient.resource(deployment).inNamespace(namespace).create();
+        client().resource(deployment).inNamespace(namespace).create();
         ownershipService.recordCreation("Deployment", namespace, deployment.getMetadata().getName());
     }
 
     public void deleteDeployment(Deployment deployment, String namespace) {
         ownershipService.requirePlatformManaged(deployment.getMetadata(),
                 "Deployment " + namespace + "/" + deployment.getMetadata().getName());
-        kubernetesClient.resource(deployment).inNamespace(namespace).delete();
+        client().resource(deployment).inNamespace(namespace).delete();
     }
 
     public void createService(io.fabric8.kubernetes.api.model.Service service, String namespace) {
         ownershipService.addOwnershipLabels(service.getMetadata());
-        kubernetesClient.resource(service).inNamespace(namespace).create();
+        client().resource(service).inNamespace(namespace).create();
         ownershipService.recordCreation("Service", namespace, service.getMetadata().getName());
     }
 
     public void deleteService(io.fabric8.kubernetes.api.model.Service service, String namespace) {
         ownershipService.requirePlatformManaged(service.getMetadata(),
                 "Service " + namespace + "/" + service.getMetadata().getName());
-        kubernetesClient.resource(service).inNamespace(namespace).delete();
+        client().resource(service).inNamespace(namespace).delete();
     }
 
     public void createIngress(Ingress ingress, String namespace) {
         ownershipService.addOwnershipLabels(ingress.getMetadata());
-        kubernetesClient.resource(ingress).inNamespace(namespace).create();
+        client().resource(ingress).inNamespace(namespace).create();
         ownershipService.recordCreation("Ingress", namespace, ingress.getMetadata().getName());
     }
 
     public void deleteIngress(Ingress ingress, String namespace) {
         ownershipService.requirePlatformManaged(ingress.getMetadata(),
                 "Ingress " + namespace + "/" + ingress.getMetadata().getName());
-        kubernetesClient.resource(ingress).inNamespace(namespace).delete();
+        client().resource(ingress).inNamespace(namespace).delete();
     }
 
     // ==================== Deployment扩展操作 ====================
@@ -185,7 +191,7 @@ public class KubernetesService {
      * @return Deployment对象，不存在则返回null
      */
     public Deployment getDeployment(String namespace, String deploymentName) {
-        return kubernetesClient.apps().deployments()
+        return client().apps().deployments()
                 .inNamespace(namespace)
                 .withName(deploymentName)
                 .get();
@@ -197,7 +203,7 @@ public class KubernetesService {
      * @return Deployment列表
      */
     public List<Deployment> listDeployments(String namespace) {
-        DeploymentList deploymentList = kubernetesClient.apps().deployments()
+        DeploymentList deploymentList = client().apps().deployments()
                 .inNamespace(namespace)
                 .list();
         return deploymentList.getItems();
@@ -210,7 +216,7 @@ public class KubernetesService {
      * @return 更新后的Deployment
      */
     public Deployment updateDeployment(Deployment deployment, String namespace) {
-        return kubernetesClient.apps().deployments()
+        return client().apps().deployments()
                 .inNamespace(namespace)
                 .resource(deployment)
                 .update();
@@ -224,7 +230,7 @@ public class KubernetesService {
      * @return 更新后的Deployment
      */
     public Deployment scaleDeployment(String namespace, String deploymentName, int replicas) {
-        return kubernetesClient.apps().deployments()
+        return client().apps().deployments()
                 .inNamespace(namespace)
                 .withName(deploymentName)
                 .scale(replicas);
@@ -237,7 +243,7 @@ public class KubernetesService {
      * @return 重启后的Deployment
      */
     public Deployment restartDeployment(String namespace, String deploymentName) {
-        return kubernetesClient.apps().deployments()
+        return client().apps().deployments()
                 .inNamespace(namespace)
                 .withName(deploymentName)
                 .rolling()
@@ -253,7 +259,7 @@ public class KubernetesService {
      */
     public PersistentVolumeClaim createPVC(PersistentVolumeClaim pvc, String namespace) {
         ownershipService.addOwnershipLabels(pvc.getMetadata());
-        PersistentVolumeClaim result = kubernetesClient.resource(pvc).inNamespace(namespace).create();
+        PersistentVolumeClaim result = client().resource(pvc).inNamespace(namespace).create();
         ownershipService.recordCreation("PVC", namespace, result.getMetadata().getName());
         return result;
     }
@@ -265,7 +271,7 @@ public class KubernetesService {
      * @return PVC对象，不存在则返回null
      */
     public PersistentVolumeClaim getPVC(String namespace, String pvcName) {
-        return kubernetesClient.persistentVolumeClaims()
+        return client().persistentVolumeClaims()
                 .inNamespace(namespace)
                 .withName(pvcName)
                 .get();
@@ -277,7 +283,7 @@ public class KubernetesService {
      * @return PVC列表
      */
     public List<PersistentVolumeClaim> listPVCs(String namespace) {
-        PersistentVolumeClaimList pvcList = kubernetesClient.persistentVolumeClaims()
+        PersistentVolumeClaimList pvcList = client().persistentVolumeClaims()
                 .inNamespace(namespace)
                 .list();
         return pvcList.getItems();
@@ -294,7 +300,7 @@ public class KubernetesService {
         if (pvc != null) {
             ownershipService.requirePlatformManaged(pvc.getMetadata(), "PVC " + namespace + "/" + pvcName);
         }
-        return kubernetesClient.persistentVolumeClaims()
+        return client().persistentVolumeClaims()
                 .inNamespace(namespace)
                 .withName(pvcName)
                 .delete();
@@ -307,7 +313,7 @@ public class KubernetesService {
      * @return 更新后的PVC
      */
     public PersistentVolumeClaim updatePVC(PersistentVolumeClaim pvc, String namespace) {
-        return kubernetesClient.persistentVolumeClaims()
+        return client().persistentVolumeClaims()
                 .inNamespace(namespace)
                 .resource(pvc)
                 .update();
@@ -321,7 +327,7 @@ public class KubernetesService {
      * @return Service对象，不存在则返回null
      */
     public io.fabric8.kubernetes.api.model.Service getService(String namespace, String serviceName) {
-        return kubernetesClient.services()
+        return client().services()
                 .inNamespace(namespace)
                 .withName(serviceName)
                 .get();
@@ -333,7 +339,7 @@ public class KubernetesService {
      * @return Service列表
      */
     public List<io.fabric8.kubernetes.api.model.Service> listServices(String namespace) {
-        io.fabric8.kubernetes.api.model.ServiceList serviceList = kubernetesClient.services()
+        io.fabric8.kubernetes.api.model.ServiceList serviceList = client().services()
                 .inNamespace(namespace)
                 .list();
         return serviceList.getItems();
@@ -346,7 +352,7 @@ public class KubernetesService {
      * @return 更新后的Service
      */
     public io.fabric8.kubernetes.api.model.Service updateService(io.fabric8.kubernetes.api.model.Service service, String namespace) {
-        return kubernetesClient.services()
+        return client().services()
                 .inNamespace(namespace)
                 .resource(service)
                 .update();
@@ -360,7 +366,7 @@ public class KubernetesService {
      * @return Ingress对象，不存在则返回null
      */
     public Ingress getIngress(String namespace, String ingressName) {
-        return kubernetesClient.network().v1().ingresses()
+        return client().network().v1().ingresses()
                 .inNamespace(namespace)
                 .withName(ingressName)
                 .get();
@@ -372,7 +378,7 @@ public class KubernetesService {
      * @return Ingress列表
      */
     public List<Ingress> listIngresses(String namespace) {
-        IngressList ingressList = kubernetesClient.network().v1().ingresses()
+        IngressList ingressList = client().network().v1().ingresses()
                 .inNamespace(namespace)
                 .list();
         return ingressList.getItems();
@@ -385,7 +391,7 @@ public class KubernetesService {
      * @return 更新后的Ingress
      */
     public Ingress updateIngress(Ingress ingress, String namespace) {
-        return kubernetesClient.network().v1().ingresses()
+        return client().network().v1().ingresses()
                 .inNamespace(namespace)
                 .resource(ingress)
                 .update();
@@ -434,14 +440,14 @@ public class KubernetesService {
 
     // ==================== ConfigMap相关操作 ====================
     public List<ConfigMap> listConfigMaps(String namespace) {
-        return kubernetesClient.configMaps()
+        return client().configMaps()
                 .inNamespace(namespace)
                 .list()
                 .getItems();
     }
 
     public ConfigMap getConfigMap(String namespace, String name) {
-        return kubernetesClient.configMaps()
+        return client().configMaps()
                 .inNamespace(namespace)
                 .withName(name)
                 .get();
@@ -449,13 +455,13 @@ public class KubernetesService {
 
     public ConfigMap createConfigMap(ConfigMap configMap, String namespace) {
         ownershipService.addOwnershipLabels(configMap.getMetadata());
-        ConfigMap result = kubernetesClient.resource(configMap).inNamespace(namespace).create();
+        ConfigMap result = client().resource(configMap).inNamespace(namespace).create();
         ownershipService.recordCreation("ConfigMap", namespace, result.getMetadata().getName());
         return result;
     }
 
     public ConfigMap updateConfigMap(ConfigMap configMap, String namespace) {
-        return kubernetesClient.resource(configMap).inNamespace(namespace).update();
+        return client().resource(configMap).inNamespace(namespace).update();
     }
 
     public List<StatusDetails> deleteConfigMap(String namespace, String name) {
@@ -463,7 +469,7 @@ public class KubernetesService {
         if (cm != null) {
             ownershipService.requirePlatformManaged(cm.getMetadata(), "ConfigMap " + namespace + "/" + name);
         }
-        return kubernetesClient.configMaps()
+        return client().configMaps()
                 .inNamespace(namespace)
                 .withName(name)
                 .delete();
@@ -471,14 +477,14 @@ public class KubernetesService {
 
     // ==================== Secret相关操作 ====================
     public List<Secret> listSecrets(String namespace) {
-        return kubernetesClient.secrets()
+        return client().secrets()
                 .inNamespace(namespace)
                 .list()
                 .getItems();
     }
 
     public Secret getSecret(String namespace, String name) {
-        return kubernetesClient.secrets()
+        return client().secrets()
                 .inNamespace(namespace)
                 .withName(name)
                 .get();
@@ -486,13 +492,13 @@ public class KubernetesService {
 
     public Secret createSecret(Secret secret, String namespace) {
         ownershipService.addOwnershipLabels(secret.getMetadata());
-        Secret result = kubernetesClient.resource(secret).inNamespace(namespace).create();
+        Secret result = client().resource(secret).inNamespace(namespace).create();
         ownershipService.recordCreation("Secret", namespace, result.getMetadata().getName());
         return result;
     }
 
     public Secret updateSecret(Secret secret, String namespace) {
-        return kubernetesClient.resource(secret).inNamespace(namespace).update();
+        return client().resource(secret).inNamespace(namespace).update();
     }
 
     public List<StatusDetails> deleteSecret(String namespace, String name) {
@@ -500,7 +506,7 @@ public class KubernetesService {
         if (secret != null) {
             ownershipService.requirePlatformManaged(secret.getMetadata(), "Secret " + namespace + "/" + name);
         }
-        return kubernetesClient.secrets()
+        return client().secrets()
                 .inNamespace(namespace)
                 .withName(name)
                 .delete();
@@ -508,14 +514,14 @@ public class KubernetesService {
 
     // ==================== Job相关操作 ====================
     public List<Job> listJobs(String namespace) {
-        return kubernetesClient.batch().v1().jobs()
+        return client().batch().v1().jobs()
                 .inNamespace(namespace)
                 .list()
                 .getItems();
     }
 
     public Job getJob(String namespace, String name) {
-        return kubernetesClient.batch().v1().jobs()
+        return client().batch().v1().jobs()
                 .inNamespace(namespace)
                 .withName(name)
                 .get();
@@ -523,7 +529,7 @@ public class KubernetesService {
 
     public Job createJob(Job job, String namespace) {
         ownershipService.addOwnershipLabels(job.getMetadata());
-        Job result = kubernetesClient.resource(job).inNamespace(namespace).create();
+        Job result = client().resource(job).inNamespace(namespace).create();
         ownershipService.recordCreation("Job", namespace, result.getMetadata().getName());
         return result;
     }
@@ -533,7 +539,7 @@ public class KubernetesService {
         if (job != null) {
             ownershipService.requirePlatformManaged(job.getMetadata(), "Job " + namespace + "/" + name);
         }
-        kubernetesClient.batch().v1().jobs()
+        client().batch().v1().jobs()
                 .inNamespace(namespace)
                 .withName(name)
                 .delete();
@@ -541,14 +547,14 @@ public class KubernetesService {
 
     public Map<String, String> getJobLogs(String namespace, String jobName) {
         Map<String, String> logs = new HashMap<>();
-        List<Pod> pods = kubernetesClient.pods()
+        List<Pod> pods = client().pods()
                 .inNamespace(namespace)
                 .withLabel("batch.kubernetes.io/job-name", jobName)
                 .list()
                 .getItems();
         for (Pod pod : pods) {
             try {
-                String log = kubernetesClient.pods()
+                String log = client().pods()
                         .inNamespace(namespace)
                         .withName(pod.getMetadata().getName())
                         .getLog();
@@ -562,19 +568,19 @@ public class KubernetesService {
 
     // ==================== StorageClass相关操作 ====================
     public List<io.fabric8.kubernetes.api.model.storage.StorageClass> listStorageClasses() {
-        return kubernetesClient.storage().storageClasses().list().getItems();
+        return client().storage().storageClasses().list().getItems();
     }
 
     // ==================== CRD相关操作 ====================
     public List<CustomResourceDefinition> listCrds() {
-        return kubernetesClient.apiextensions().v1()
+        return client().apiextensions().v1()
                 .customResourceDefinitions()
                 .list()
                 .getItems();
     }
 
     public CustomResourceDefinition getCrd(String name) {
-        return kubernetesClient.apiextensions().v1()
+        return client().apiextensions().v1()
                 .customResourceDefinitions()
                 .withName(name)
                 .get();
@@ -587,7 +593,7 @@ public class KubernetesService {
      * @return Event列表
      */
     public List<Event> listEvents(String namespace) {
-        return kubernetesClient.v1().events()
+        return client().v1().events()
                 .inNamespace(namespace)
                 .list()
                 .getItems();
@@ -598,7 +604,7 @@ public class KubernetesService {
      * @return Event列表
      */
     public List<Event> listAllEvents() {
-        return kubernetesClient.v1().events()
+        return client().v1().events()
                 .list()
                 .getItems();
     }
@@ -625,7 +631,7 @@ public class KubernetesService {
         Map<String, Object> result = new HashMap<>();
 
         // 1. 节点状态统计
-        NodeList nodeList = kubernetesClient.nodes().list();
+        NodeList nodeList = client().nodes().list();
         long totalNodes = nodeList.getItems().size();
         long readyNodes = nodeList.getItems().stream()
                 .filter(node -> node.getStatus().getConditions().stream()
@@ -656,7 +662,7 @@ public class KubernetesService {
         }
 
         // 统计已分配资源（所有Pod的Request总和）
-        PodList allPods = kubernetesClient.pods().list();
+        PodList allPods = client().pods().list();
         for (Pod pod : allPods.getItems()) {
             if (!"Running".equals(pod.getStatus().getPhase())) continue;
             for (Container container : pod.getSpec().getContainers()) {
@@ -670,7 +676,7 @@ public class KubernetesService {
         }
 
         // 统计存储资源
-        PersistentVolumeList pvList = kubernetesClient.persistentVolumes().list();
+        PersistentVolumeList pvList = client().persistentVolumes().list();
         for (PersistentVolume pv : pvList.getItems()) {
             Quantity storageQty = pv.getSpec().getCapacity().get("storage");
             if (storageQty != null) {
@@ -693,11 +699,11 @@ public class KubernetesService {
         result.put("resources", resourceStats);
 
         // 3. 工作负载统计
-        NamespaceList nsList = kubernetesClient.namespaces().list();
-        DeploymentList deployList = kubernetesClient.apps().deployments().list();
-        ServiceList svcList = kubernetesClient.services().list();
-        IngressList ingressList = kubernetesClient.network().v1().ingresses().list();
-        PersistentVolumeClaimList pvcList = kubernetesClient.persistentVolumeClaims().list();
+        NamespaceList nsList = client().namespaces().list();
+        DeploymentList deployList = client().apps().deployments().list();
+        ServiceList svcList = client().services().list();
+        IngressList ingressList = client().network().v1().ingresses().list();
+        PersistentVolumeClaimList pvcList = client().persistentVolumeClaims().list();
 
         long runningPods = allPods.getItems().stream().filter(p -> "Running".equals(p.getStatus().getPhase())).count();
         long abnormalPods = allPods.getItems().stream()

@@ -214,3 +214,16 @@ INSERT INTO `system_user` (`username`, `account`, `password`, `email`, `role`, `
 SELECT '管理员', 'admin', 'admin123', 'admin@example.com', 'ADMIN', 'ALL', 'ACTIVE'
 WHERE NOT EXISTS (SELECT 1 FROM `system_user` WHERE `account` = 'admin');
 
+
+CREATE TABLE IF NOT EXISTS `cluster_config` (
+    `id` BIGINT AUTO_INCREMENT COMMENT 'Primary key',
+    `cluster_name` VARCHAR(100) NOT NULL COMMENT 'Display name of the cluster',
+    `content` LONGTEXT NOT NULL COMMENT 'Kubeconfig YAML content',
+    `active` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1 = currently active cluster (only one at a time)',
+    `remark` VARCHAR(255) DEFAULT '' COMMENT 'Optional description',
+    `creator_id` BIGINT COMMENT 'Uploader user ID from system_user table',
+    `created_time` DATETIME NOT NULL COMMENT 'Upload time',
+    `updated_time` DATETIME NOT NULL COMMENT 'Last update time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_cluster_name` (`cluster_name`)
+) ENGINE=InnoDB COMMENT='Kubeconfig files uploaded from UI; only one cluster active at a time';

@@ -381,3 +381,41 @@ export const getOwnershipRecords = (resourceType, namespace) => {
     params: { resourceType, namespace }
   })
 }
+
+// 集群配置（kubeconfig 上传/激活/删除，存MySQL）
+export const uploadClusterConfig = (formData) => {
+  return request({
+    url: '/v1/k8s/cluster-config/upload',
+    method: 'post',
+    data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+export const getClusterConfigList = () => {
+  return request({
+    url: '/v1/k8s/cluster-config/list',
+    method: 'get'
+  })
+}
+
+export const getActiveClusterConfig = () => {
+  return request({
+    url: '/v1/k8s/cluster-config/active',
+    method: 'get'
+  })
+}
+
+export const activateClusterConfig = (id) => {
+  return request({
+    url: `/v1/k8s/cluster-config/${id}/activate`,
+    method: 'post'
+  })
+}
+
+export const deleteClusterConfig = (id) => {
+  return request({
+    url: `/v1/k8s/cluster-config/${id}`,
+    method: 'delete'
+  })
+}

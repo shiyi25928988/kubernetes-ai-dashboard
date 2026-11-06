@@ -1,5 +1,6 @@
 package cc.shiyi.dashboard.service.mcp;
 
+import cc.shiyi.dashboard.config.KubernetesClientManager;
 import cc.shiyi.dashboard.service.KubernetesService;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceList;
@@ -8,7 +9,6 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class KubernetesMcpService {
 
     KubernetesService kubernetesService;
-    KubernetesClient kubernetesClient;
+    KubernetesClientManager kubernetesClientManager;
 
     // ==================== 命名空间相关操作 ====================
     @Tool(description = "获取当前Kubernetes集群的所有命名空间列表")
@@ -195,7 +195,7 @@ public class KubernetesMcpService {
     @Tool(description = "获取Kubernetes集群所有节点信息列表")
     public List<io.fabric8.kubernetes.api.model.Node> listNodes() {
         log.info("MCP调用-获取集群节点列表");
-        return kubernetesClient.nodes().list().getItems();
+        return kubernetesClientManager.getClient().nodes().list().getItems();
     }
 
     @Tool(description = "查询指定资源是否存在，支持Deployment、Service、Ingress、PVC类型")

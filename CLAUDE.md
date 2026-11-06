@@ -17,7 +17,7 @@ All beans from aggregated modules load into a single Spring context (`@Component
 
 ### Library Modules
 - **common** (`cc.shiyi.coleditor.common`) - AOP annotations + aspects: `@RedisCache`, `@EvictRedisCache`, `@DistributedLock` (Redis SETNX spin-lock), `@DistributedRateLimiter` (Lua sliding-window), `@Log` (JSON args/return logging). Also `ResponseWrapper`, `GlobleExceptionHandler` (typo is intentional/legacy), `JacksonConfig`, `RedisConfig`, `WebClientConfig`, utils (`ExcelUtil`, `JsonUtil`, `ListPageUtil`, `MD5Util`, `SshUtil`).
-- **ai-base** (`cc.shiyi.base.ai`) - `ChantClientPool` (Caffeine cache, 1000 entries, 30min TTL, keyed by conversationId) wraps `ChatClient.Builder` + `MessageChatMemoryAdvisor`. JDBC-backed chat memory via `MessageWindowChatMemory` (keeps last 20 messages, MySQL dialect, table `SPRING_AI_CHAT_MEMORY`). `PromptComposer` for RAG context injection.
+- **ai-base** (`cc.shiyi.base.ai`) - `ChantClientPool` (single shared ChatClient; per-request conversationId via `advisors(a -> a.param(ChatMemory.CONVERSATION_ID, id))` - Spring AI 1.1.6 removed builder-time conversationId) wraps `ChatClient.Builder` + `MessageChatMemoryAdvisor`. JDBC-backed chat memory via `MessageWindowChatMemory` (keeps last 100 messages, MySQL dialect, table `SPRING_AI_CHAT_MEMORY`). `PromptComposer` for RAG context injection.
 - **oss** (`cc.shiyi.oss`) - MinIO integration: auto-creates bucket with public-read policy on startup. `UploadService`, `MinioFileListService`.
 - **user** (`cc.shiyi.coleditor.user`) - Sa-Token auth with custom 32-char random token generation. `UserService`, `StpInterfaceImpl`. Seeds `admin/admin123` on boot.
 - **search** (`cc.shiyi.search`) - Apache Lucene full-text search with IK Analyzer for Chinese text. Not a dependency of dashboard (standalone library module).
@@ -32,13 +32,13 @@ user, oss, ai-base --> common
 ```
 
 ### Frontend (dashboard-fe)
-Vue 3.5 + Vite 8 + Element Plus + Pinia, with vue-router, echarts 6, marked 18, highlight.js 11. Dev server on port 3000, proxies `/api` to `http://localhost:8080`. Single-page `Dashboard.vue` aggregates K8s management views. API clients in `src/api/` (ai.js, k8s.js, message.js, oss.js, registry.js, user.js).
+Vue 3.5 + Vite 8 + Element Plus + Pinia, with vue-router, echarts 6, marked 18, highlight.js 11, vue-i18n (zh-CN/en-US UI language switching; static UI strings only). Dev server on port 3000, proxies `/api` to `http://localhost:8080`. Single-page `Dashboard.vue` aggregates K8s management views. API clients in `src/api/` (ai.js, k8s.js, message.js, oss.js, registry.js, user.js).
 
 ## Key Architectural Patterns
 
 ### Kubernetes Operations
-- **`KubernetesService`** - generic K8s CRUD: namespaces, pods, deployments, services, ingresses, PVCs, configmaps, secrets, events, jobs. Also `getClusterStats()`.
-- **K8s client config (`KubernetesClientConfig`)**: requires an explicit kubeconfig via `kubernetes.client.config-url` (HTTP download to temp file) or `config-path` (local file). Throws if neither is set - in-cluster ServiceAccount auto-detection is NOT implemented. `trust-certs` defaults true.
+- **`KubernetesService`** - generic K8s CRUD: namespaces, pods, deployments, services, ingresses, PVCs, configmaps, secrets, events, jobs, CRDs (via `KubeCrdController`). Also `getClusterStats()`.
+- **K8s client config (`KubernetesClientManager`)**: no static kubeconfig. kubeconfig files are uploaded via the 集群配置 UI into the `cluster_config` MySQL table; several clusters can coexist but exactly one is active (`active=1`). `getClient()` lazily builds the Fabric8 client from the active row's YAML content (`Config.fromKubeconfig(content)`, no temp files); activating another cluster calls `reload()` so the next operation uses the new cluster - no app restart. With no active cluster every K8s operation throws "没有已激活的K8s集群配置"; startup is unaffected. Only `kubernetes.client.trust-certs` remains in `kubernetes.yml`.
 - **Resource ownership tracking**: K8s resources created through the platform are recorded in `platform_resource` (+ `ResourceOwnershipService` / `ResourceOwnershipController`) per `creator_id`. Users can only delete resources they created (`ResourceNotManagedException`).
 
 ### Internal API
@@ -54,7 +54,7 @@ Retained as an empty shell for future extension. Gated by `a2a.enabled` (default
 ### AI/MCP Dual Role
 - **MCP Server**: `McpConfig` registers **7** `@Tool`-annotated services as a `ToolCallbackProvider`: `KubernetesMcpService`, `SystemInfoMcpService`, `CommandLineMcpService` (danger-command blacklist), `FileMcpService` (sandboxed to configured root), `SshMcpService`, `OssMcpService`, `DockerRegistryMcpService`. To add a tool: create a `@Tool`-method service under `service/mcp/` and add it to the `toolObjects(...)` list in `McpConfig`.
 - **MCP Client**: consumes tools from external MCP servers (configured in `ai.yml`, `type: SYNC`).
-- **Chat flow**: `AiChatController` -> `ChantClientPool` (per-conversation ChatClient) -> `MessageChatMemoryAdvisor` (JDBC) -> streaming/non-streaming response with tool callbacks attached.
+- **Chat flow**: `AiChatController` -> `ChantClientPool` (shared ChatClient) -> `MessageChatMemoryAdvisor` (JDBC, conversationId passed per-request) -> streaming/non-streaming response with tool callbacks attached.
 
 ### LLM Configuration
 Chat model defaults to **DeepSeek** (`deepseek-v4-pro` via `https://api.deepseek.com`, OpenAI-compatible). Embedding: `BGE_M3` via OneAPI. All overridable via `SPRING_AI_OPENAI_*` env vars. (Milvus/vector-store wiring is not active - don't assume vector search is wired up.)
@@ -91,8 +91,8 @@ Key config files in `dashboard/src/main/resources/`:
 Database schema is auto-initialized from `dashboard/src/main/resources/db/schema.sql` on every boot (`spring.sql.init.mode=always`). The script also seeds the `admin/admin123` user and a welcome `site_message`.
 
 ## Key Dependencies
-- Java 21, Spring Boot 3.5.8, Spring Cloud 2025.0.0, Spring AI 1.1.4
-- Fabric8 Kubernetes Client BOM 6.9.2
+- Java 21, Spring Boot 3.5.8, Spring Cloud 2025.0.0, Spring AI 1.1.6
+- Fabric8 Kubernetes Client **7.3.1** (root pom's 6.9.2 BOM declaration is overridden by the Spring Cloud 2025.0.0 BOM - the effective version is 7.3.1)
 - MyBatis Plus 3.5.14, MySQL, Redis (Lettuce), Caffeine
 - Sa-Token 1.44.0 (random 32-char tokens, Redis-backed sessions via `alone-redis`)
 - MinIO 8.6.0, Apache Lucene (IK Analyzer), JSch (SSH MCP tool), commons-email

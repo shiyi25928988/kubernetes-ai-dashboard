@@ -102,6 +102,10 @@
               <span>{{ t('menu.event') }}</span>
             </el-menu-item>
           </el-sub-menu>
+          <el-menu-item index="cluster">
+            <el-icon><Connection /></el-icon>
+            <span>{{ t('menu.cluster') }}</span>
+          </el-menu-item>
           <el-menu-item index="oss">
             <el-icon><FolderOpened /></el-icon>
             <span>{{ t('menu.oss') }}</span>
@@ -1275,8 +1279,83 @@
             </div>
           </div>
 
+          <!-- 集群配置页面 -->
+          <div v-if="activeMenu === 'cluster'" class="cluster-page">
+            <div class="page-header">
+              <h3>{{ t('cluster.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="openClusterUploadDialog">
+                  <el-icon><Upload /></el-icon> {{ t('cluster.upload') }}
+                </el-button>
+                <el-button size="small" @click="loadClusterList" :loading="clusterLoading">
+                  <el-icon><Refresh /></el-icon> {{ t('common.refreshData') }}
+                </el-button>
+              </div>
+            </div>
+            <div class="cluster-tip">
+              <el-alert :title="t('cluster.tip')" type="info" :closable="false" show-icon />
+            </div>
+            <el-table :data="clusterList" v-loading="clusterLoading" border stripe>
+              <el-table-column prop="clusterName" :label="t('cluster.name')" min-width="160" />
+              <el-table-column prop="remark" :label="t('cluster.remark')" min-width="180" show-overflow-tooltip />
+              <el-table-column :label="t('cluster.status')" width="110" align="center">
+                <template #default="scope">
+                  <el-tag v-if="scope.row.active === 1" type="success">{{ t('cluster.active') }}</el-tag>
+                  <el-tag v-else type="info">{{ t('cluster.inactive') }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="creatorId" :label="t('cluster.uploader')" width="100" align="center" />
+              <el-table-column prop="createdTime" :label="t('cluster.uploadTime')" width="170">
+                <template #default="scope">{{ formatTimestamp(scope.row.createdTime) }}</template>
+              </el-table-column>
+              <el-table-column :label="t('common.actions')" width="170" align="center">
+                <template #default="scope">
+                  <el-button
+                    v-if="scope.row.active !== 1"
+                    type="primary" size="small"
+                    @click="handleActivateCluster(scope.row)"
+                  >{{ t('cluster.activate') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteCluster(scope.row)">
+                    {{ t('common.delete') }}
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
         </div>
       </main>
+
+    <!-- 上传集群配置弹窗 -->
+    <el-dialog v-model="showClusterUploadDialog" :title="t('cluster.uploadDialog')" width="520px">
+      <el-form :model="clusterForm" label-width="90px">
+        <el-form-item :label="t('cluster.name')" required>
+          <el-input v-model="clusterForm.clusterName" :placeholder="t('cluster.namePlaceholder')" />
+        </el-form-item>
+        <el-form-item :label="t('cluster.remark')">
+          <el-input v-model="clusterForm.remark" :placeholder="t('cluster.remarkPlaceholder')" />
+        </el-form-item>
+        <el-form-item :label="t('cluster.file')" required>
+          <el-upload
+            :auto-upload="false"
+            :limit="1"
+            accept=".yaml,.yml,.txt,.conf"
+            :on-change="onClusterFileChange"
+            :on-remove="() => clusterForm.file = null"
+            drag
+          >
+            <el-icon size="36"><UploadFilled /></el-icon>
+            <div class="el-upload__text">{{ t('cluster.dropOrClick') }}</div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showClusterUploadDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="clusterUploading" @click="handleClusterUpload">
+          {{ t('common.confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
     </div>
 
     <!-- 新建命名空间弹窗 -->
@@ -2828,7 +2907,8 @@ import {
   CircleCheck, CircleClose, WarningFilled, Cpu, Refresh,
   ChatDotRound, User, Edit, Delete, FolderOpened, Document,
   FolderAdd, Upload, DocumentCopy, Loading, Search, Key, Link, Files, Grid, Operation,
-  Bell, Message, InfoFilled, Warning, SuccessFilled, CircleCloseFilled, Paperclip
+  Bell, Message, InfoFilled, Warning, SuccessFilled, CircleCloseFilled, Paperclip,
+  Connection, UploadFilled
 } from '@element-plus/icons-vue'
 // 引入进度条组件
 import { ElProgress } from 'element-plus'
@@ -2879,6 +2959,12 @@ import {
   previewFile
 } from '@/api/oss'
 import { listRepositories, listTags, getManifest, deleteImage } from '@/api/registry'
+import {
+  uploadClusterConfig,
+  getClusterConfigList,
+  activateClusterConfig,
+  deleteClusterConfig
+} from '@/api/k8s'
 // 引入Markdown解析库
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -5719,6 +5805,94 @@ const loadClusterStats = async () => {
     console.error('加载集群统计失败:', error)
     ElMessage.warning(t('cluster.monitorLoadFailed'))
   }
+}
+
+// ==================== 集群配置（kubeconfig 上传/激活） ====================
+const clusterList = ref([])
+const clusterLoading = ref(false)
+const showClusterUploadDialog = ref(false)
+const clusterUploading = ref(false)
+const clusterForm = reactive({ clusterName: '', remark: '', file: null })
+
+const loadClusterList = async () => {
+  clusterLoading.value = true
+  try {
+    const res = await getClusterConfigList()
+    clusterList.value = res.data || []
+  } catch (error) {
+    console.error('加载集群配置列表失败:', error)
+  } finally {
+    clusterLoading.value = false
+  }
+}
+
+const openClusterUploadDialog = () => {
+  clusterForm.clusterName = ''
+  clusterForm.remark = ''
+  clusterForm.file = null
+  showClusterUploadDialog.value = true
+}
+
+const onClusterFileChange = (file) => {
+  clusterForm.file = file.raw
+}
+
+const handleClusterUpload = async () => {
+  if (!clusterForm.clusterName.trim()) {
+    ElMessage.warning(t('cluster.nameRequired'))
+    return
+  }
+  if (!clusterForm.file) {
+    ElMessage.warning(t('cluster.fileRequired'))
+    return
+  }
+  clusterUploading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', clusterForm.file)
+    fd.append('clusterName', clusterForm.clusterName.trim())
+    if (clusterForm.remark) fd.append('remark', clusterForm.remark)
+    await uploadClusterConfig(fd)
+    ElMessage.success(t('cluster.uploadSuccess'))
+    showClusterUploadDialog.value = false
+    loadClusterList()
+  } catch (error) {
+    console.error('上传集群配置失败:', error)
+  } finally {
+    clusterUploading.value = false
+  }
+}
+
+const handleActivateCluster = (row) => {
+  ElMessageBox.confirm(
+    t('cluster.activateConfirm').replace('{name}', row.clusterName),
+    t('common.tip'),
+    { type: 'warning' }
+  ).then(async () => {
+    try {
+      await activateClusterConfig(row.id)
+      ElMessage.success(t('cluster.activateSuccess'))
+      loadClusterList()
+    } catch (error) {
+      console.error('激活集群失败:', error)
+    }
+  }).catch(() => {})
+}
+
+const handleDeleteCluster = (row) => {
+  ElMessageBox.confirm(
+    t('cluster.deleteConfirm').replace('{name}', row.clusterName),
+    t('common.tip'),
+    { type: 'warning' }
+  ).then(async () => {
+    try {
+      await deleteClusterConfig(row.id)
+      ElMessage.success(t('cluster.deleteSuccess'))
+      loadClusterList()
+    } catch (error) {
+      console.error('删除集群配置失败:', error)
+    }
+  }).catch(() => {})
 }
 
 onMounted(() => {
