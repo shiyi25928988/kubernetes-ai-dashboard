@@ -610,6 +610,7 @@ export default {
     inspectFailed: '巡检失败',
     monitorLoadFailed: '集群监控数据加载失败，显示本地缓存数据',
     title: '集群配置',
+    noActive: '当前未配置K8S集群',
     upload: '上传配置',
     tip: '上传各集群的kubeconfig文件（存入数据库），同时只能激活一个集群，平台所有K8s操作均针对当前激活集群执行',
     name: '集群名称',

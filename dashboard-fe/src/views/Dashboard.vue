@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <header class="dashboard-header">
       <div class="header-left">
-        <h2>{{ t('brand.name') }}</h2>
+        <h2>{{ headerTitle }}</h2>
       </div>
       <div class="header-right">
         <el-button type="primary" size="small" @click="showCreateResourceDialog = true" style="margin-right: 20px;">
@@ -2962,6 +2962,7 @@ import { listRepositories, listTags, getManifest, deleteImage } from '@/api/regi
 import {
   uploadClusterConfig,
   getClusterConfigList,
+  getActiveClusterConfig,
   activateClusterConfig,
   deleteClusterConfig
 } from '@/api/k8s'
@@ -5813,6 +5814,22 @@ const clusterLoading = ref(false)
 const showClusterUploadDialog = ref(false)
 const clusterUploading = ref(false)
 const clusterForm = reactive({ clusterName: '', remark: '', file: null })
+const activeClusterName = ref('')
+const headerTitle = computed(() =>
+  activeClusterName.value
+    ? activeClusterName.value
+    : t('cluster.noActive')
+)
+
+const loadActiveClusterName = async () => {
+  try {
+    const res = await getActiveClusterConfig()
+    activeClusterName.value = res.data?.clusterName || ''
+  } catch (error) {
+    activeClusterName.value = ''
+    console.error('加载当前激活集群失败:', error)
+  }
+}
 
 const loadClusterList = async () => {
   clusterLoading.value = true
@@ -5856,6 +5873,7 @@ const handleClusterUpload = async () => {
     ElMessage.success(t('cluster.uploadSuccess'))
     showClusterUploadDialog.value = false
     loadClusterList()
+    loadActiveClusterName()
   } catch (error) {
     console.error('上传集群配置失败:', error)
   } finally {
@@ -5873,6 +5891,7 @@ const handleActivateCluster = (row) => {
       await activateClusterConfig(row.id)
       ElMessage.success(t('cluster.activateSuccess'))
       loadClusterList()
+      loadActiveClusterName()
     } catch (error) {
       console.error('激活集群失败:', error)
     }
@@ -5889,6 +5908,7 @@ const handleDeleteCluster = (row) => {
       await deleteClusterConfig(row.id)
       ElMessage.success(t('cluster.deleteSuccess'))
       loadClusterList()
+      loadActiveClusterName()
     } catch (error) {
       console.error('删除集群配置失败:', error)
     }
@@ -5898,6 +5918,7 @@ const handleDeleteCluster = (row) => {
 onMounted(() => {
   // 加载基础数据
   loadNamespaceList()
+  loadActiveClusterName()
   loadClusterStats()
   loadOwnerMap()
   loadMessages()

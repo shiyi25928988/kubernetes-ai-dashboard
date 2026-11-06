@@ -610,6 +610,7 @@ export default {
     inspectFailed: 'Inspection failed',
     monitorLoadFailed: 'Failed to load cluster metrics, showing cached data',
     title: 'Cluster Config',
+    noActive: 'No K8s cluster configured',
     upload: 'Upload Config',
     tip: 'Upload kubeconfig files for each cluster (stored in database). Only one cluster can be active at a time; all K8s operations target the active cluster',
     name: 'Cluster Name',
