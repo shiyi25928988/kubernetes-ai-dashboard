@@ -49,7 +49,7 @@
           @select="handleMenuSelect"
         >
           <el-menu-item index="overview">
-            <el-icon><monitor /></el-icon>
+            <el-icon><DataBoard /></el-icon>
             <span>{{ t('menu.overview') }}</span>
           </el-menu-item>
           <el-sub-menu index="k8s">
@@ -70,15 +70,15 @@
               <span>{{ t('menu.deployment') }}</span>
             </el-menu-item>
             <el-menu-item index="statefulset">
-              <el-icon><Files /></el-icon>
+              <el-icon><Collection /></el-icon>
               <span>{{ t('menu.statefulset') }}</span>
             </el-menu-item>
             <el-menu-item index="daemonset">
-              <el-icon><Files /></el-icon>
+              <el-icon><SetUp /></el-icon>
               <span>{{ t('menu.daemonset') }}</span>
             </el-menu-item>
             <el-menu-item index="job">
-              <el-icon><Operation /></el-icon>
+              <el-icon><Stopwatch /></el-icon>
               <span>{{ t('menu.job') }}</span>
             </el-menu-item>
             <el-menu-item index="service">
@@ -86,19 +86,19 @@
               <span>{{ t('menu.service') }}</span>
             </el-menu-item>
             <el-menu-item index="ingress">
-              <el-icon><Link /></el-icon>
+              <el-icon><Position /></el-icon>
               <span>{{ t('menu.ingress') }}</span>
             </el-menu-item>
             <el-menu-item index="pvc">
-              <el-icon><Files /></el-icon>
+              <el-icon><Suitcase /></el-icon>
               <span>{{ t('menu.pvc') }}</span>
             </el-menu-item>
             <el-menu-item index="configmap">
-              <el-icon><Document /></el-icon>
+              <el-icon><Memo /></el-icon>
               <span>{{ t('menu.configmap') }}</span>
             </el-menu-item>
             <el-menu-item index="secret">
-              <el-icon><Key /></el-icon>
+              <el-icon><Lock /></el-icon>
               <span>{{ t('menu.secret') }}</span>
             </el-menu-item>
             <el-menu-item index="crd">
@@ -106,35 +106,35 @@
               <span>{{ t('menu.crd') }}</span>
             </el-menu-item>
             <el-menu-item index="event">
-              <el-icon><WarningFilled /></el-icon>
+              <el-icon><Bell /></el-icon>
               <span>{{ t('menu.event') }}</span>
             </el-menu-item>
             <el-menu-item index="node">
-              <el-icon><Cpu /></el-icon>
+              <el-icon><Odometer /></el-icon>
               <span>{{ t('menu.node') }}</span>
             </el-menu-item>
             <el-menu-item index="pv">
-              <el-icon><Files /></el-icon>
+              <el-icon><Histogram /></el-icon>
               <span>{{ t('menu.pv') }}</span>
             </el-menu-item>
             <el-menu-item index="storageclass">
-              <el-icon><Document /></el-icon>
+              <el-icon><CreditCard /></el-icon>
               <span>{{ t('menu.storageclass') }}</span>
             </el-menu-item>
             <el-menu-item index="hpa">
-              <el-icon><Operation /></el-icon>
+              <el-icon><TrendCharts /></el-icon>
               <span>{{ t('menu.hpa') }}</span>
             </el-menu-item>
             <el-menu-item index="networkpolicy">
-              <el-icon><Link /></el-icon>
+              <el-icon><Umbrella /></el-icon>
               <span>{{ t('menu.networkpolicy') }}</span>
             </el-menu-item>
             <el-menu-item index="rbac">
-              <el-icon><Key /></el-icon>
+              <el-icon><UserFilled /></el-icon>
               <span>{{ t('menu.rbac') }}</span>
             </el-menu-item>
             <el-menu-item index="quota">
-              <el-icon><DataAnalysis /></el-icon>
+              <el-icon><PieChart /></el-icon>
               <span>{{ t('menu.quota') }}</span>
             </el-menu-item>
           </el-sub-menu>
@@ -143,11 +143,11 @@
             <span>{{ t('menu.cluster') }}</span>
           </el-menu-item>
           <el-menu-item index="oss">
-            <el-icon><FolderOpened /></el-icon>
+            <el-icon><UploadFilled /></el-icon>
             <span>{{ t('menu.oss') }}</span>
           </el-menu-item>
           <el-menu-item index="registry">
-            <el-icon><Box /></el-icon>
+            <el-icon><Briefcase /></el-icon>
             <span>{{ t('menu.registry') }}</span>
           </el-menu-item>
         </el-menu>
@@ -164,7 +164,7 @@
                 <el-card class="stat-card">
                   <div class="stat-item">
                     <div class="stat-icon blue">
-                      <el-icon><service /></el-icon>
+                      <el-icon><FolderOpened /></el-icon>
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.namespaceCount }}</div>
@@ -177,7 +177,7 @@
                 <el-card class="stat-card">
                   <div class="stat-item">
                     <div class="stat-icon green">
-                      <el-icon><box /></el-icon>
+                      <el-icon><Cpu /></el-icon>
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.podRunningCount }}/{{ k8sStats.podTotalCount }}</div>
@@ -203,7 +203,7 @@
                 <el-card class="stat-card">
                   <div class="stat-item">
                     <div class="stat-icon purple">
-                      <el-icon><data-analysis /></el-icon>
+                      <el-icon><Suitcase /></el-icon>
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.pvcCount }}</div>
@@ -220,7 +220,7 @@
                 <el-card class="stat-card">
                   <div class="stat-item">
                     <div class="stat-icon blue">
-                      <el-icon><Monitor /></el-icon>
+                      <el-icon><Odometer /></el-icon>
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.readyNodeCount }}/{{ k8sStats.nodeCount }}</div>
@@ -233,7 +233,7 @@
                 <el-card class="stat-card">
                   <div class="stat-item">
                     <div class="stat-icon green">
-                      <el-icon><Box /></el-icon>
+                      <el-icon><Monitor /></el-icon>
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.deploymentCount }}</div>
@@ -246,7 +246,7 @@
                 <el-card class="stat-card">
                   <div class="stat-item">
                     <div class="stat-icon orange">
-                      <el-icon><Box /></el-icon>
+                      <el-icon><CreditCard /></el-icon>
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.storageUsed }}/{{ k8sStats.storageTotal }}</div>
@@ -259,7 +259,7 @@
                 <el-card class="stat-card">
                   <div class="stat-item">
                     <div class="stat-icon purple">
-                      <el-icon><service /></el-icon>
+                      <el-icon><Position /></el-icon>
                     </div>
                     <div class="stat-info">
                       <div class="stat-value">{{ k8sStats.ingressCount }}</div>
@@ -4020,7 +4020,9 @@ import {
   ChatDotRound, User, Edit, Delete, FolderOpened, Document,
   FolderAdd, Upload, DocumentCopy, Loading, Search, Key, Link, Files, Grid, Operation,
   Bell, Message, InfoFilled, Warning, SuccessFilled, CircleCloseFilled, Paperclip,
-  Connection, UploadFilled, Promotion, VideoPause
+  Connection, UploadFilled, Promotion, VideoPause,
+  Collection, SetUp, Stopwatch, Position, Suitcase, Memo, Lock, Odometer,
+  Histogram, CreditCard, TrendCharts, Umbrella, UserFilled, PieChart, Briefcase, DataBoard
 } from '@element-plus/icons-vue'
 // 引入进度条组件
 import { ElProgress } from 'element-plus'
