@@ -577,7 +577,12 @@ export default {
     fileTooLarge: '文件大小不能超过50MB',
     tooManyFiles: '最多只能上传5个附件',
     uploadFailed: '文件上传失败',
-    uploadRetry: '文件上传失败，请稍后重试'
+    uploadRetry: '文件上传失败，请稍后重试',
+    copy: '复制',
+    copied: '已复制',
+    stop: '停止生成',
+    stopped: '（已停止生成）',
+    inputHint: 'Enter 发送 · Shift+Enter 换行'
   },
   oss: {
     loadBucketsFailed: '加载Bucket列表失败',

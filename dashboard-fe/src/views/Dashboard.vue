@@ -3779,6 +3779,14 @@
                     </div>
                   </div>
                 </div>
+                <!-- 悬停操作栏（悬浮在气泡右下） -->
+                <div v-if="msg.content" class="ai-chat-msg-actions">
+                  <el-tooltip :content="t('ai.copy')" placement="top">
+                    <el-button link size="small" @click="copyMessage(msg)">
+                      <el-icon><DocumentCopy /></el-icon>
+                    </el-button>
+                  </el-tooltip>
+                </div>
               </div>
             </div>
             <div v-if="aiThinking" class="ai-chat-message assistant">
@@ -3946,15 +3954,38 @@
                 />
               </el-upload>
               <el-input
+                ref="chatInputRef"
                 v-model="inputMessage"
+                type="textarea"
+                :autosize="{ minRows: 1, maxRows: 6 }"
                 :placeholder="t('ai.inputPlaceholder')"
-                :rows="1"
-                @keyup.enter="sendMessage"
-                :disabled="aiThinking || uploadingFile"
+                @keydown="handleChatKeydown"
+                :disabled="uploadingFile"
               />
-              <el-button type="primary" @click="sendMessage" :loading="aiThinking" :disabled="uploadingFile">
-                {{ t('ai.send') }}
+              <el-button
+                v-if="aiThinking"
+                type="danger"
+                circle
+                size="small"
+                @click="stopGeneration"
+                :title="t('ai.stop')"
+              >
+                <el-icon><VideoPause /></el-icon>
               </el-button>
+              <el-button
+                v-else
+                type="primary"
+                circle
+                size="small"
+                @click="sendMessage"
+                :disabled="uploadingFile"
+                :title="t('ai.send')"
+              >
+                <el-icon><Promotion /></el-icon>
+              </el-button>
+            </div>
+            <div class="input-hint">
+              {{ t('ai.inputHint') }}
             </div>
           </div>
         </div>
@@ -3989,7 +4020,7 @@ import {
   ChatDotRound, User, Edit, Delete, FolderOpened, Document,
   FolderAdd, Upload, DocumentCopy, Loading, Search, Key, Link, Files, Grid, Operation,
   Bell, Message, InfoFilled, Warning, SuccessFilled, CircleCloseFilled, Paperclip,
-  Connection, UploadFilled
+  Connection, UploadFilled, Promotion, VideoPause
 } from '@element-plus/icons-vue'
 // 引入进度条组件
 import { ElProgress } from 'element-plus'
@@ -4378,6 +4409,8 @@ const createNewConversation = async () => {
     await loadConversationList()
     // 等待DOM更新后滚动
     nextTick(scrollChatToBottom)
+    // 新对话聚焦输入框
+    focusChatInput()
   } catch (error) {
     ElMessage.error(t('ai.newChatFailed'))
   }
@@ -5218,6 +5251,8 @@ const switchConversation = async (convId) => {
     nextTick(scrollChatToBottom)
     // 再加一次保险
     setTimeout(scrollChatToBottom, 100)
+    // 切换对话后聚焦输入框
+    focusChatInput()
   } catch (error) {
     ElMessage.error(t('ai.historyFailed'))
   }
@@ -5360,8 +5395,8 @@ const k8sStats = reactive({
   readyNodeCount: 0,
   // 资源使用详情
   cpuUsage: 0,
-  cpuUsed: t('overview.cpuZero'),
-  cpuTotal: t('overview.cpuZero'),
+  cpuUsed: t('overview.usage.cpuZero'),
+  cpuTotal: t('overview.usage.cpuZero'),
   memoryUsage: 0,
   memoryUsed: '0Gi',
   memoryTotal: '0Gi',
@@ -7339,15 +7374,52 @@ const scrollChatToBottom = () => {
         behavior: 'instant'
       })
     }
-
-    // 控制台输出调试信息，方便排查问题
-    console.log('滚动执行', {
-      scrollHeight: container.scrollHeight,
-      clientHeight: container.clientHeight,
-      scrollTop: container.scrollTop,
-      lastMessage: lastMessage
-    })
   })
+}
+
+// 聊天输入框：Enter 发送，Shift+Enter 换行；isComposing 规避输入法候选确认误触发
+const chatInputRef = ref(null)
+const focusChatInput = () => {
+  nextTick(() => {
+    chatInputRef.value?.focus?.()
+  })
+}
+const handleChatKeydown = (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    if (e.isComposing) return
+    sendMessage()
+  }
+}
+
+// 停止生成：终止流式请求，保留已收到的内容
+const stopGeneration = () => {
+  if (controller.value) {
+    controller.value.abort()
+    controller.value = null
+  }
+}
+
+// 复制消息原文到剪贴板
+const copyMessage = async (msg) => {
+  if (!msg?.content) return
+  try {
+    await navigator.clipboard.writeText(msg.content)
+  } catch (e) {
+    // 降级方案：老浏览器或不允许 navigator.clipboard 的环境
+    const textarea = document.createElement('textarea')
+    textarea.value = msg.content
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+    } finally {
+      document.body.removeChild(textarea)
+    }
+  }
+  ElMessage.success(t('ai.copied'))
 }
 
 // 发送消息给AI
@@ -7382,6 +7454,9 @@ const sendMessage = async () => {
   })
 
   try {
+    // 是否被用户手动停止（停止时保留已流式接收的内容，不再用后端全量覆写）
+    let abortedByUser = false
+
     // 先获取会话ID
     const currentConversationId = await getConversationId()
 
@@ -7463,7 +7538,17 @@ const sendMessage = async () => {
     }
 
   } catch (error) {
-    if (error.name !== 'AbortError') {
+    if (error.name === 'AbortError') {
+      // 用户手动停止：保留已流式接收的内容；全部为空则给出提示
+      abortedByUser = true
+      const msg = messageList.value[aiMsgIndex]
+      if (msg) {
+        if (!msg.content) {
+          msg.content = t('ai.stopped')
+          msg.renderedContent = parseMarkdown(msg.content)
+        }
+      }
+    } else {
       ElMessage.error(t('ai.requestFailed'))
       const errText = t('ai.errorMsg')
       const msg = messageList.value[aiMsgIndex]
@@ -7479,7 +7564,8 @@ const sendMessage = async () => {
     // 在流式中间态被 marked 渲染成段落/文本，Vue 对相同字符串的 v-html
     // 更新会去重；用后端 memory 的完整内容作为权威源，强制走一次新字符串。
     // 短暂等待确保 MessageChatMemoryAdvisor 已把响应写入 SPRING_AI_CHAT_MEMORY
-    if (conversationId.value) {
+    // （用户手动停止时不覆写：屏幕上保留停止时已收到的内容）
+    if (conversationId.value && !abortedByUser) {
       try {
         await new Promise(resolve => setTimeout(resolve, 150))
         const res = await getConversationHistory(conversationId.value)
@@ -7505,6 +7591,8 @@ const sendMessage = async () => {
     aiThinking.value = false
     controller.value = null
     scrollChatToBottom()
+    // 发送后把焦点还给输入框，方便连续提问
+    focusChatInput()
   }
 }
 
@@ -7569,6 +7657,8 @@ const handleChatDialogOpened = () => {
   scrollChatToBottom()
   // 再加一次保险，防止内容加载延迟
   setTimeout(scrollChatToBottom, 100)
+  // 打开聊天框即聚焦输入框
+  focusChatInput()
 }
 
 // 关闭专家表单对话框时重置表单
@@ -8715,14 +8805,42 @@ onUnmounted(() => {
 }
 .input-row {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
-}
-.input-row .el-input {
-  flex: 1;
 }
 .input-row .el-button {
   flex-shrink: 0;
+}
+/* 自动伸缩的输入气泡 */
+.input-row :deep(.el-textarea) {
+  flex: 1;
+}
+.input-row :deep(.el-textarea__inner) {
+  border-radius: 18px;
+  padding: 9px 14px;
+  line-height: 1.5;
+  resize: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.input-row :deep(.el-textarea__inner:focus) {
+  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.25);
+}
+/* 发送 / 停止圆形按钮统一尺寸居中 */
+.input-row .el-button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 快捷键提示 */
+.input-hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #a8abb2;
+  text-align: center;
+  user-select: none;
 }
 /* 上传进度条 */
 .upload-progress {
@@ -8758,22 +8876,49 @@ onUnmounted(() => {
   margin-right: 8px;
 }
 /* 聊天框滚动条 */
-.ai-chat-messages::-webkit-scrollbar,
-.conversation-list::-webkit-scrollbar {
+.ai-chat-message-list::-webkit-scrollbar,
+.ai-chat-conversation-list::-webkit-scrollbar {
   width: 6px;
 }
-.ai-chat-messages::-webkit-scrollbar-track,
-.conversation-list::-webkit-scrollbar-track {
+.ai-chat-message-list::-webkit-scrollbar-track,
+.ai-chat-conversation-list::-webkit-scrollbar-track {
   background: #f5f7fa;
 }
-.ai-chat-messages::-webkit-scrollbar-thumb,
-.conversation-list::-webkit-scrollbar-thumb {
+.ai-chat-message-list::-webkit-scrollbar-thumb,
+.ai-chat-conversation-list::-webkit-scrollbar-thumb {
   background: #c1c5ce;
   border-radius: 3px;
 }
-.ai-chat-messages::-webkit-scrollbar-thumb:hover,
-.conversation-list::-webkit-scrollbar-thumb:hover {
+.ai-chat-message-list::-webkit-scrollbar-thumb:hover,
+.ai-chat-conversation-list::-webkit-scrollbar-thumb:hover {
   background: #a9aeb8;
+}
+
+/* 消息悬停操作栏（复制等） */
+.ai-chat-msg-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.ai-chat-message:hover .ai-chat-msg-actions,
+.ai-chat-msg-actions:focus-within {
+  opacity: 1;
+}
+.ai-chat-msg-actions .el-button {
+  padding: 2px;
+  color: #9ca3af;
+}
+.ai-chat-msg-actions .el-button:hover {
+  color: var(--el-color-primary);
+}
+/* 用户气泡内的操作按钮用浅色，避免蓝底上看不见 */
+.ai-chat-message.user .ai-chat-msg-actions .el-button {
+  color: rgba(255, 255, 255, 0.75);
+}
+.ai-chat-message.user .ai-chat-msg-actions .el-button:hover {
+  color: #fff;
 }
 
 /* 资源利用率样式 */

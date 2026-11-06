@@ -577,7 +577,12 @@ export default {
     fileTooLarge: 'File size cannot exceed 50MB',
     tooManyFiles: 'You can upload at most 5 attachments',
     uploadFailed: 'File upload failed',
-    uploadRetry: 'File upload failed, please try again later'
+    uploadRetry: 'File upload failed, please try again later',
+    copy: 'Copy',
+    copied: 'Copied',
+    stop: 'Stop generating',
+    stopped: '(Generation stopped)',
+    inputHint: 'Enter to send · Shift+Enter for a new line'
   },
   oss: {
     loadBucketsFailed: 'Failed to load bucket list',
