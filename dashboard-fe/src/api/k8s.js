@@ -428,3 +428,69 @@ export const testClusterConfig = (id) => {
     timeout: 30000
   })
 }
+
+// StatefulSet相关
+export const getStatefulSetList = (namespace) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/statefulsets`,
+    method: 'get'
+  })
+}
+
+export const getStatefulSet = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/statefulsets/${name}`,
+    method: 'get'
+  })
+}
+
+export const scaleStatefulSet = (namespace, name, replicas) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/statefulsets/${name}/scale?replicas=${replicas}`,
+    method: 'put'
+  })
+}
+
+export const deleteStatefulSet = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/statefulsets/${name}`,
+    method: 'delete'
+  })
+}
+
+// DaemonSet相关
+export const getDaemonSetList = (namespace) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/daemonsets`,
+    method: 'get'
+  })
+}
+
+export const getDaemonSet = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/daemonsets/${name}`,
+    method: 'get'
+  })
+}
+
+export const deleteDaemonSet = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/daemonsets/${name}`,
+    method: 'delete'
+  })
+}
+
+// Node节点相关（只读）
+export const getNodeList = () => {
+  return request({
+    url: '/v1/k8s/nodes',
+    method: 'get'
+  })
+}
+
+export const getNode = (name) => {
+  return request({
+    url: `/v1/k8s/nodes/${name}`,
+    method: 'get'
+  })
+}

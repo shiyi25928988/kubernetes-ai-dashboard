@@ -139,6 +139,9 @@ export default {
     secret: 'Secret',
     crd: 'CRD',
     event: '集群事件',
+    statefulset: 'StatefulSet',
+    daemonset: 'DaemonSet',
+    node: '节点管理',
     cluster: '集群配置',
     oss: '对象存储',
     registry: '镜像管理'
@@ -603,6 +606,31 @@ export default {
     loadManifestFailed: '加载Manifest失败',
     deleteTagFailed: '删除tag失败',
     copyPath: '已复制: {path}'
+  },
+  sts: {
+    title: 'StatefulSet管理',
+    empty: '暂无StatefulSet',
+    detail: 'StatefulSet详情',
+    serviceName: '服务名',
+    podManagement: 'Pod管理策略'
+  },
+  ds: {
+    title: 'DaemonSet管理',
+    empty: '暂无DaemonSet',
+    detail: 'DaemonSet详情',
+    readyNode: '已就绪节点',
+    desiredNode: '期望节点',
+    currentNumber: '当前调度',
+    updatedNumber: '已更新'
+  },
+  node: {
+    title: '节点管理',
+    empty: '暂无节点',
+    detail: '节点详情',
+    status: '状态',
+    roles: '角色',
+    ip: '节点IP',
+    kubeletVersion: 'Kubelet版本'
   },
   cluster: {
     inspectStart: '开始集群巡检...',

@@ -139,6 +139,9 @@ export default {
     secret: 'Secret',
     crd: 'CRD',
     event: 'Cluster Events',
+    statefulset: 'StatefulSet',
+    daemonset: 'DaemonSet',
+    node: 'Nodes',
     cluster: 'Cluster Config',
     oss: 'Object Storage',
     registry: 'Image Registry'
@@ -603,6 +606,31 @@ export default {
     loadManifestFailed: 'Failed to load manifest',
     deleteTagFailed: 'Failed to delete tag',
     copyPath: 'Copied: {path}'
+  },
+  sts: {
+    title: 'StatefulSet',
+    empty: 'No StatefulSet',
+    detail: 'StatefulSet Detail',
+    serviceName: 'Service Name',
+    podManagement: 'Pod Management'
+  },
+  ds: {
+    title: 'DaemonSet',
+    empty: 'No DaemonSet',
+    detail: 'DaemonSet Detail',
+    readyNode: 'Ready Nodes',
+    desiredNode: 'Desired Nodes',
+    currentNumber: 'Current',
+    updatedNumber: 'Updated'
+  },
+  node: {
+    title: 'Node Management',
+    empty: 'No nodes',
+    detail: 'Node Detail',
+    status: 'Status',
+    roles: 'Roles',
+    ip: 'Node IP',
+    kubeletVersion: 'Kubelet Version'
   },
   cluster: {
     inspectStart: 'Starting cluster inspection...',

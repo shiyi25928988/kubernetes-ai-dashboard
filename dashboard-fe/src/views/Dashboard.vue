@@ -69,6 +69,14 @@
               <el-icon><Monitor /></el-icon>
               <span>{{ t('menu.deployment') }}</span>
             </el-menu-item>
+            <el-menu-item index="statefulset">
+              <el-icon><Files /></el-icon>
+              <span>{{ t('menu.statefulset') }}</span>
+            </el-menu-item>
+            <el-menu-item index="daemonset">
+              <el-icon><Files /></el-icon>
+              <span>{{ t('menu.daemonset') }}</span>
+            </el-menu-item>
             <el-menu-item index="job">
               <el-icon><Operation /></el-icon>
               <span>{{ t('menu.job') }}</span>
@@ -100,6 +108,10 @@
             <el-menu-item index="event">
               <el-icon><WarningFilled /></el-icon>
               <span>{{ t('menu.event') }}</span>
+            </el-menu-item>
+            <el-menu-item index="node">
+              <el-icon><Cpu /></el-icon>
+              <span>{{ t('menu.node') }}</span>
             </el-menu-item>
           </el-sub-menu>
           <el-menu-item index="cluster">
@@ -489,6 +501,97 @@
                   <el-button type="warning" size="small" @click="handleScaleDeployment(scope.row)">{{ t('deployment.scale') }}</el-button>
                   <el-button type="info" size="small" @click="handleRestartDeployment(scope.row)">{{ t('deployment.restart') }}</el-button>
                   <el-button type="danger" size="small" @click="handleDeleteDeployment(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- StatefulSet管理页面 -->
+          <div v-if="activeMenu === 'statefulset'" class="deployment-page">
+            <div class="page-header">
+              <h3>{{ t('sts.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadStsList" :loading="stsLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+                <el-select v-model="stsNamespaceFilter" :placeholder="t('common.selectNamespace')" class="w-60 ml-2" @change="loadStsList">
+                  <el-option :label="t('common.allNamespaces')" value="all" />
+                  <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
+                </el-select>
+              </div>
+            </div>
+
+            <div v-if="stsList.length === 0 && !stsLoading" class="empty-state">
+              <el-empty :description="t('sts.empty')">
+                <el-button type="primary" @click="loadStsList">{{ t('common.refreshData') }}</el-button>
+              </el-empty>
+            </div>
+            <el-table v-else :data="stsList" v-loading="stsLoading" border stripe>
+              <el-table-column prop="metadata.name" :label="t('common.name')" />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('deployment.replicaStatus')">
+                <template #default="scope">
+                  <el-tag :type="getStsStatusType(scope.row)">
+                    {{ scope.row.status?.readyReplicas || 0 }}/{{ scope.row.spec?.replicas || 0 }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('deployment.desired')" prop="spec.replicas" />
+              <el-table-column :label="t('common.creator')">
+                <template #default="scope">
+                  <span>{{ getOwnerName('StatefulSet', scope.row.metadata?.namespace, scope.row.metadata?.name) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
+                <template #default="scope">
+                  <el-button type="primary" size="small" @click="viewStsDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="warning" size="small" @click="handleStsScale(scope.row)">{{ t('deployment.scale') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteSts(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- DaemonSet管理页面 -->
+          <div v-if="activeMenu === 'daemonset'" class="deployment-page">
+            <div class="page-header">
+              <h3>{{ t('ds.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadDsList" :loading="dsLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+                <el-select v-model="dsNamespaceFilter" :placeholder="t('common.selectNamespace')" class="w-60 ml-2" @change="loadDsList">
+                  <el-option :label="t('common.allNamespaces')" value="all" />
+                  <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
+                </el-select>
+              </div>
+            </div>
+
+            <div v-if="dsList.length === 0 && !dsLoading" class="empty-state">
+              <el-empty :description="t('ds.empty')">
+                <el-button type="primary" @click="loadDsList">{{ t('common.refreshData') }}</el-button>
+              </el-empty>
+            </div>
+            <el-table v-else :data="dsList" v-loading="dsLoading" border stripe>
+              <el-table-column prop="metadata.name" :label="t('common.name')" />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('ds.readyNode')">
+                <template #default="scope">
+                  <el-tag :type="getDsStatusType(scope.row)">
+                    {{ scope.row.status?.numberReady || 0 }}/{{ scope.row.status?.desiredNumberScheduled || 0 }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('ds.desiredNode')" prop="status.desiredNumberScheduled" />
+              <el-table-column :label="t('ds.currentNumber')" prop="status.currentNumberScheduled" />
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" />
+              <el-table-column :label="t('common.actions')" class-name="sticky-right-col">
+                <template #default="scope">
+                  <el-button type="primary" size="small" @click="viewDsDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteDs(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -1277,6 +1380,51 @@
                 </el-table-column>
               </el-table>
             </div>
+          </div>
+
+          <!-- Node节点管理页面 -->
+          <div v-if="activeMenu === 'node'" class="node-page">
+            <div class="page-header">
+              <h3>{{ t('node.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadNodeList" :loading="nodeLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+              </div>
+            </div>
+
+            <div v-if="nodeList.length === 0 && !nodeLoading" class="empty-state">
+              <el-empty :description="t('node.empty')">
+                <el-button type="primary" @click="loadNodeList">{{ t('common.refreshData') }}</el-button>
+              </el-empty>
+            </div>
+            <el-table v-else :data="nodeList" v-loading="nodeLoading" border stripe>
+              <el-table-column prop="metadata.name" :label="t('common.name')" min-width="160" />
+              <el-table-column :label="t('node.status')" width="110" align="center">
+                <template #default="scope">
+                  <el-tag :type="getNodeStatusType(scope.row)">{{ getNodeStatus(scope.row) }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('node.roles')" min-width="130" show-overflow-tooltip>
+                <template #default="scope">{{ getNodeRoles(scope.row) || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="IP" width="140">
+                <template #default="scope">{{ getNodeInternalIP(scope.row) || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="Kubelet" width="110">
+                <template #default="scope">{{ scope.row.status?.nodeInfo?.kubeletVersion || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="OS" min-width="130" show-overflow-tooltip>
+                <template #default="scope">{{ scope.row.status?.nodeInfo?.osImage || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              <el-table-column :label="t('common.actions')" width="90" align="center">
+                <template #default="scope">
+                  <el-button type="primary" size="small" @click="viewNodeDetail(scope.row)">{{ t('common.details') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
           </div>
 
           <!-- 集群配置页面 -->
@@ -2114,6 +2262,87 @@
       </template>
     </el-dialog>
 
+    <!-- StatefulSet详情弹窗 -->
+    <el-dialog v-model="showStsDetailDialog" :title="t('sts.detail')" width="800px">
+      <div v-if="stsDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ stsDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.namespace')">{{ stsDetail.metadata?.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label="t('deployment.desired')">
+            <el-tag type="primary">{{ stsDetail.spec?.replicas }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('deployment.ready')">
+            <el-tag :type="stsDetail.status?.readyReplicas ? 'success' : 'warning'">{{ stsDetail.status?.readyReplicas ?? 0 }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('deployment.current')">{{ stsDetail.status?.currentReplicas ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('deployment.updated')">{{ stsDetail.status?.updatedReplicas ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('sts.serviceName')">{{ stsDetail.spec?.serviceName || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('sts.podManagement')">{{ stsDetail.spec?.podManagementPolicy || 'OrderedReady' }}</el-descriptions-item>
+          <el-descriptions-item label="ObservedGen">{{ stsDetail.status?.observedGeneration ?? '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')">{{ stsDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <div v-if="stsDetail.spec?.selector?.matchLabels" class="mt-4">
+          <strong>{{ t('deployment.selector') }}</strong>
+          <el-tag v-for="(v, k) in stsDetail.spec.selector.matchLabels" :key="k" size="small" class="mr-1 mt-1">{{ k }}={{ v }}</el-tag>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showStsDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- DaemonSet详情弹窗 -->
+    <el-dialog v-model="showDsDetailDialog" :title="t('ds.detail')" width="800px">
+      <div v-if="dsDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ dsDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.namespace')">{{ dsDetail.metadata?.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label="t('ds.desiredNode')">
+            <el-tag type="primary">{{ dsDetail.status?.desiredNumberScheduled ?? 0 }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('ds.currentNumber')">{{ dsDetail.status?.currentNumberScheduled ?? 0 }}</el-descriptions-item>
+          <el-descriptions-item :label="t('ds.readyNode')">
+            <el-tag :type="dsDetail.status?.numberReady ? 'success' : 'warning'">{{ dsDetail.status?.numberReady ?? 0 }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('ds.updatedNumber')">{{ dsDetail.status?.updatedNumberScheduled ?? '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('deployment.available')">{{ dsDetail.status?.numberAvailable ?? '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')">{{ dsDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <div v-if="dsDetail.spec?.selector?.matchLabels" class="mt-4">
+          <strong>{{ t('deployment.selector') }}</strong>
+          <el-tag v-for="(v, k) in dsDetail.spec.selector.matchLabels" :key="k" size="small" class="mr-1 mt-1">{{ k }}={{ v }}</el-tag>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showDsDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- Node详情弹窗 -->
+    <el-dialog v-model="showNodeDetailDialog" :title="t('node.detail')" width="800px">
+      <div v-if="nodeDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ nodeDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('node.status')">
+            <el-tag :type="getNodeStatusType(nodeDetail)">{{ getNodeStatus(nodeDetail) }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('node.roles')">{{ getNodeRoles(nodeDetail) || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('node.ip')">{{ getNodeInternalIP(nodeDetail) || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('node.kubeletVersion')">{{ nodeDetail.status?.nodeInfo?.kubeletVersion || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="OS">{{ nodeDetail.status?.nodeInfo?.osImage || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="Arch">{{ nodeDetail.status?.nodeInfo?.architecture || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="Container Runtime">{{ nodeDetail.status?.nodeInfo?.containerRuntimeVersion || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')">{{ nodeDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <template v-for="cond in nodeDetail.status?.conditions || []" :key="cond.type">
+          <el-tag v-if="cond.status === 'True'" size="small" class="mr-1 mt-1">{{ cond.type }}</el-tag>
+        </template>
+      </div>
+      <template #footer>
+        <el-button @click="showNodeDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
     <!-- Service详情弹窗 -->
     <el-dialog v-model="showServiceDetailDialog" :title="t('service.detail')" width="800px">
       <div v-if="serviceDetail" class="detail-container">
@@ -2527,6 +2756,25 @@
       <template #footer>
         <el-button @click="showScaleDialog = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" @click="confirmScale">{{ t('common.confirm') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- StatefulSet扩缩容弹窗 -->
+    <el-dialog v-model="showStsScaleDialog" :title="t('scale.title')" width="500px">
+      <el-form label-width="100px">
+        <el-form-item :label="t('scale.current')">
+          <span>{{ selectedSts?.spec?.replicas || 0 }}</span>
+        </el-form-item>
+        <el-form-item :label="t('scale.target')" required>
+          <el-input-number v-model="stsScaleReplicas" :min="0" :max="100" style="width: 100%;" />
+        </el-form-item>
+        <el-form-item :label="t('scale.note')">
+          <el-alert :title="t('scale.tip')" type="info" :description="t('scale.tipContent')" show-icon :closable="false" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showStsScaleDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="confirmStsScale">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
@@ -2981,7 +3229,15 @@ import {
   getActiveClusterConfig,
   activateClusterConfig,
   deleteClusterConfig,
-  testClusterConfig
+  testClusterConfig,
+  getStatefulSetList,
+  getStatefulSet,
+  scaleStatefulSet,
+  deleteStatefulSet,
+  getDaemonSetList,
+  getDaemonSet,
+  deleteDaemonSet,
+  getNodeList
 } from '@/api/k8s'
 // 引入Markdown解析库
 import { marked } from 'marked'
@@ -4340,6 +4596,14 @@ const handleMenuSelect = (key) => {
   } else if (key === 'event') {
     loadEventList()
     loadNamespaceList()
+  } else if (key === 'statefulset') {
+    loadStsList()
+    loadNamespaceList()
+  } else if (key === 'daemonset') {
+    loadDsList()
+    loadNamespaceList()
+  } else if (key === 'node') {
+    loadNodeList()
   } else if (key === 'cluster') {
     loadClusterList()
     loadActiveClusterName()
@@ -4628,6 +4892,212 @@ const handleDeleteDeployment = async (row) => {
       ElMessage.error(t('common.deleteFailed') + ': ' + (error.message || t('common.unknownError')))
     }
   }
+}
+
+// ======================================
+// StatefulSet相关方法
+// ======================================
+const stsList = ref([])
+const stsLoading = ref(false)
+const stsNamespaceFilter = ref('all')
+const selectedSts = ref(null)
+const stsDetail = ref(null)
+const showStsDetailDialog = ref(false)
+const showStsScaleDialog = ref(false)
+const stsScaleReplicas = ref(1)
+
+const loadStsList = async () => {
+  stsLoading.value = true
+  try {
+    let res
+    if (stsNamespaceFilter.value && stsNamespaceFilter.value !== 'all') {
+      res = await getStatefulSetList(stsNamespaceFilter.value)
+    } else {
+      const nsRes = await getNamespaceList()
+      const namespaces = nsRes.data.items.map(item => item.metadata.name)
+      const allSts = []
+      for (const ns of namespaces) {
+        try {
+          const stsRes = await getStatefulSetList(ns)
+          if (stsRes.data && Array.isArray(stsRes.data)) allSts.push(...stsRes.data)
+        } catch (e) {
+          console.warn(`获取命名空间${ns}的StatefulSet失败:`, e)
+        }
+      }
+      res = { data: allSts }
+    }
+    stsList.value = res.data || []
+  } catch (error) {
+    console.error('加载StatefulSet列表失败:', error)
+  } finally {
+    stsLoading.value = false
+  }
+}
+
+const viewStsDetail = async (row) => {
+  selectedSts.value = row
+  try {
+    const res = await getStatefulSet(row.metadata.namespace, row.metadata.name)
+    stsDetail.value = res.data
+    showStsDetailDialog.value = true
+  } catch (error) {
+    console.error('获取StatefulSet详情失败:', error)
+  }
+}
+
+const getStsStatusType = (row) => {
+  const ready = row.status?.readyReplicas || 0
+  const replicas = row.spec?.replicas || 0
+  if (ready === replicas && replicas > 0) return 'success'
+  else if (ready > 0) return 'warning'
+  return 'danger'
+}
+
+const handleStsScale = (row) => {
+  selectedSts.value = row
+  stsScaleReplicas.value = row.spec?.replicas || 1
+  showStsScaleDialog.value = true
+}
+
+const confirmStsScale = async () => {
+  try {
+    await scaleStatefulSet(selectedSts.value.metadata.namespace, selectedSts.value.metadata.name, stsScaleReplicas.value)
+    ElMessage.success(t('deployment.scaleSuccess'))
+    showStsScaleDialog.value = false
+    loadStsList()
+  } catch (error) {
+    console.error('StatefulSet扩缩容失败:', error)
+  }
+}
+
+const handleDeleteSts = async (row) => {
+  try {
+    await ElMessageBox.confirm(t('deployment.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning'
+    })
+    await deleteStatefulSet(row.metadata.namespace, row.metadata.name)
+    ElMessage.success(t('common.deleteSuccess'))
+    loadStsList()
+  } catch (error) {
+    if (error !== 'cancel') console.error('删除StatefulSet失败:', error)
+  }
+}
+
+// ======================================
+// DaemonSet相关方法
+// ======================================
+const dsList = ref([])
+const dsLoading = ref(false)
+const dsNamespaceFilter = ref('all')
+const dsDetail = ref(null)
+const showDsDetailDialog = ref(false)
+
+const loadDsList = async () => {
+  dsLoading.value = true
+  try {
+    let res
+    if (dsNamespaceFilter.value && dsNamespaceFilter.value !== 'all') {
+      res = await getDaemonSetList(dsNamespaceFilter.value)
+    } else {
+      const nsRes = await getNamespaceList()
+      const namespaces = nsRes.data.items.map(item => item.metadata.name)
+      const allDs = []
+      for (const ns of namespaces) {
+        try {
+          const dsRes = await getDaemonSetList(ns)
+          if (dsRes.data && Array.isArray(dsRes.data)) allDs.push(...dsRes.data)
+        } catch (e) {
+          console.warn(`获取命名空间${ns}的DaemonSet失败:`, e)
+        }
+      }
+      res = { data: allDs }
+    }
+    dsList.value = res.data || []
+  } catch (error) {
+    console.error('加载DaemonSet列表失败:', error)
+  } finally {
+    dsLoading.value = false
+  }
+}
+
+const viewDsDetail = async (row) => {
+  try {
+    const res = await getDaemonSet(row.metadata.namespace, row.metadata.name)
+    dsDetail.value = res.data
+    showDsDetailDialog.value = true
+  } catch (error) {
+    console.error('获取DaemonSet详情失败:', error)
+  }
+}
+
+const getDsStatusType = (row) => {
+  const ready = row.status?.numberReady || 0
+  const desired = row.status?.desiredNumberScheduled || 0
+  if (ready === desired && desired > 0) return 'success'
+  else if (ready > 0) return 'warning'
+  return 'danger'
+}
+
+const handleDeleteDs = async (row) => {
+  try {
+    await ElMessageBox.confirm(t('deployment.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning'
+    })
+    await deleteDaemonSet(row.metadata.namespace, row.metadata.name)
+    ElMessage.success(t('common.deleteSuccess'))
+    loadDsList()
+  } catch (error) {
+    if (error !== 'cancel') console.error('删除DaemonSet失败:', error)
+  }
+}
+
+// ======================================
+// Node节点相关方法
+// ======================================
+const nodeList = ref([])
+const nodeLoading = ref(false)
+const nodeDetail = ref(null)
+const showNodeDetailDialog = ref(false)
+
+const loadNodeList = async () => {
+  nodeLoading.value = true
+  try {
+    const res = await getNodeList()
+    nodeList.value = res.data || []
+  } catch (error) {
+    console.error('加载节点列表失败:', error)
+  } finally {
+    nodeLoading.value = false
+  }
+}
+
+const viewNodeDetail = (row) => {
+  nodeDetail.value = row
+  showNodeDetailDialog.value = true
+}
+
+const getNodeStatus = (row) => {
+  const ready = (row.status?.conditions || []).find(c => c.type === 'Ready')
+  return ready?.status === 'True' ? 'Ready' : (ready?.reason || 'NotReady')
+}
+
+const getNodeStatusType = (row) => getNodeStatus(row).startsWith('Ready') ? 'success' : 'danger'
+
+const getNodeRoles = (row) => {
+  const labels = row.metadata?.labels || {}
+  return Object.keys(labels)
+    .filter(l => l.startsWith('node-role.kubernetes.io/'))
+    .map(l => l.replace('node-role.kubernetes.io/', ''))
+    .join(', ')
+}
+
+const getNodeInternalIP = (row) => {
+  const addrs = row.status?.addresses || []
+  return (addrs.find(a => a.type === 'InternalIP') || {}).address || ''
 }
 
 // ======================================

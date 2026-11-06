@@ -4,6 +4,8 @@ import cc.shiyi.dashboard.config.KubernetesClientManager;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DaemonSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Event;
@@ -181,6 +183,79 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(ingress.getMetadata(),
                 "Ingress " + namespace + "/" + ingress.getMetadata().getName());
         client().resource(ingress).inNamespace(namespace).delete();
+    }
+
+    // ==================== StatefulSet ====================
+    public List<StatefulSet> listStatefulSets(String namespace) {
+        return client().apps().statefulSets().inNamespace(namespace).list().getItems();
+    }
+
+    public StatefulSet getStatefulSet(String namespace, String name) {
+        return client().apps().statefulSets().inNamespace(namespace).withName(name).get();
+    }
+
+    public void createStatefulSet(StatefulSet statefulSet, String namespace) {
+        ownershipService.addOwnershipLabels(statefulSet.getMetadata());
+        client().resource(statefulSet).inNamespace(namespace).create();
+        ownershipService.recordCreation("StatefulSet", namespace, statefulSet.getMetadata().getName());
+    }
+
+    public void deleteStatefulSet(StatefulSet statefulSet, String namespace) {
+        ownershipService.requirePlatformManaged(statefulSet.getMetadata(),
+                "StatefulSet " + namespace + "/" + statefulSet.getMetadata().getName());
+        client().resource(statefulSet).inNamespace(namespace).delete();
+    }
+
+    public StatefulSet updateStatefulSet(StatefulSet statefulSet, String namespace) {
+        return client().apps().statefulSets()
+                .inNamespace(namespace)
+                .resource(statefulSet)
+                .update();
+    }
+
+    /** 扩缩容/更新副本数 */
+    public StatefulSet scaleStatefulSet(String namespace, String name, Integer replicas) {
+        return client().apps().statefulSets()
+                .inNamespace(namespace)
+                .withName(name)
+                .scale(replicas);
+    }
+
+    // ==================== DaemonSet ====================
+    public List<DaemonSet> listDaemonSets(String namespace) {
+        return client().apps().daemonSets().inNamespace(namespace).list().getItems();
+    }
+
+    public DaemonSet getDaemonSet(String namespace, String name) {
+        return client().apps().daemonSets().inNamespace(namespace).withName(name).get();
+    }
+
+    public void createDaemonSet(DaemonSet daemonSet, String namespace) {
+        ownershipService.addOwnershipLabels(daemonSet.getMetadata());
+        client().resource(daemonSet).inNamespace(namespace).create();
+        ownershipService.recordCreation("DaemonSet", namespace, daemonSet.getMetadata().getName());
+    }
+
+    public void deleteDaemonSet(DaemonSet daemonSet, String namespace) {
+        ownershipService.requirePlatformManaged(daemonSet.getMetadata(),
+                "DaemonSet " + namespace + "/" + daemonSet.getMetadata().getName());
+        client().resource(daemonSet).inNamespace(namespace).delete();
+    }
+
+    public DaemonSet updateDaemonSet(DaemonSet daemonSet, String namespace) {
+        return client().apps().daemonSets()
+                .inNamespace(namespace)
+                .resource(daemonSet)
+                .update();
+    }
+
+    // ==================== Node 节点（只读） ====================
+    public List<Node> listNodes() {
+        return client().nodes().list().getItems();
+    }
+
+    public Node getNode(String name) {
+        return client().nodes().withName(name).get();
     }
 
     // ==================== Deployment扩展操作 ====================
