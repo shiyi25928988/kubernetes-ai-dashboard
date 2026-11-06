@@ -23,7 +23,7 @@
     <java.version>21</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-cloud.version>2025.0.0</spring-cloud.version>
-    <spring-ai.version>1.1.4</spring-ai.version>
+    <spring-ai.version>1.1.6</spring-ai.version>
     <guava.version>33.5.0-jre</guava.version>
     <mybatis.version>3.5.14</mybatis.version>
     <logback.version>1.5.20</logback.version>

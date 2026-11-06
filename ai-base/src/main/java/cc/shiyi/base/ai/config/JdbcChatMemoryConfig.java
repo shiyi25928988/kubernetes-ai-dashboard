@@ -39,7 +39,7 @@ public class JdbcChatMemoryConfig {
      */
     @Bean
     public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
-        // 保留最近20条消息作为上下文
-        return MessageWindowChatMemory.builder().chatMemoryRepository(chatMemoryRepository).maxMessages(20).build();
+        // 保留最近100条消息作为上下文
+        return MessageWindowChatMemory.builder().chatMemoryRepository(chatMemoryRepository).maxMessages(100).build();
     }
 }

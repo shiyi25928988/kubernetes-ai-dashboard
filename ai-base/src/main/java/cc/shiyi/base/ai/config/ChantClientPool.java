@@ -1,43 +1,27 @@
 package cc.shiyi.base.ai.config;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-
+/**
+ * 提供共享的 ChatClient（内置 JDBC 聊天记忆 advisor）。
+ * Spring AI 1.1.6 起 conversationId 不再支持在 advisor 构建时固定，
+ * 需在每次请求时通过 advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId)) 传入。
+ */
 @Component
 public class ChantClientPool {
 
-    //private static Map<String, ChatClient> pool = new ConcurrentHashMap<>();
+    private final ChatClient chatClient;
 
-    private static Cache<String, ChatClient> pool =
-            Caffeine.newBuilder()
-                    .maximumSize(1000)
-                    .expireAfterAccess(30, java.util.concurrent.TimeUnit.MINUTES)
-                    .build();
+    public ChantClientPool(ChatClient.Builder builder, ChatMemory chatMemory) {
+        this.chatClient = builder
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .build();
+    }
 
-    @Autowired
-    ChatClient.Builder builder;
-
-    @Autowired
-    ChatMemory chatMemory;
-
-    public ChatClient get(String conversationId) {
-        ChatClient chatClient = pool.getIfPresent(conversationId);
-        if (Objects.nonNull(chatClient)) {
-            return chatClient;
-        } else {
-            chatClient = builder.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).conversationId(conversationId).build()).build();
-            pool.put(conversationId, chatClient);
-            return chatClient;
-        }
+    public ChatClient get() {
+        return chatClient;
     }
 }

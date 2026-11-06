@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -49,8 +50,9 @@ public class AiChatController {
 
         Long userId = StpUtil.getLoginIdAsLong();
 
-        ChatClient chatClient = chatClientPool.get(request.getConversationId());
+        ChatClient chatClient = chatClientPool.get();
         String response = chatClient.prompt()
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.getConversationId()))
                 .user(request.getMessage())
                 .call()
                 .content();
@@ -70,10 +72,11 @@ public class AiChatController {
 
         Long userId = StpUtil.getLoginIdAsLong();
 
-        ChatClient chatClient = chatClientPool.get(request.getConversationId());
+        ChatClient chatClient = chatClientPool.get();
         StringBuilder fullResponse = new StringBuilder();
 
-        var promptBuilder = chatClient.prompt();
+        var promptBuilder = chatClient.prompt()
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.getConversationId()));
         if (request.getSystemPrompt() != null && !request.getSystemPrompt().isEmpty()) {
             promptBuilder.system(request.getSystemPrompt());
         }
@@ -109,10 +112,11 @@ public class AiChatController {
                 .variables(request.getParameters())
                 .renderer(StTemplateRenderer.builder().build())
                 .build();
-        ChatClient chatClient = chatClientPool.get(request.getConversationId());
+        ChatClient chatClient = chatClientPool.get();
         StringBuilder fullResponse = new StringBuilder();
 
         return chatClient.prompt(promptTemplate.create())
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.getConversationId()))
                 .stream()
                 .content()
                 .doOnNext(content -> fullResponse.append(content))
@@ -130,10 +134,11 @@ public class AiChatController {
 
         Long userId = StpUtil.getLoginIdAsLong();
 
-        ChatClient chatClient = chatClientPool.get(request.getConversationId());
+        ChatClient chatClient = chatClientPool.get();
         StringBuilder fullResponse = new StringBuilder();
 
         return chatClient.prompt()
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.getConversationId()))
                 .system(request.getSystemMessage())
                 .user(request.getUserMessage())
                 .stream()

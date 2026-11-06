@@ -10,11 +10,11 @@ spring:
         request-timeout: 30s
         type: SYNC
     openai:
-      base-url: ${SPRING_AI_OPENAI_BASE_URL:}
-      api-key: ${SPRING_AI_OPENAI_API_KEY:}
+      base-url: ${SPRING_AI_OPENAI_BASE_URL:http://127.0.0.1:23333}
+      api-key: ${SPRING_AI_OPENAI_API_KEY:cs-sk-fd8c5ed4-6df1-456c-9e38-362e6972fe4f}
       chat:
         options:
-          model: ${SPRING_AI_OPENAI_CHAT_MODEL:}
+          model: ${SPRING_AI_OPENAI_CHAT_MODEL:opencode:glm-5.3-flash}
           temperature: 0.7
           frequency-penalty: 0.0
           max-tokens: 10240
