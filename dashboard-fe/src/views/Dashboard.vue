@@ -113,6 +113,30 @@
               <el-icon><Cpu /></el-icon>
               <span>{{ t('menu.node') }}</span>
             </el-menu-item>
+            <el-menu-item index="pv">
+              <el-icon><Files /></el-icon>
+              <span>{{ t('menu.pv') }}</span>
+            </el-menu-item>
+            <el-menu-item index="storageclass">
+              <el-icon><Document /></el-icon>
+              <span>{{ t('menu.storageclass') }}</span>
+            </el-menu-item>
+            <el-menu-item index="hpa">
+              <el-icon><Operation /></el-icon>
+              <span>{{ t('menu.hpa') }}</span>
+            </el-menu-item>
+            <el-menu-item index="networkpolicy">
+              <el-icon><Link /></el-icon>
+              <span>{{ t('menu.networkpolicy') }}</span>
+            </el-menu-item>
+            <el-menu-item index="rbac">
+              <el-icon><Key /></el-icon>
+              <span>{{ t('menu.rbac') }}</span>
+            </el-menu-item>
+            <el-menu-item index="quota">
+              <el-icon><DataAnalysis /></el-icon>
+              <span>{{ t('menu.quota') }}</span>
+            </el-menu-item>
           </el-sub-menu>
           <el-menu-item index="cluster">
             <el-icon><Connection /></el-icon>
@@ -1427,6 +1451,465 @@
             </el-table>
           </div>
 
+          <!-- PersistentVolume 存储卷管理页面 -->
+          <div v-if="activeMenu === 'pv'" class="node-page">
+            <div class="page-header">
+              <h3>{{ t('pv.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadPvList" :loading="pvLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+              </div>
+            </div>
+            <div v-if="pvList.length === 0 && !pvLoading" class="empty-state">
+              <el-empty :description="t('pv.empty')">
+                <el-button type="primary" @click="loadPvList">{{ t('common.refreshData') }}</el-button>
+              </el-empty>
+            </div>
+            <el-table v-else :data="pvList" v-loading="pvLoading" border stripe>
+              <el-table-column prop="metadata.name" :label="t('common.name')" min-width="180" show-overflow-tooltip />
+              <el-table-column prop="spec.capacity?.storage" :label="t('pv.capacity')" width="110" />
+              <el-table-column :label="t('pv.accessModes')" min-width="140" show-overflow-tooltip>
+                <template #default="scope">{{ (scope.row.spec?.accessModes || []).join(', ') || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="spec.persistentVolumeReclaimPolicy" :label="t('pv.reclaimPolicy')" width="130" />
+              <el-table-column :label="t('pv.status')" width="110" align="center">
+                <template #default="scope">
+                  <el-tag :type="getPvStatusType(scope.row.status?.phase)">{{ scope.row.status?.phase || '—' }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('pv.boundClaim')" min-width="160" show-overflow-tooltip>
+                <template #default="scope">
+                  {{ scope.row.spec?.claimRef ? `${scope.row.spec.claimRef.namespace}/${scope.row.spec.claimRef.name}` : '—' }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="spec.storageClassName" :label="t('pv.storageClass')" width="140" />
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              <el-table-column :label="t('common.actions')" width="90" align="center">
+                <template #default="scope">
+                  <el-button type="primary" size="small" @click="viewPvDetail(scope.row)">{{ t('common.details') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- StorageClass 存储类管理页面 -->
+          <div v-if="activeMenu === 'storageclass'" class="node-page">
+            <div class="page-header">
+              <h3>{{ t('sc.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadScList" :loading="scLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+              </div>
+            </div>
+            <div v-if="scList.length === 0 && !scLoading" class="empty-state">
+              <el-empty :description="t('sc.empty')">
+                <el-button type="primary" @click="loadScList">{{ t('common.refreshData') }}</el-button>
+              </el-empty>
+            </div>
+            <el-table v-else :data="scList" v-loading="scLoading" border stripe>
+              <el-table-column prop="metadata.name" :label="t('common.name')" min-width="150" show-overflow-tooltip />
+              <el-table-column prop="provisioner" :label="t('sc.provisioner')" min-width="160" show-overflow-tooltip />
+              <el-table-column prop="reclaimPolicy" :label="t('sc.reclaimPolicy')" width="130" />
+              <el-table-column prop="volumeBindingMode" :label="t('sc.bindingMode')" min-width="160" show-overflow-tooltip />
+              <el-table-column :label="t('sc.default')" width="100" align="center">
+                <template #default="scope">
+                  <el-tag v-if="isDefaultStorageClass(scope.row)" type="warning">{{ t('sc.yesDefault') }}</el-tag>
+                  <span v-else>—</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              <el-table-column :label="t('common.actions')" width="90" align="center">
+                <template #default="scope">
+                  <el-button type="primary" size="small" @click="viewScDetail(scope.row)">{{ t('common.details') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- HPA自动扩缩容管理页面 -->
+          <div v-if="activeMenu === 'hpa'" class="deployment-page">
+            <div class="page-header">
+              <h3>{{ t('hpa.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadHpaList" :loading="hpaLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+                <el-select v-model="hpaNamespaceFilter" :placeholder="t('common.selectNamespace')" class="w-60 ml-2" @change="loadHpaList">
+                  <el-option :label="t('common.allNamespaces')" value="all" />
+                  <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
+                </el-select>
+              </div>
+            </div>
+            <div v-if="hpaList.length === 0 && !hpaLoading" class="empty-state">
+              <el-empty :description="t('hpa.empty')">
+                <el-button type="primary" @click="loadHpaList">{{ t('common.refreshData') }}</el-button>
+              </el-empty>
+            </div>
+            <el-table v-else :data="hpaList" v-loading="hpaLoading" border stripe>
+              <el-table-column prop="metadata.name" :label="t('common.name')" min-width="140" />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('hpa.target')" min-width="170" show-overflow-tooltip>
+                <template #default="scope">
+                  {{ scope.row.spec?.scaleTargetRef ? `${scope.row.spec.scaleTargetRef.kind}/${scope.row.spec.scaleTargetRef.name}` : '—' }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="spec.minReplicas" :label="t('hpa.minReplicas')" width="100" align="center">
+                <template #default="scope">{{ scope.row.spec?.minReplicas ?? '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="spec.maxReplicas" :label="t('hpa.maxReplicas')" width="100" align="center" />
+              <el-table-column :label="t('hpa.currentReplicas')" width="110" align="center">
+                <template #default="scope">
+                  <el-tag :type="getHpaStatusType(scope.row)">{{ scope.row.status?.currentReplicas ?? 0 }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              <el-table-column :label="t('common.actions')" width="150" align="center" class-name="sticky-right-col">
+                <template #default="scope">
+                  <el-button size="small" @click="viewHpaDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="primary" size="small" @click="handleHpaMinMax(scope.row)">{{ t('hpa.adjust') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- NetworkPolicy 网络策略管理页面 -->
+          <div v-if="activeMenu === 'networkpolicy'" class="deployment-page">
+            <div class="page-header">
+              <h3>{{ t('np.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadNpList" :loading="npLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+                <el-select v-model="npNamespaceFilter" :placeholder="t('common.selectNamespace')" class="w-60 ml-2" @change="loadNpList">
+                  <el-option :label="t('common.allNamespaces')" value="all" />
+                  <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
+                </el-select>
+              </div>
+            </div>
+            <div v-if="npList.length === 0 && !npLoading" class="empty-state">
+              <el-empty :description="t('np.empty')">
+                <el-button type="primary" @click="loadNpList">{{ t('common.refreshData') }}</el-button>
+              </el-empty>
+            </div>
+            <el-table v-else :data="npList" v-loading="npLoading" border stripe>
+              <el-table-column prop="metadata.name" :label="t('common.name')" min-width="160" show-overflow-tooltip />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('np.podSelector')" min-width="140" show-overflow-tooltip>
+                <template #default="scope">{{ getNpPodSelector(scope.row) }}</template>
+              </el-table-column>
+              <el-table-column :label="t('np.ingressRules')" width="90" align="center">
+                <template #default="scope">{{ scope.row.spec?.ingress?.length ?? 0 }}</template>
+              </el-table-column>
+              <el-table-column :label="t('np.egressRules')" width="90" align="center">
+                <template #default="scope">{{ scope.row.spec?.egress?.length ?? 0 }}</template>
+              </el-table-column>
+              <el-table-column :label="t('np.policyTypes')" min-width="130">
+                <template #default="scope">
+                  <el-tag v-for="pt in scope.row.spec?.policyTypes || []" :key="pt" size="small" class="mr-1">{{ pt }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              <el-table-column :label="t('common.actions')" width="90" align="center">
+                <template #default="scope">
+                  <el-button type="primary" size="small" @click="viewNpDetail(scope.row)">{{ t('common.details') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- RBAC 权限管理页面 -->
+          <div v-if="activeMenu === 'rbac'" class="deployment-page">
+            <div class="page-header">
+              <h3>{{ t('rbac.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadRbacCurrent" :loading="rbacLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+                <el-select v-model="rbacNamespaceFilter" :placeholder="t('common.selectNamespace')" class="w-60 ml-2" @change="loadRbacCurrent">
+                  <el-option :label="t('common.allNamespaces')" value="all" />
+                  <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
+                </el-select>
+              </div>
+            </div>
+            <el-tabs v-model="rbacActiveTab" @tab-change="loadRbacCurrent">
+              <el-tab-pane :label="t('rbac.serviceaccount')" name="serviceaccount" />
+              <el-tab-pane :label="t('rbac.role')" name="role" />
+              <el-tab-pane :label="t('rbac.clusterrole')" name="clusterrole" />
+              <el-tab-pane :label="t('rbac.rolebinding')" name="rolebinding" />
+              <el-tab-pane :label="t('rbac.clusterrolebinding')" name="clusterrolebinding" />
+            </el-tabs>
+
+            <div v-if="rbacList.length === 0 && !rbacLoading" class="empty-state">
+              <el-empty :description="t('rbac.empty')" />
+            </div>
+            <el-table v-else :data="rbacList" v-loading="rbacLoading" border stripe>
+              <template v-if="rbacActiveTab === 'serviceaccount'">
+                <el-table-column prop="metadata.name" :label="t('common.name')" min-width="160" show-overflow-tooltip />
+                <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+                <el-table-column :label="t('rbac.secretCount')" width="100" align="center">
+                  <template #default="scope">{{ scope.row.secrets?.length ?? 0 }}</template>
+                </el-table-column>
+                <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              </template>
+              <template v-else-if="rbacActiveTab === 'role' || rbacActiveTab === 'clusterrole'">
+                <el-table-column prop="metadata.name" :label="t('common.name')" min-width="160" show-overflow-tooltip />
+                <el-table-column v-if="rbacActiveTab === 'role'" prop="metadata.namespace" :label="t('common.namespace')" />
+                <el-table-column :label="t('rbac.ruleCount')" width="100" align="center">
+                  <template #default="scope">{{ scope.row.rules?.length ?? 0 }}</template>
+                </el-table-column>
+                <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              </template>
+              <template v-else>
+                <el-table-column prop="metadata.name" :label="t('common.name')" min-width="170" show-overflow-tooltip />
+                <el-table-column v-if="rbacActiveTab === 'rolebinding'" prop="metadata.namespace" :label="t('common.namespace')" />
+                <el-table-column :label="t('rbac.roleRef')" min-width="150" show-overflow-tooltip>
+                  <template #default="scope">
+                    {{ scope.row.roleRef ? `${scope.row.roleRef.kind}/${scope.row.roleRef.name}` : '—' }}
+                  </template>
+                </el-table-column>
+                <el-table-column :label="t('rbac.subjectCount')" width="100" align="center">
+                  <template #default="scope">{{ scope.row.subjects?.length ?? 0 }}</template>
+                </el-table-column>
+                <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              </template>
+              <el-table-column :label="t('common.actions')" width="150" align="center" class-name="sticky-right-col">
+                <template #default="scope">
+                  <el-button type="primary" size="small" @click="viewRbacDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteRbac(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- ResourceQuota 资源配额管理页面 -->
+          <div v-if="activeMenu === 'quota'" class="deployment-page">
+            <div class="page-header">
+              <h3>{{ t('quota.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="loadQuotaList" :loading="quotaLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+                <el-button type="success" size="small" @click="handleCreateQuota">
+                  <el-icon class="mr-1"><Plus /></el-icon>
+                  {{ t('common.create') }}
+                </el-button>
+                <el-select v-model="quotaNamespaceFilter" :placeholder="t('common.selectNamespace')" class="w-60 ml-2" @change="loadQuotaList">
+                  <el-option :label="t('common.allNamespaces')" value="all" />
+                  <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
+                </el-select>
+              </div>
+            </div>
+            <div v-if="quotaList.length === 0 && !quotaLoading" class="empty-state">
+              <el-empty :description="t('quota.empty')">
+                <el-button type="primary" @click="loadQuotaList">{{ t('common.refreshData') }}</el-button>
+              </el-empty>
+            </div>
+            <el-table v-else :data="quotaList" v-loading="quotaLoading" border stripe>
+              <el-table-column prop="metadata.name" :label="t('common.name')" min-width="160" show-overflow-tooltip />
+              <el-table-column prop="metadata.namespace" :label="t('common.namespace')" />
+              <el-table-column :label="t('quota.hardCount')" width="100" align="center">
+                <template #default="scope">{{ Object.keys(scope.row.spec?.hard || {}).length }}</template>
+              </el-table-column>
+              <el-table-column :label="t('quota.cpuUsage')" min-width="140" show-overflow-tooltip>
+                <template #default="scope">
+                  <span v-if="scope.row.status?.hard?.['requests.cpu']">
+                    {{ scope.row.status?.used?.['requests.cpu'] || 0 }} / {{ scope.row.status?.hard?.['requests.cpu'] }}
+                  </span>
+                  <span v-else>—</span>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('quota.memoryUsage')" min-width="140" show-overflow-tooltip>
+                <template #default="scope">
+                  <span v-if="scope.row.status?.hard?.['requests.memory']">
+                    {{ scope.row.status?.used?.['requests.memory'] || 0 }} / {{ scope.row.status?.hard?.['requests.memory'] }}
+                  </span>
+                  <span v-else>—</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="metadata.creationTimestamp" :label="t('common.createdAt')" width="170" />
+              <el-table-column :label="t('common.actions')" width="180" align="center" class-name="sticky-right-col">
+                <template #default="scope">
+                  <el-button size="small" @click="viewQuotaDetail(scope.row)">{{ t('common.details') }}</el-button>
+                  <el-button type="primary" size="small" @click="handleEditQuota(scope.row)">{{ t('common.edit') }}</el-button>
+                  <el-button type="danger" size="small" @click="handleDeleteQuota(scope.row)" v-if="scope.row.metadata?.labels?.['dssp.io/managed-by'] === 'dssp' && scope.row.metadata?.labels?.['dssp.io/created-by'] === String(userInfo.id)">{{ t('common.delete') }}</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- 对象存储OSS管理页面 -->
+          <div v-if="activeMenu === 'oss'" class="deployment-page oss-page">
+            <div class="page-header">
+              <h3>{{ t('oss.title') }}</h3>
+              <div class="header-actions">
+                <el-button size="small" :disabled="!selectedBucket" @click="loadFileList(selectedBucket)">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+                <el-button type="success" size="small" :disabled="!selectedBucket" @click="triggerUpload">
+                  <el-icon class="mr-1"><Upload /></el-icon>
+                  {{ t('oss.upload') }}
+                </el-button>
+                <el-button size="small" :disabled="!selectedBucket" @click="showCreateFolderDialog = true">{{ t('oss.createFolder') }}</el-button>
+                <el-button type="danger" size="small" :disabled="selectedOssFiles.length === 0" @click="handleBatchDelete">{{ t('oss.deleteSelected') }}</el-button>
+              </div>
+            </div>
+
+            <div class="oss-layout">
+              <!-- 左侧Bucket列表 -->
+              <aside class="oss-bucket-panel">
+                <div class="oss-bucket-panel-header">
+                  <span>{{ t('oss.buckets') }}</span>
+                  <span>
+                    <el-button size="small" link @click="loadBucketList"><el-icon><Refresh /></el-icon></el-button>
+                    <el-button size="small" link type="primary" @click="showCreateBucketDialog = true"><el-icon><Plus /></el-icon></el-button>
+                  </span>
+                </div>
+                <div v-if="bucketList.length === 0" class="oss-bucket-empty">{{ t('oss.empty') }}</div>
+                <div v-for="b in bucketList" :key="b" class="oss-bucket-item" :class="{ active: b === selectedBucket }" @click="selectBucket(b)">
+                  <el-icon><Box /></el-icon>
+                  <span class="oss-bucket-name">{{ b }}</span>
+                </div>
+              </aside>
+
+              <!-- 右侧文件浏览区 -->
+              <div class="oss-main" :class="{ 'is-dragover': ossDragover }"
+                   @dragover.prevent="selectedBucket && (ossDragover = true)"
+                   @dragleave="ossDragover = false"
+                   @drop.prevent="handleOssDrop">
+                <div class="oss-main-toolbar">
+                  <el-breadcrumb v-if="selectedBucket" separator="/" class="oss-breadcrumb">
+                    <el-breadcrumb-item><el-link type="primary" @click="navigateToFolder('')">{{ t('oss.root') }}</el-link></el-breadcrumb-item>
+                    <el-breadcrumb-item v-for="(p, i) in breadcrumbParts" :key="i">
+                      <el-link type="primary" @click="navigateToBreadcrumb(i)">{{ p }}</el-link>
+                    </el-breadcrumb-item>
+                  </el-breadcrumb>
+                  <el-input v-model="ossSearchKey" :placeholder="t('oss.searchPlaceholder')" size="small" clearable style="width: 200px; margin-left: auto;">
+                    <template #prefix><el-icon><Search /></el-icon></template>
+                  </el-input>
+                </div>
+
+                <div v-if="!selectedBucket" class="empty-state">
+                  <el-empty :description="t('oss.selectBucketFirst')" />
+                </div>
+                <template v-else>
+                  <div v-if="ossFilteredFiles.length === 0 && !ossLoading" class="empty-state">
+                    <el-empty :description="ossSearchKey ? t('oss.noResult') : t('oss.empty')" />
+                  </div>
+                  <el-table v-else ref="ossTableRef" :data="ossFilteredFiles" v-loading="ossLoading" border stripe @selection-change="handleOssSelectionChange">
+                    <el-table-column type="selection" width="45" align="center" />
+                    <el-table-column :label="t('common.name')" min-width="220" sortable prop="name">
+                      <template #default="scope">
+                        <el-link v-if="scope.row.folder" type="primary" @click="navigateToFolder(scope.row.name)">
+                          <el-icon class="mr-1"><FolderOpened /></el-icon>{{ trimFolderName(scope.row.name) }}
+                        </el-link>
+                        <span v-else>
+                          <el-icon class="mr-1"><Document /></el-icon>{{ scope.row.name }}
+                        </span>
+                      </template>
+                    </el-table-column>
+                    <el-table-column :label="t('oss.size')" prop="size" sortable width="120">
+                      <template #default="scope">
+                        {{ scope.row.folder ? '—' : formatFileSize(scope.row.size || 0) }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column :label="t('oss.type')" width="95" align="center">
+                      <template #default="scope">
+                        <el-tag size="small" :type="scope.row.folder ? 'warning' : 'info'">{{ scope.row.folder ? t('oss.folder') : t('oss.file') }}</el-tag>
+                      </template>
+                    </el-table-column>
+                    <el-table-column :label="t('common.actions')" width="300" align="center" class-name="sticky-right-col">
+                      <template #default="scope">
+                        <template v-if="!scope.row.folder">
+                          <el-button v-if="isImageFile(scope.row.name)" type="primary" size="small" @click="previewImage(scope.row.downloadUrl, scope.row.name)">{{ t('oss.preview') }}</el-button>
+                          <el-button v-else-if="isTextFile(scope.row.name)" type="primary" size="small" @click="previewTextFile(scope.row.name)">{{ t('oss.preview') }}</el-button>
+                          <el-button size="small" @click="openDownloadUrl(scope.row.downloadUrl)">{{ t('oss.download') }}</el-button>
+                          <el-button size="small" @click="copyDownloadUrl(scope.row.downloadUrl)">{{ t('oss.copy') }}</el-button>
+                        </template>
+                        <el-button type="danger" size="small" @click="handleDeleteObject(scope.row.name, scope.row.folder)">{{ t('common.delete') }}</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- 镜像仓库管理页面 -->
+          <div v-if="activeMenu === 'registry'" class="deployment-page oss-page">
+            <div class="page-header">
+              <h3>{{ t('registry.title') }}</h3>
+              <div class="header-actions">
+                <el-button size="small" @click="loadRegistryRepos" :loading="registryLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+              </div>
+            </div>
+
+            <div class="oss-layout">
+              <!-- 左侧仓库列表 -->
+              <aside class="oss-bucket-panel">
+                <div class="oss-bucket-panel-header">
+                  <span>{{ t('registry.repos') }}</span>
+                </div>
+                <el-input v-model="registrySearchKey" :placeholder="t('registry.searchPlaceholder')" size="small" clearable style="margin: 8px 10px; width: calc(100% - 20px);">
+                  <template #prefix><el-icon><Search /></el-icon></template>
+                </el-input>
+                <div v-if="filteredRegistryRepos.length === 0 && !registryLoading" class="oss-bucket-empty">{{ t('oss.noResult') }}</div>
+                <div v-for="repo in filteredRegistryRepos" :key="repo" class="oss-bucket-item" :class="{ active: repo === selectedRepo }" @click="selectRepo(repo)">
+                  <el-icon><Box /></el-icon>
+                  <span class="oss-bucket-name">{{ repo }}</span>
+                </div>
+              </aside>
+
+              <!-- 右侧Tags区域 -->
+              <div class="oss-main">
+                <div v-if="!selectedRepo" class="empty-state">
+                  <el-empty :description="t('registry.selectRepoFirst')" />
+                </div>
+                <template v-else>
+                  <div class="registry-repo-header">
+                    <el-tag size="large" effect="plain"><el-icon class="mr-1"><Box /></el-icon>{{ selectedRepo }}</el-tag>
+                    <span v-if="currentRepoData?.registryHost" class="registry-host">{{ t('registry.host') }}: {{ currentRepoData.registryHost }}</span>
+                    <span class="registry-tag-count">{{ t('registry.tags') }}: {{ currentRepoData?.tagCount ?? 0 }}</span>
+                  </div>
+
+                  <div v-if="!(currentRepoData?.tags || []).length && !registryLoading" class="empty-state">
+                    <el-empty :description="t('registry.empty')" />
+                  </div>
+                  <el-table v-else :data="currentRepoData?.tags || []" v-loading="registryLoading" border stripe>
+                    <el-table-column :label="t('registry.tag')" min-width="180">
+                      <template #default="scope">
+                        <el-link type="primary" @click="selectTag(scope.row)">{{ scope.row }}</el-link>
+                      </template>
+                    </el-table-column>
+                    <el-table-column :label="t('registry.imagePath')" min-width="260" show-overflow-tooltip>
+                      <template #default="scope">
+                        {{ (currentRepoData?.registryHost || '') + '/' + selectedRepo + ':' + scope.row }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column :label="t('common.actions')" width="240" align="center" class-name="sticky-right-col">
+                      <template #default="scope">
+                        <el-button type="primary" size="small" @click="selectTag(scope.row)">{{ t('registry.manifest') }}</el-button>
+                        <el-button size="small" @click="copyImagePath(scope.row)">{{ t('oss.copy') }}</el-button>
+                        <el-button type="danger" size="small" @click="handleDeleteTag(scope.row)">{{ t('common.delete') }}</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </template>
+              </div>
+            </div>
+          </div>
+
           <!-- 集群配置页面 -->
           <div v-if="activeMenu === 'cluster'" class="cluster-page">
             <div class="page-header">
@@ -1489,6 +1972,80 @@
 
         </div>
       </main>
+
+    <!-- OSS隐藏文件选择input -->
+    <input type="file" ref="fileInputRef" style="display: none;" @change="handleFileUpload" />
+
+    <!-- OSS新建文件夹弹窗 -->
+    <el-dialog v-model="showCreateFolderDialog" :title="t('oss.createFolder')" width="420px">
+      <el-input v-model="newFolderName" :placeholder="t('oss.folderNameRequired')" @keyup.enter="handleCreateFolder" />
+      <template #footer>
+        <el-button @click="showCreateFolderDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="creatingFolder" @click="handleCreateFolder">{{ t('common.confirm') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- OSS创建Bucket弹窗 -->
+    <el-dialog v-model="showCreateBucketDialog" :title="t('oss.createBucket')" width="420px">
+      <el-input v-model="newBucketName" :placeholder="t('oss.bucketNameRequired')" @keyup.enter="handleCreateBucket" />
+      <template #footer>
+        <el-button @click="showCreateBucketDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="creatingBucket" @click="handleCreateBucket">{{ t('common.confirm') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- OSS图片预览弹窗 -->
+    <el-dialog v-model="showPreviewDialog" :title="previewImageName" width="60%">
+      <img v-if="previewImageUrl" :src="previewImageUrl" style="width: 100%;" :alt="previewImageName" />
+    </el-dialog>
+
+    <!-- OSS文本预览弹窗 -->
+    <el-dialog v-model="showTextPreviewDialog" :title="previewTextName" width="700px">
+      <pre style="max-height: 60vh; overflow: auto; background: #f5f7fa; padding: 12px; white-space: pre-wrap; word-break: break-all;">{{ previewTextContent }}</pre>
+      <template #footer>
+        <el-button @click="showTextPreviewDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- OSS上传进度浮窗 -->
+    <div v-if="showUploadDialog" class="oss-upload-float" :style="{ top: floatTop + 'px' }">
+      <div class="ondrag-title" @mousedown="startDrag" @touchstart="startDrag">
+        <el-icon class="mr-1"><Upload /></el-icon>
+        <span>{{ t('oss.uploading') }}</span>
+        <el-button size="small" link style="margin-left: 8px;" @click="uploadMinimized = true">
+          <el-icon><ArrowDown /></el-icon>
+        </el-button>
+      </div>
+      <div class="mt-2 px-2" style="font-size: 12px;">{{ uploadingFileName }}</div>
+      <el-progress :percentage="uploadProgress" class="mt-1" style="margin: 0 12px 12px;" />
+    </div>
+    <div v-else-if="uploadingFile" class="oss-upload-float oss-upload-minimized" :style="{ top: floatTop + 'px' }" @click="restoreUploadDialog">
+      <el-progress type="circle" :width="44" :percentage="uploadProgress" />
+    </div>
+
+    <!-- 镜像Manifest详情弹窗 -->
+    <el-dialog v-model="showManifestDialog" :title="selectedTag ? `${selectedRepo}:${selectedTag} ${t('registry.manifest')}` : t('registry.manifest')" width="700px">
+      <div v-if="registryManifest">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('registry.digest')" :span="2">
+            <span class="manifest-digest">{{ registryManifest.digest }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('registry.mediaType')" :span="2">{{ registryManifest.mediaType || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('oss.size')">{{ formatFileSize(registryManifest.sizeBytes || 0) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('registry.layerCount')">{{ (registryManifest.layers || []).length }}</el-descriptions-item>
+        </el-descriptions>
+        <div v-if="(registryManifest.layers || []).length" class="mt-4">
+          <strong>{{ t('registry.layers') }}</strong>
+          <el-table :data="(registryManifest.layers || []).map((l, i) => ({ index: i + 1, digest: l }))" border size="small" class="mt-2">
+            <el-table-column prop="index" label="#" width="60" align="center" />
+            <el-table-column prop="digest" label="Digest" min-width="260" show-overflow-tooltip />
+          </el-table>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showManifestDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 上传集群配置弹窗 -->
     <el-dialog v-model="showClusterUploadDialog" :title="t('cluster.uploadDialog')" width="520px">
@@ -2340,6 +2897,266 @@
       </div>
       <template #footer>
         <el-button @click="showNodeDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- PersistentVolume详情弹窗 -->
+    <el-dialog v-model="showPvDetailDialog" :title="t('pv.detail')" width="800px">
+      <div v-if="pvDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ pvDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('pv.status')">
+            <el-tag :type="getPvStatusType(pvDetail.status?.phase)">{{ pvDetail.status?.phase || '—' }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('pv.capacity')">{{ pvDetail.spec?.capacity?.storage || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('pv.reclaimPolicy')">{{ pvDetail.spec?.persistentVolumeReclaimPolicy || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('pv.accessModes')">{{ (pvDetail.spec?.accessModes || []).join(', ') || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('pv.storageClass')">{{ pvDetail.spec?.storageClassName || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('pv.boundClaim')" :span="2">
+            {{ pvDetail.spec?.claimRef ? `${pvDetail.spec.claimRef.namespace}/${pvDetail.spec.claimRef.name}` : '—' }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')">{{ pvDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <div v-if="pvDetail.spec?.csi?.driver" class="mt-4">
+          <strong>CSI Driver:</strong>{{ pvDetail.spec.csi.driver }}
+          <span v-if="pvDetail.spec.csi.volumeHandle" class="ml-2">(volumeHandle: {{ pvDetail.spec.csi.volumeHandle }})</span>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showPvDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- StorageClass详情弹窗 -->
+    <el-dialog v-model="showScDetailDialog" :title="t('sc.detail')" width="800px">
+      <div v-if="scDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ scDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('sc.default')">
+            <el-tag v-if="isDefaultStorageClass(scDetail)" type="warning">{{ t('sc.yesDefault') }}</el-tag>
+            <span v-else>—</span>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sc.provisioner')" :span="2">{{ scDetail.provisioner || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('sc.reclaimPolicy')">{{ scDetail.reclaimPolicy || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('sc.bindingMode')">{{ scDetail.volumeBindingMode || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')" :span="2">{{ scDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <div v-if="scDetail.parameters && Object.keys(scDetail.parameters).length" class="mt-4">
+          <strong>{{ t('sc.parameters') }}</strong>
+          <el-descriptions border column="2" size="small" class="mt-2">
+            <el-descriptions-item v-for="(v, k) in scDetail.parameters" :key="k" :label="k">{{ v }}</el-descriptions-item>
+          </el-descriptions>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showScDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- HPA详情弹窗 -->
+    <el-dialog v-model="showHpaDetailDialog" :title="t('hpa.detail')" width="800px">
+      <div v-if="hpaDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ hpaDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.namespace')">{{ hpaDetail.metadata?.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label="t('hpa.target')">
+            {{ hpaDetail.spec?.scaleTargetRef ? `${hpaDetail.spec.scaleTargetRef.kind}/${hpaDetail.spec.scaleTargetRef.name}` : '—' }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('hpa.currentReplicas')">
+            {{ hpaDetail.status?.currentReplicas ?? 0 }} ({{ t('hpa.desired') }} {{ hpaDetail.status?.desiredReplicas ?? 0 }})
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('hpa.minReplicas')">{{ hpaDetail.spec?.minReplicas ?? '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('hpa.maxReplicas')">{{ hpaDetail.spec?.maxReplicas ?? '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')" :span="2">{{ hpaDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <div v-if="(hpaDetail.spec?.metrics || []).length" class="mt-4">
+          <strong>{{ t('hpa.metrics') }}</strong>
+          <el-table :data="hpaDetail.spec.metrics" border size="small" class="mt-2">
+            <el-table-column :label="t('hpa.metricType')" width="120">
+              <template #default="scope">
+                {{ scope.row.type || (scope.row.pods ? 'Pods' : scope.row.resource ? 'Resource' : '—') }}
+              </template>
+            </el-table-column>
+            <el-table-column :label="t('hpa.metricValue')" min-width="200">
+              <template #default="scope">
+                <pre class="detail-pre">{{ JSON.stringify(scope.row, null, 2) }}</pre>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div v-if="(hpaDetail.status?.conditions || []).length" class="mt-4">
+          <strong>{{ t('hpa.conditions') }}</strong>
+          <el-tag v-for="cond in hpaDetail.status.conditions" :key="cond.type" size="small" class="mr-1 mt-1" :type="cond.status === 'True' ? 'success' : 'info'">
+            {{ cond.type }}
+          </el-tag>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showHpaDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- HPA min/max调整弹窗 -->
+    <el-dialog v-model="showHpaMinMaxDialog" :title="t('hpa.adjustTitle')" width="500px">
+      <el-form label-width="110px">
+        <el-form-item :label="t('hpa.minReplicas')">
+          <el-input-number v-model="hpaForm.minReplicas" :min="1" :max="1000" style="width: 100%;" />
+        </el-form-item>
+        <el-form-item :label="t('hpa.maxReplicas')">
+          <el-input-number v-model="hpaForm.maxReplicas" :min="1" :max="1000" style="width: 100%;" />
+        </el-form-item>
+        <el-form-item>
+          <el-alert :title="t('hpa.adjustTip')" type="info" show-icon :closable="false" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showHpaMinMaxDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="confirmHpaMinMax">{{ t('common.confirm') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- NetworkPolicy详情弹窗 -->
+    <el-dialog v-model="showNpDetailDialog" :title="t('np.detail')" width="800px">
+      <div v-if="npDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ npDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.namespace')">{{ npDetail.metadata?.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label="t('np.podSelector')" :span="2">{{ getNpPodSelector(npDetail) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('np.policyTypes')" :span="2">
+            <el-tag v-for="pt in npDetail.spec?.policyTypes || []" :key="pt" size="small" class="mr-1">{{ pt }}</el-tag>
+            <span v-if="!(npDetail.spec?.policyTypes || []).length">—</span>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')">{{ npDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <div class="mt-4">
+          <strong>{{ t('np.rulesJson') }}</strong>
+          <pre class="detail-pre">{{ JSON.stringify({ ingress: npDetail.spec?.ingress, egress: npDetail.spec?.egress }, null, 2) }}</pre>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showNpDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- RBAC详情弹窗 -->
+    <el-dialog v-model="showRbacDetailDialog" :title="rbacDetailTitle" width="800px">
+      <div v-if="rbacDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ rbacDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item v-if="rbacDetail.metadata?.namespace" :label="t('common.namespace')">{{ rbacDetail.metadata.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')" :span="2">{{ rbacDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <template v-if="rbacDetailType === 'serviceaccount'">
+          <div class="mt-4">
+            <strong>{{ t('rbac.secrets') }}</strong>
+            <div class="mt-2">
+              <el-tag v-for="s in rbacDetail.secrets || []" :key="s.name" size="small" class="mr-1 mt-1">{{ s.name }}</el-tag>
+              <span v-if="!(rbacDetail.secrets || []).length">—</span>
+            </div>
+          </div>
+        </template>
+        <template v-else-if="rbacDetailType === 'role' || rbacDetailType === 'clusterrole'">
+          <div class="mt-4">
+            <strong>{{ t('rbac.rules') }}</strong>
+            <el-table :data="rbacDetail.rules || []" border size="small" class="mt-2">
+              <el-table-column prop="apiGroups" :label="t('rbac.apiGroups')" min-width="140">
+                <template #default="scope">{{ (scope.row.apiGroups || []).join(', ') || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="resources" :label="t('rbac.resources')" min-width="140">
+                <template #default="scope">{{ (scope.row.resources || []).join(', ') || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="verbs" :label="t('rbac.verbs')" min-width="140">
+                <template #default="scope">{{ (scope.row.verbs || []).join(', ') || '—' }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </template>
+        <template v-else>
+          <div class="mt-4">
+            <el-descriptions border column="2" size="small">
+              <el-descriptions-item :label="t('rbac.roleRef')">
+                {{ rbacDetail.roleRef ? `${rbacDetail.roleRef.kind}/${rbacDetail.roleRef.name}` : '—' }}
+              </el-descriptions-item>
+            </el-descriptions>
+            <strong class="mt-2 block">{{ t('rbac.subjects') }}</strong>
+            <el-table :data="rbacDetail.subjects || []" border size="small" class="mt-2">
+              <el-table-column prop="kind" :label="t('rbac.subjectKind')" width="140" />
+              <el-table-column prop="name" :label="t('common.name')" min-width="140" />
+              <el-table-column prop="namespace" :label="t('common.namespace')" min-width="120">
+                <template #default="scope">{{ scope.row.namespace || '—' }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </template>
+      </div>
+      <template #footer>
+        <el-button @click="showRbacDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ResourceQuota详情弹窗 -->
+    <el-dialog v-model="showQuotaDetailDialog" :title="t('quota.detail')" width="800px">
+      <div v-if="quotaDetail" class="detail-container">
+        <el-descriptions border column="2" size="small">
+          <el-descriptions-item :label="t('common.name')">{{ quotaDetail.metadata?.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.namespace')">{{ quotaDetail.metadata?.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label="t('common.createdAt')">{{ quotaDetail.metadata?.creationTimestamp }}</el-descriptions-item>
+        </el-descriptions>
+        <div class="mt-4">
+          <strong>{{ t('quota.usage') }}</strong>
+          <el-table :data="quotaDetailRows" border size="small" class="mt-2">
+            <el-table-column prop="key" label="Resource" min-width="180" />
+            <el-table-column prop="used" :label="t('quota.used')" min-width="110" />
+            <el-table-column prop="hard" :label="t('quota.hard')" min-width="110" />
+          </el-table>
+          <el-empty v-if="quotaDetailRows.length === 0" :description="t('quota.noHardLimit')" />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showQuotaDetailDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ResourceQuota 创建/编辑弹窗 -->
+    <el-dialog v-model="showQuotaFormDialog" :title="quotaFormEditing ? t('quota.editTitle') : t('quota.createTitle')" width="700px">
+      <el-form label-width="100px">
+        <el-form-item :label="t('common.name')" required>
+          <el-input v-model="quotaForm.name" :disabled="quotaFormEditing" placeholder="quota-name" />
+        </el-form-item>
+        <el-form-item v-if="!quotaFormEditing" :label="t('common.namespace')" required>
+          <el-select v-model="quotaForm.namespace" style="width: 100%;">
+            <el-option v-for="ns in namespaceList" :key="ns.name" :label="ns.name" :value="ns.name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="t('quota.hardLimit')">
+          <el-table :data="quotaForm.rows" border size="small">
+            <el-table-column :label="t('quota.resourceKey')" min-width="180">
+              <template #default="scope">
+                <el-input v-model="scope.row.key" placeholder="requests.cpu" />
+              </template>
+            </el-table-column>
+            <el-table-column :label="t('quota.limitValue')" min-width="150">
+              <template #default="scope">
+                <el-input v-model="scope.row.value" placeholder="1 / 1Gi / 10" />
+              </template>
+            </el-table-column>
+            <el-table-column :label="t('common.actions')" width="80" align="center">
+              <template #default="scope">
+                <el-button type="danger" size="small" link @click="quotaForm.rows.splice(scope.$index, 1)">{{ t('common.delete') }}</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button size="small" class="mt-2" @click="quotaForm.rows.push({ key: '', value: '' })">
+            <el-icon class="mr-1"><Plus /></el-icon>{{ t('quota.addRow') }}
+          </el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-alert :title="t('quota.tip')" type="info" show-icon :closable="false" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showQuotaFormDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="quotaSaving" @click="confirmQuotaForm">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
@@ -3237,7 +4054,34 @@ import {
   getDaemonSetList,
   getDaemonSet,
   deleteDaemonSet,
-  getNodeList
+  getNodeList,
+  getPvList,
+  getPv,
+  getHpaList,
+  getHpa,
+  updateHpaMinMax,
+  getNetworkPolicyList,
+  getNetworkPolicy,
+  getResourceQuotaList,
+  getResourceQuota,
+  createResourceQuota,
+  updateResourceQuota,
+  deleteResourceQuota,
+  getServiceAccountList,
+  getServiceAccount,
+  deleteServiceAccount,
+  getRoleList,
+  getRole,
+  deleteRole,
+  getClusterRoleList,
+  getClusterRole,
+  deleteClusterRole,
+  getRoleBindingList,
+  getRoleBinding,
+  deleteRoleBinding,
+  getClusterRoleBindingList,
+  getClusterRoleBinding,
+  deleteClusterRoleBinding
 } from '@/api/k8s'
 // 引入Markdown解析库
 import { marked } from 'marked'
@@ -3351,6 +4195,7 @@ const selectedTag = ref('') // 当前选中的tag
 const registryManifest = ref(null) // manifest详情
 const registryLoading = ref(false) // 加载状态
 const manifestLoading = ref(false) // manifest加载状态
+const showManifestDialog = ref(false) // manifest详情弹窗
 
 // ConfigMap相关变量
 const configMapList = ref([])
@@ -3735,6 +4580,8 @@ const loadFileList = async (bucketName) => {
 const selectBucket = async (bucketName) => {
   selectedBucket.value = bucketName
   currentPrefix.value = ''
+  ossSearchKey.value = ''
+  ossTableRef.value?.clearSelection()
   await loadFileList(bucketName)
 }
 
@@ -3746,6 +4593,8 @@ const navigateToFolder = async (target) => {
     let name = target.endsWith('/') ? target : target + '/'
     currentPrefix.value = currentPrefix.value ? currentPrefix.value + name : name
   }
+  ossSearchKey.value = ''
+  ossTableRef.value?.clearSelection()
   await loadFileList(selectedBucket.value)
 }
 
@@ -3753,6 +4602,52 @@ const navigateToFolder = async (target) => {
 const navigateToBreadcrumb = async (index) => {
   const parts = breadcrumbParts.value
   currentPrefix.value = parts.slice(0, index + 1).join('/') + '/'
+  ossSearchKey.value = ''
+  ossTableRef.value?.clearSelection()
+  await loadFileList(selectedBucket.value)
+}
+
+// OSS页面目录搜索与拖拽上传
+const ossSearchKey = ref('')
+const ossDragover = ref(false)
+const ossFilteredFiles = computed(() => {
+  const key = ossSearchKey.value.trim().toLowerCase()
+  if (!key) return ossFileList.value
+  return ossFileList.value.filter(f => f.name.toLowerCase().includes(key))
+})
+
+// 文件夹名去掉结尾斜杠展示
+const trimFolderName = (name) => (name || '').replace(/\/+$/, '')
+
+// 拖拽文件到当前目录上传
+const handleOssDrop = async (event) => {
+  ossDragover.value = false
+  if (!selectedBucket.value) return
+  const files = Array.from(event.dataTransfer?.files || [])
+  if (!files.length) return
+  let successCount = 0
+  for (const f of files) {
+    uploadingFile.value = true
+    uploadingFileName.value = f.name
+    uploadProgress.value = 0
+    try {
+      await uploadFile(f, selectedBucket.value, currentPrefix.value, (progressEvent) => {
+        if (progressEvent.total) {
+          uploadProgress.value = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+        }
+      })
+      successCount++
+    } catch (error) {
+      console.error('上传文件失败:', f.name, error)
+      ElMessage.error(t('oss.uploadFailed') + ': ' + f.name)
+    }
+  }
+  uploadingFile.value = false
+  uploadingFileName.value = ''
+  uploadProgress.value = 0
+  if (successCount > 0) {
+    ElMessage.success(t('oss.uploadBatchDone', { n: successCount }))
+  }
   await loadFileList(selectedBucket.value)
 }
 
@@ -3978,6 +4873,10 @@ const loadRegistryRepos = async () => {
   try {
     const res = await listRepositories()
     registryRepos.value = res.data || []
+    // 自动选中第一个仓库
+    if (!selectedRepo.value && registryRepos.value.length) {
+      await selectRepo(registryRepos.value[0])
+    }
   } catch (error) {
     console.error('加载仓库列表失败:', error)
     ElMessage.error(t('registry.loadReposFailed'))
@@ -4252,6 +5151,7 @@ const selectTag = async (tag) => {
   try {
     const res = await getManifest(selectedRepo.value, tag)
     registryManifest.value = res.data
+    showManifestDialog.value = true
   } catch (error) {
     console.error('加载Manifest失败:', error)
     ElMessage.error(t('registry.loadManifestFailed'))
@@ -4604,6 +5504,22 @@ const handleMenuSelect = (key) => {
     loadNamespaceList()
   } else if (key === 'node') {
     loadNodeList()
+  } else if (key === 'pv') {
+    loadPvList()
+  } else if (key === 'storageclass') {
+    loadScList()
+  } else if (key === 'hpa') {
+    loadHpaList()
+    loadNamespaceList()
+  } else if (key === 'networkpolicy') {
+    loadNpList()
+    loadNamespaceList()
+  } else if (key === 'rbac') {
+    loadRbacCurrent()
+    loadNamespaceList()
+  } else if (key === 'quota') {
+    loadQuotaList()
+    loadNamespaceList()
   } else if (key === 'cluster') {
     loadClusterList()
     loadActiveClusterName()
@@ -5098,6 +6014,441 @@ const getNodeRoles = (row) => {
 const getNodeInternalIP = (row) => {
   const addrs = row.status?.addresses || []
   return (addrs.find(a => a.type === 'InternalIP') || {}).address || ''
+}
+
+// ======================================
+// PersistentVolume相关方法（只读）
+// ======================================
+const pvList = ref([])
+const pvLoading = ref(false)
+const pvDetail = ref(null)
+const showPvDetailDialog = ref(false)
+
+const loadPvList = async () => {
+  pvLoading.value = true
+  try {
+    const res = await getPvList()
+    pvList.value = res.data || []
+  } catch (error) {
+    console.error('加载PersistentVolume列表失败:', error)
+  } finally {
+    pvLoading.value = false
+  }
+}
+
+const viewPvDetail = async (row) => {
+  try {
+    const res = await getPv(row.metadata.name)
+    pvDetail.value = res.data
+    showPvDetailDialog.value = true
+  } catch (error) {
+    console.error('获取PersistentVolume详情失败:', error)
+  }
+}
+
+const getPvStatusType = (phase) => {
+  if (phase === 'Bound' || phase === 'Available') return 'success'
+  if (phase === 'Released') return 'warning'
+  if (phase === 'Failed') return 'danger'
+  return 'info'
+}
+
+// ======================================
+// StorageClass相关方法（只读）
+// ======================================
+const scList = ref([])
+const scLoading = ref(false)
+const scDetail = ref(null)
+const showScDetailDialog = ref(false)
+
+const loadScList = async () => {
+  scLoading.value = true
+  try {
+    const res = await getStorageClassList()
+    scList.value = res.data || []
+  } catch (error) {
+    console.error('加载StorageClass列表失败:', error)
+  } finally {
+    scLoading.value = false
+  }
+}
+
+const viewScDetail = async (row) => {
+  try {
+    const res = await getStorageClass(row.metadata.name)
+    scDetail.value = res.data
+    showScDetailDialog.value = true
+  } catch (error) {
+    console.error('获取StorageClass详情失败:', error)
+  }
+}
+
+const isDefaultStorageClass = (sc) => {
+  const anns = sc.metadata?.annotations || {}
+  return anns['storageclass.kubernetes.io/is-default-class'] === 'true' || anns['storageclass.beta.kubernetes.io/is-default-class'] === 'true'
+}
+
+// ======================================
+// HPA相关方法
+// ======================================
+const hpaList = ref([])
+const hpaLoading = ref(false)
+const hpaNamespaceFilter = ref('all')
+const hpaDetail = ref(null)
+const showHpaDetailDialog = ref(false)
+const showHpaMinMaxDialog = ref(false)
+const selectedHpa = ref(null)
+const hpaForm = reactive({ minReplicas: 1, maxReplicas: 1 })
+
+const loadHpaList = async () => {
+  hpaLoading.value = true
+  try {
+    let res
+    if (hpaNamespaceFilter.value && hpaNamespaceFilter.value !== 'all') {
+      res = await getHpaList(hpaNamespaceFilter.value)
+    } else {
+      const nsRes = await getNamespaceList()
+      const namespaces = nsRes.data.items.map(item => item.metadata.name)
+      const allHpas = []
+      for (const ns of namespaces) {
+        try {
+          const hpaRes = await getHpaList(ns)
+          if (hpaRes.data && Array.isArray(hpaRes.data)) allHpas.push(...hpaRes.data)
+        } catch (e) {
+          console.warn(`获取命名空间${ns}的HPA失败:`, e)
+        }
+      }
+      res = { data: allHpas }
+    }
+    hpaList.value = res.data || []
+  } catch (error) {
+    console.error('加载HPA列表失败:', error)
+  } finally {
+    hpaLoading.value = false
+  }
+}
+
+const viewHpaDetail = async (row) => {
+  try {
+    const res = await getHpa(row.metadata.namespace, row.metadata.name)
+    hpaDetail.value = res.data
+    showHpaDetailDialog.value = true
+  } catch (error) {
+    console.error('获取HPA详情失败:', error)
+  }
+}
+
+const handleHpaMinMax = (row) => {
+  selectedHpa.value = row
+  hpaForm.minReplicas = row.spec?.minReplicas ?? 1
+  hpaForm.maxReplicas = row.spec?.maxReplicas ?? 1
+  showHpaMinMaxDialog.value = true
+}
+
+const confirmHpaMinMax = async () => {
+  if (hpaForm.minReplicas > hpaForm.maxReplicas) {
+    ElMessage.error(t('hpa.minTooLarge'))
+    return
+  }
+  try {
+    await updateHpaMinMax(selectedHpa.value.metadata.namespace, selectedHpa.value.metadata.name, hpaForm.minReplicas, hpaForm.maxReplicas)
+    ElMessage.success(t('hpa.adjustSuccess'))
+    showHpaMinMaxDialog.value = false
+    loadHpaList()
+  } catch (error) {
+    console.error('调整HPA失败:', error)
+  }
+}
+
+const getHpaStatusType = (row) => {
+  const current = row.status?.currentReplicas ?? 0
+  const desired = row.status?.desiredReplicas ?? current
+  if (current === desired) return 'success'
+  return 'warning'
+}
+
+// ======================================
+// NetworkPolicy相关方法（只读）
+// ======================================
+const npList = ref([])
+const npLoading = ref(false)
+const npNamespaceFilter = ref('all')
+const npDetail = ref(null)
+const showNpDetailDialog = ref(false)
+
+const loadNpList = async () => {
+  npLoading.value = true
+  try {
+    let res
+    if (npNamespaceFilter.value && npNamespaceFilter.value !== 'all') {
+      res = await getNetworkPolicyList(npNamespaceFilter.value)
+    } else {
+      const nsRes = await getNamespaceList()
+      const namespaces = nsRes.data.items.map(item => item.metadata.name)
+      const allNps = []
+      for (const ns of namespaces) {
+        try {
+          const npRes = await getNetworkPolicyList(ns)
+          if (npRes.data && Array.isArray(npRes.data)) allNps.push(...npRes.data)
+        } catch (e) {
+          console.warn(`获取命名空间${ns}的NetworkPolicy失败:`, e)
+        }
+      }
+      res = { data: allNps }
+    }
+    npList.value = res.data || []
+  } catch (error) {
+    console.error('加载NetworkPolicy列表失败:', error)
+  } finally {
+    npLoading.value = false
+  }
+}
+
+const viewNpDetail = async (row) => {
+  try {
+    const res = await getNetworkPolicy(row.metadata.namespace, row.metadata.name)
+    npDetail.value = res.data
+    showNpDetailDialog.value = true
+  } catch (error) {
+    console.error('获取NetworkPolicy详情失败:', error)
+  }
+}
+
+const getNpPodSelector = (row) => {
+  const sel = row.spec?.podSelector?.matchLabels || {}
+  const entries = Object.entries(sel).map(([k, v]) => `${k}=${v}`)
+  const exprs = row.spec?.podSelector?.matchExpressions || []
+  exprs.forEach(e => entries.push(`${e.key} ${e.operator} ${(e.values || []).join(',')}`))
+  return entries.length ? entries.join(', ') : t('np.allPods')
+}
+
+// ======================================
+// RBAC相关方法（只读 + 平台创建删除）
+// ======================================
+const rbacActiveTab = ref('serviceaccount')
+const rbacNamespaceFilter = ref('all')
+const rbacList = ref([])
+const rbacLoading = ref(false)
+const rbacDetail = ref(null)
+const rbacDetailType = ref('serviceaccount')
+const showRbacDetailDialog = ref(false)
+
+const rbacDetailTitle = computed(() => {
+  const names = {
+    serviceaccount: t('rbac.serviceaccount'),
+    role: t('rbac.role'),
+    clusterrole: t('rbac.clusterrole'),
+    rolebinding: t('rbac.rolebinding'),
+    clusterrolebinding: t('rbac.clusterrolebinding')
+  }
+  return names[rbacDetailType.value] || t('rbac.detail')
+})
+
+const loadRbacCurrent = async () => {
+  rbacLoading.value = true
+  const tab = rbacActiveTab.value
+  const namespaced = tab === 'serviceaccount' || tab === 'role' || tab === 'rolebinding'
+  try {
+    let res
+    if (namespaced && rbacNamespaceFilter.value && rbacNamespaceFilter.value !== 'all') {
+      res = await (tab === 'serviceaccount' ? getServiceAccountList(rbacNamespaceFilter.value)
+        : tab === 'role' ? getRoleList(rbacNamespaceFilter.value)
+        : getRoleBindingList(rbacNamespaceFilter.value))
+    } else if (namespaced) {
+      const nsRes = await getNamespaceList().catch(() => ({ data: { items: [] } }))
+      const namespaces = (nsRes.data?.items || []).map(item => item.metadata.name)
+      const allItems = []
+      for (const ns of namespaces) {
+        try {
+          const listRes = await (tab === 'serviceaccount' ? getServiceAccountList(ns)
+            : tab === 'role' ? getRoleList(ns)
+            : getRoleBindingList(ns))
+          if (listRes.data && Array.isArray(listRes.data)) allItems.push(...listRes.data)
+        } catch (e) {
+          console.warn(`获取命名空间${ns}的RBAC资源失败:`, e)
+        }
+      }
+      res = { data: allItems }
+    } else if (tab === 'clusterrole') {
+      res = await getClusterRoleList()
+    } else {
+      res = await getClusterRoleBindingList()
+    }
+    rbacList.value = res.data || []
+  } catch (error) {
+    console.error('加载RBAC列表失败:', error)
+  } finally {
+    rbacLoading.value = false
+  }
+}
+
+const viewRbacDetail = async (row) => {
+  try {
+    const tab = rbacActiveTab.value
+    rbacDetailType.value = tab
+    let res
+    if (tab === 'serviceaccount') res = await getServiceAccount(row.metadata.namespace, row.metadata.name)
+    else if (tab === 'role') res = await getRole(row.metadata.namespace, row.metadata.name)
+    else if (tab === 'clusterrole') res = await getClusterRole(row.metadata.name)
+    else if (tab === 'rolebinding') res = await getRoleBinding(row.metadata.namespace, row.metadata.name)
+    else res = await getClusterRoleBinding(row.metadata.name)
+    rbacDetail.value = res.data
+    showRbacDetailDialog.value = true
+  } catch (error) {
+    console.error('获取RBAC详情失败:', error)
+  }
+}
+
+const handleDeleteRbac = async (row) => {
+  try {
+    await ElMessageBox.confirm(t('deployment.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning'
+    })
+    const tab = rbacActiveTab.value
+    if (tab === 'serviceaccount') await deleteServiceAccount(row.metadata.namespace, row.metadata.name)
+    else if (tab === 'role') await deleteRole(row.metadata.namespace, row.metadata.name)
+    else if (tab === 'clusterrole') await deleteClusterRole(row.metadata.name)
+    else if (tab === 'rolebinding') await deleteRoleBinding(row.metadata.namespace, row.metadata.name)
+    else await deleteClusterRoleBinding(row.metadata.name)
+    ElMessage.success(t('common.deleteSuccess'))
+    loadRbacCurrent()
+  } catch (error) {
+    if (error !== 'cancel') console.error('删除RBAC资源失败:', error)
+  }
+}
+
+// ======================================
+// ResourceQuota相关方法
+// ======================================
+const quotaList = ref([])
+const quotaLoading = ref(false)
+const quotaNamespaceFilter = ref('all')
+const quotaDetail = ref(null)
+const quotaDetailRows = ref([])
+const showQuotaDetailDialog = ref(false)
+const showQuotaFormDialog = ref(false)
+const quotaFormEditing = ref(false)
+const quotaSaving = ref(false)
+const selectedQuota = ref(null)
+const quotaForm = reactive({ name: '', namespace: '', rows: [] })
+
+const loadQuotaList = async () => {
+  quotaLoading.value = true
+  try {
+    let res
+    if (quotaNamespaceFilter.value && quotaNamespaceFilter.value !== 'all') {
+      res = await getResourceQuotaList(quotaNamespaceFilter.value)
+    } else {
+      const nsRes = await getNamespaceList()
+      const namespaces = nsRes.data.items.map(item => item.metadata.name)
+      const allQuotas = []
+      for (const ns of namespaces) {
+        try {
+          const quotaRes = await getResourceQuotaList(ns)
+          if (quotaRes.data && Array.isArray(quotaRes.data)) allQuotas.push(...quotaRes.data)
+        } catch (e) {
+          console.warn(`获取命名空间${ns}的ResourceQuota失败:`, e)
+        }
+      }
+      res = { data: allQuotas }
+    }
+    quotaList.value = res.data || []
+  } catch (error) {
+    console.error('加载ResourceQuota列表失败:', error)
+  } finally {
+    quotaLoading.value = false
+  }
+}
+
+const viewQuotaDetail = async (row) => {
+  try {
+    const res = await getResourceQuota(row.metadata.namespace, row.metadata.name)
+    quotaDetail.value = res.data
+    const hard = res.data?.status?.hard || res.data?.spec?.hard || {}
+    const used = res.data?.status?.used || {}
+    quotaDetailRows.value = Object.keys(hard).map(k => ({
+      key: k,
+      hard: hard[k],
+      used: used[k] ?? '—'
+    }))
+    showQuotaDetailDialog.value = true
+  } catch (error) {
+    console.error('获取ResourceQuota详情失败:', error)
+  }
+}
+
+const handleCreateQuota = () => {
+  quotaFormEditing.value = false
+  quotaForm.name = ''
+  quotaForm.namespace = namespaceList.value[0]?.name || 'default'
+  quotaForm.rows = [{ key: 'requests.cpu', value: '1' }]
+  showQuotaFormDialog.value = true
+}
+
+const handleEditQuota = (row) => {
+  quotaFormEditing.value = true
+  selectedQuota.value = row
+  quotaForm.name = row.metadata?.name || ''
+  quotaForm.namespace = row.metadata?.namespace || ''
+  const hard = row.spec?.hard || {}
+  quotaForm.rows = Object.keys(hard).length
+    ? Object.keys(hard).map(k => ({ key: k, value: hard[k] }))
+    : [{ key: '', value: '' }]
+  showQuotaFormDialog.value = true
+}
+
+const confirmQuotaForm = async () => {
+  if (!quotaForm.name) {
+    ElMessage.error(t('quota.nameRequired'))
+    return
+  }
+  const hard = {}
+  quotaForm.rows.forEach(r => {
+    const key = (r.key || '').trim()
+    if (key) hard[key] = (r.value || '').trim()
+  })
+  if (Object.keys(hard).length === 0) {
+    ElMessage.error(t('quota.emptyHard'))
+    return
+  }
+  quotaSaving.value = true
+  try {
+    if (quotaFormEditing.value) {
+      await updateResourceQuota(selectedQuota.value.metadata.namespace, selectedQuota.value.metadata.name, {
+        metadata: { name: selectedQuota.value.metadata.name, namespace: selectedQuota.value.metadata.namespace },
+        spec: { hard }
+      })
+    } else {
+      await createResourceQuota(quotaForm.namespace, {
+        metadata: { name: quotaForm.name, namespace: quotaForm.namespace },
+        spec: { hard }
+      })
+    }
+    ElMessage.success(quotaFormEditing.value ? t('common.updateSuccess') : t('common.createSuccess'))
+    showQuotaFormDialog.value = false
+    loadQuotaList()
+  } catch (error) {
+    console.error('保存ResourceQuota失败:', error)
+  } finally {
+    quotaSaving.value = false
+  }
+}
+
+const handleDeleteQuota = async (row) => {
+  try {
+    await ElMessageBox.confirm(t('deployment.confirmDelete', { name: row.metadata.name }), t('common.warning'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning'
+    })
+    await deleteResourceQuota(row.metadata.namespace, row.metadata.name)
+    ElMessage.success(t('common.deleteSuccess'))
+    loadQuotaList()
+  } catch (error) {
+    if (error !== 'cancel') console.error('删除ResourceQuota失败:', error)
+  }
 }
 
 // ======================================
@@ -8062,6 +9413,116 @@ onUnmounted(() => {
 }
 .mr-1 {
   margin-right: 4px;
+}
+
+/* OSS页面布局 */
+.oss-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.oss-bucket-panel {
+  width: 200px;
+  flex-shrink: 0;
+  border: 1px solid var(--el-border-color-light, #e4e7ed);
+  border-radius: 8px;
+  background: var(--el-bg-color);
+  overflow: hidden;
+}
+.oss-bucket-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);
+}
+.oss-bucket-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  color: var(--el-text-color-primary);
+  transition: background 0.15s;
+}
+.oss-bucket-item:hover {
+  background: var(--el-fill-color-light);
+}
+.oss-bucket-item.active {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  font-weight: 600;
+}
+.oss-bucket-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oss-bucket-empty {
+  padding: 16px 12px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  text-align: center;
+}
+.oss-main {
+  flex: 1;
+  min-width: 0;
+  border-radius: 8px;
+  border: 1px dashed transparent;
+  padding-top: 2px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.oss-main.is-dragover {
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+.oss-main-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.oss-breadcrumb {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* OSS上传进度浮窗 */
+.oss-upload-float {
+  position: fixed;
+  right: 24px;
+  z-index: 2100;
+  width: 280px;
+  background: var(--el-bg-color, #fff);
+  border: 1px solid var(--el-border-color-light, #e4e7ed);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  user-select: none;
+}
+.oss-upload-float .ondrag-title {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px 0 12px;
+  font-weight: 500;
+  cursor: grab;
+}
+.oss-upload-minimized {
+  width: 56px;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 6px;
+}
+.px-2 {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.mt-1 {
+  margin-top: 4px;
+}
+.block {
+  display: block;
 }
 
 </style>

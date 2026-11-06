@@ -494,3 +494,204 @@ export const getNode = (name) => {
     method: 'get'
   })
 }
+
+// PersistentVolume相关（只读）
+export const getPvList = () => {
+  return request({
+    url: '/v1/k8s/persistentvolumes',
+    method: 'get'
+  })
+}
+
+export const getPv = (name) => {
+  return request({
+    url: `/v1/k8s/persistentvolumes/${name}`,
+    method: 'get'
+  })
+}
+
+// HPA相关
+export const getHpaList = (namespace) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/horizontalpodautoscalers`,
+    method: 'get'
+  })
+}
+
+export const getHpa = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/horizontalpodautoscalers/${name}`,
+    method: 'get'
+  })
+}
+
+export const updateHpaMinMax = (namespace, name, minReplicas, maxReplicas) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/horizontalpodautoscalers/${name}/minmax`,
+    method: 'put',
+    params: { minReplicas, maxReplicas }
+  })
+}
+
+// NetworkPolicy相关（只读）
+export const getNetworkPolicyList = (namespace) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/networkpolicies`,
+    method: 'get'
+  })
+}
+
+export const getNetworkPolicy = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/networkpolicies/${name}`,
+    method: 'get'
+  })
+}
+
+// ResourceQuota相关
+export const getResourceQuotaList = (namespace) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/resourcequotas`,
+    method: 'get'
+  })
+}
+
+export const getResourceQuota = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/resourcequotas/${name}`,
+    method: 'get'
+  })
+}
+
+export const createResourceQuota = (namespace, data) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/resourcequotas`,
+    method: 'post',
+    data: data
+  })
+}
+
+export const updateResourceQuota = (namespace, name, data) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/resourcequotas/${name}`,
+    method: 'put',
+    data: data
+  })
+}
+
+export const deleteResourceQuota = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/resourcequotas/${name}`,
+    method: 'delete'
+  })
+}
+
+// ServiceAccount相关
+export const getServiceAccountList = (namespace) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/serviceaccounts`,
+    method: 'get'
+  })
+}
+
+export const getServiceAccount = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/serviceaccounts/${name}`,
+    method: 'get'
+  })
+}
+
+export const deleteServiceAccount = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/serviceaccounts/${name}`,
+    method: 'delete'
+  })
+}
+
+// Role相关
+export const getRoleList = (namespace) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/roles`,
+    method: 'get'
+  })
+}
+
+export const getRole = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/roles/${name}`,
+    method: 'get'
+  })
+}
+
+export const deleteRole = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/roles/${name}`,
+    method: 'delete'
+  })
+}
+
+// ClusterRole相关
+export const getClusterRoleList = () => {
+  return request({
+    url: '/v1/k8s/clusterroles',
+    method: 'get'
+  })
+}
+
+export const getClusterRole = (name) => {
+  return request({
+    url: `/v1/k8s/clusterroles/${name}`,
+    method: 'get'
+  })
+}
+
+export const deleteClusterRole = (name) => {
+  return request({
+    url: `/v1/k8s/clusterroles/${name}`,
+    method: 'delete'
+  })
+}
+
+// RoleBinding相关
+export const getRoleBindingList = (namespace) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/rolebindings`,
+    method: 'get'
+  })
+}
+
+export const getRoleBinding = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/rolebindings/${name}`,
+    method: 'get'
+  })
+}
+
+export const deleteRoleBinding = (namespace, name) => {
+  return request({
+    url: `/v1/k8s/namespaces/${namespace}/rolebindings/${name}`,
+    method: 'delete'
+  })
+}
+
+// ClusterRoleBinding相关
+export const getClusterRoleBindingList = () => {
+  return request({
+    url: '/v1/k8s/clusterrolebindings',
+    method: 'get'
+  })
+}
+
+export const getClusterRoleBinding = (name) => {
+  return request({
+    url: `/v1/k8s/clusterrolebindings/${name}`,
+    method: 'get'
+  })
+}
+
+export const deleteClusterRoleBinding = (name) => {
+  return request({
+    url: `/v1/k8s/clusterrolebindings/${name}`,
+    method: 'delete'
+  })
+}

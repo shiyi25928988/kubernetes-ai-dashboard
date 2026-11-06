@@ -12,7 +12,14 @@ import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressList;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import io.fabric8.kubernetes.api.model.apps.DeploymentList;
+import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
+import io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler;
 
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -207,6 +214,12 @@ public class KubernetesService {
     }
 
     public StatefulSet updateStatefulSet(StatefulSet statefulSet, String namespace) {
+        // 全量replace会覆盖metadata，保留原有的归属标签与注解
+        StatefulSet existing = getStatefulSet(namespace, statefulSet.getMetadata().getName());
+        if (existing != null) {
+            statefulSet.getMetadata().setLabels(existing.getMetadata().getLabels());
+            statefulSet.getMetadata().setAnnotations(existing.getMetadata().getAnnotations());
+        }
         return client().apps().statefulSets()
                 .inNamespace(namespace)
                 .resource(statefulSet)
@@ -243,6 +256,12 @@ public class KubernetesService {
     }
 
     public DaemonSet updateDaemonSet(DaemonSet daemonSet, String namespace) {
+        // 全量replace会覆盖metadata，保留原有的归属标签与注解
+        DaemonSet existing = getDaemonSet(namespace, daemonSet.getMetadata().getName());
+        if (existing != null) {
+            daemonSet.getMetadata().setLabels(existing.getMetadata().getLabels());
+            daemonSet.getMetadata().setAnnotations(existing.getMetadata().getAnnotations());
+        }
         return client().apps().daemonSets()
                 .inNamespace(namespace)
                 .resource(daemonSet)
@@ -256,6 +275,201 @@ public class KubernetesService {
 
     public Node getNode(String name) {
         return client().nodes().withName(name).get();
+    }
+
+    // ==================== PersistentVolume 存储卷（只读） ====================
+    public List<PersistentVolume> listPersistentVolumes() {
+        return client().persistentVolumes().list().getItems();
+    }
+
+    public PersistentVolume getPersistentVolume(String name) {
+        return client().persistentVolumes().withName(name).get();
+    }
+
+    // ==================== StorageClass 存储类（只读） ====================
+    public List<StorageClass> listStorageClasses() {
+        return client().storage().storageClasses().list().getItems();
+    }
+
+    public StorageClass getStorageClass(String name) {
+        return client().storage().storageClasses().withName(name).get();
+    }
+
+    // ==================== HPA 自动扩缩容 ====================
+    public List<HorizontalPodAutoscaler> listHorizontalPodAutoscalers(String namespace) {
+        return client().autoscaling().v2().horizontalPodAutoscalers().inNamespace(namespace).list().getItems();
+    }
+
+    public HorizontalPodAutoscaler getHorizontalPodAutoscaler(String namespace, String name) {
+        return client().autoscaling().v2().horizontalPodAutoscalers().inNamespace(namespace).withName(name).get();
+    }
+
+    /** 更新HPA的min/max副本数 */
+    public HorizontalPodAutoscaler updateHorizontalPodAutoscalerReplicas(String namespace, String name,
+                                                                         Integer minReplicas, Integer maxReplicas) {
+        HorizontalPodAutoscaler hpa = getHorizontalPodAutoscaler(namespace, name);
+        if (hpa == null) {
+            return null;
+        }
+        if (minReplicas != null) {
+            hpa.getSpec().setMinReplicas(minReplicas);
+        }
+        if (maxReplicas != null) {
+            hpa.getSpec().setMaxReplicas(maxReplicas);
+        }
+        return client().autoscaling().v2().horizontalPodAutoscalers()
+                .inNamespace(namespace)
+                .resource(hpa)
+                .update();
+    }
+
+    // ==================== NetworkPolicy 网络策略（只读） ====================
+    public List<NetworkPolicy> listNetworkPolicies(String namespace) {
+        return client().network().networkPolicies().inNamespace(namespace).list().getItems();
+    }
+
+    public NetworkPolicy getNetworkPolicy(String namespace, String name) {
+        return client().network().networkPolicies().inNamespace(namespace).withName(name).get();
+    }
+
+    // ==================== ResourceQuota 资源配额 ====================
+    public List<ResourceQuota> listResourceQuotas(String namespace) {
+        return client().resourceQuotas().inNamespace(namespace).list().getItems();
+    }
+
+    public ResourceQuota getResourceQuota(String namespace, String name) {
+        return client().resourceQuotas().inNamespace(namespace).withName(name).get();
+    }
+
+    public ResourceQuota createResourceQuota(ResourceQuota quota, String namespace) {
+        ownershipService.addOwnershipLabels(quota.getMetadata());
+        client().resource(quota).inNamespace(namespace).create();
+        ownershipService.recordCreation("ResourceQuota", namespace, quota.getMetadata().getName());
+        return getResourceQuota(namespace, quota.getMetadata().getName());
+    }
+
+    public ResourceQuota updateResourceQuota(ResourceQuota quota, String namespace) {
+        // 全量replace会覆盖metadata，这里保留原有的归属标签与注解
+        ResourceQuota existing = getResourceQuota(namespace, quota.getMetadata().getName());
+        if (existing == null) {
+            return null;
+        }
+        quota.getMetadata().setLabels(existing.getMetadata().getLabels());
+        quota.getMetadata().setAnnotations(existing.getMetadata().getAnnotations());
+        return client().resourceQuotas()
+                .inNamespace(namespace)
+                .resource(quota)
+                .update();
+    }
+
+    public void deleteResourceQuota(ResourceQuota quota, String namespace) {
+        ownershipService.requirePlatformManaged(quota.getMetadata(),
+                "ResourceQuota " + namespace + "/" + quota.getMetadata().getName());
+        client().resource(quota).inNamespace(namespace).delete();
+    }
+
+    // ==================== RBAC ====================
+    public List<ServiceAccount> listServiceAccounts(String namespace) {
+        return client().serviceAccounts().inNamespace(namespace).list().getItems();
+    }
+
+    public ServiceAccount getServiceAccount(String namespace, String name) {
+        return client().serviceAccounts().inNamespace(namespace).withName(name).get();
+    }
+
+    public ServiceAccount createServiceAccount(ServiceAccount sa, String namespace) {
+        ownershipService.addOwnershipLabels(sa.getMetadata());
+        client().resource(sa).inNamespace(namespace).create();
+        ownershipService.recordCreation("ServiceAccount", namespace, sa.getMetadata().getName());
+        return getServiceAccount(namespace, sa.getMetadata().getName());
+    }
+
+    public void deleteServiceAccount(ServiceAccount sa, String namespace) {
+        ownershipService.requirePlatformManaged(sa.getMetadata(),
+                "ServiceAccount " + namespace + "/" + sa.getMetadata().getName());
+        client().resource(sa).inNamespace(namespace).delete();
+    }
+
+    public List<Role> listRoles(String namespace) {
+        return client().rbac().roles().inNamespace(namespace).list().getItems();
+    }
+
+    public Role getRole(String namespace, String name) {
+        return client().rbac().roles().inNamespace(namespace).withName(name).get();
+    }
+
+    public Role createRole(Role role, String namespace) {
+        ownershipService.addOwnershipLabels(role.getMetadata());
+        client().resource(role).inNamespace(namespace).create();
+        ownershipService.recordCreation("Role", namespace, role.getMetadata().getName());
+        return getRole(namespace, role.getMetadata().getName());
+    }
+
+    public void deleteRole(Role role, String namespace) {
+        ownershipService.requirePlatformManaged(role.getMetadata(),
+                "Role " + namespace + "/" + role.getMetadata().getName());
+        client().resource(role).inNamespace(namespace).delete();
+    }
+
+    public List<ClusterRole> listClusterRoles() {
+        return client().rbac().clusterRoles().list().getItems();
+    }
+
+    public ClusterRole getClusterRole(String name) {
+        return client().rbac().clusterRoles().withName(name).get();
+    }
+
+    public ClusterRole createClusterRole(ClusterRole role) {
+        ownershipService.addOwnershipLabels(role.getMetadata());
+        client().resource(role).create();
+        ownershipService.recordCreation("ClusterRole", "", role.getMetadata().getName());
+        return getClusterRole(role.getMetadata().getName());
+    }
+
+    public void deleteClusterRole(ClusterRole role) {
+        ownershipService.requirePlatformManaged(role.getMetadata(), "ClusterRole " + role.getMetadata().getName());
+        client().resource(role).delete();
+    }
+
+    public List<RoleBinding> listRoleBindings(String namespace) {
+        return client().rbac().roleBindings().inNamespace(namespace).list().getItems();
+    }
+
+    public RoleBinding getRoleBinding(String namespace, String name) {
+        return client().rbac().roleBindings().inNamespace(namespace).withName(name).get();
+    }
+
+    public RoleBinding createRoleBinding(RoleBinding binding, String namespace) {
+        ownershipService.addOwnershipLabels(binding.getMetadata());
+        client().resource(binding).inNamespace(namespace).create();
+        ownershipService.recordCreation("RoleBinding", namespace, binding.getMetadata().getName());
+        return getRoleBinding(namespace, binding.getMetadata().getName());
+    }
+
+    public void deleteRoleBinding(RoleBinding binding, String namespace) {
+        ownershipService.requirePlatformManaged(binding.getMetadata(),
+                "RoleBinding " + namespace + "/" + binding.getMetadata().getName());
+        client().resource(binding).inNamespace(namespace).delete();
+    }
+
+    public List<ClusterRoleBinding> listClusterRoleBindings() {
+        return client().rbac().clusterRoleBindings().list().getItems();
+    }
+
+    public ClusterRoleBinding getClusterRoleBinding(String name) {
+        return client().rbac().clusterRoleBindings().withName(name).get();
+    }
+
+    public ClusterRoleBinding createClusterRoleBinding(ClusterRoleBinding binding) {
+        ownershipService.addOwnershipLabels(binding.getMetadata());
+        client().resource(binding).create();
+        ownershipService.recordCreation("ClusterRoleBinding", "", binding.getMetadata().getName());
+        return getClusterRoleBinding(binding.getMetadata().getName());
+    }
+
+    public void deleteClusterRoleBinding(ClusterRoleBinding binding) {
+        ownershipService.requirePlatformManaged(binding.getMetadata(), "ClusterRoleBinding " + binding.getMetadata().getName());
+        client().resource(binding).delete();
     }
 
     // ==================== Deployment扩展操作 ====================
@@ -639,11 +853,6 @@ public class KubernetesService {
             }
         }
         return logs;
-    }
-
-    // ==================== StorageClass相关操作 ====================
-    public List<io.fabric8.kubernetes.api.model.storage.StorageClass> listStorageClasses() {
-        return client().storage().storageClasses().list().getItems();
     }
 
     // ==================== CRD相关操作 ====================
