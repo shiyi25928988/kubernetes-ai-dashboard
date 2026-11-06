@@ -4323,6 +4323,9 @@ const handleMenuSelect = (key) => {
   } else if (key === 'event') {
     loadEventList()
     loadNamespaceList()
+  } else if (key === 'cluster') {
+    loadClusterList()
+    loadActiveClusterName()
   }
 }
 
