@@ -133,7 +133,7 @@ Config file: `dashboard/src/main/resources/application.yml`. All values support 
 
 | Env Var | Description | Default |
 |---------|-------------|---------|
-| `SPRING_DATASOURCE_URL` | MySQL JDBC URL | jdbc:mysql://localhost:3306/mpi_dashboard |
+| `SPRING_DATASOURCE_URL` | MySQL JDBC URL | jdbc:mysql://127.0.0.1:3306/dashboard |
 | `SPRING_DATA_REDIS_HOST` | Redis host | localhost |
 | `MINIO_ENDPOINT` | MinIO URL | http://localhost:9000 |
 | `SPRING_AI_OPENAI_BASE_URL` | AI API URL | - |
@@ -191,10 +191,10 @@ For Docker deployment see [DOCKER_README.md](DOCKER_README.md).
 
 ```bash
 # Build backend image
-docker build -f dashboard/Dockerfile -t <REGISTRY>/mpi-dashboard-backend:latest .
+docker build -f dashboard/Dockerfile -t <REGISTRY>/kubernetes-ai-dashboard-backend:latest .
 
 # Build frontend image
-docker build -f dashboard-fe/Dockerfile -t <REGISTRY>/mpi-dashboard-frontend:latest ./dashboard-fe
+docker build -f dashboard-fe/Dockerfile -t <REGISTRY>/kubernetes-ai-dashboard-frontend:latest ./dashboard-fe
 ```
 
 ## Contributing

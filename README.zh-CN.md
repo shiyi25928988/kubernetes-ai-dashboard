@@ -133,7 +133,7 @@ npm run dev
 
 | 环境变量 | 说明 | 默认值 |
 |----------|------|--------|
-| `SPRING_DATASOURCE_URL` | MySQL JDBC 地址 | jdbc:mysql://localhost:3306/mpi_dashboard |
+| `SPRING_DATASOURCE_URL` | MySQL JDBC 地址 | jdbc:mysql://127.0.0.1:3306/dashboard |
 | `SPRING_DATA_REDIS_HOST` | Redis 地址 | localhost |
 | `MINIO_ENDPOINT` | MinIO 地址 | http://localhost:9000 |
 | `SPRING_AI_OPENAI_BASE_URL` | AI API 地址 | - |
@@ -191,10 +191,10 @@ Docker 部署详见 [DOCKER_README.md](DOCKER_README.md)。
 
 ```bash
 # 构建后端镜像
-docker build -f dashboard/Dockerfile -t <REGISTRY>/mpi-dashboard-backend:latest .
+docker build -f dashboard/Dockerfile -t <REGISTRY>/kubernetes-ai-dashboard-backend:latest .
 
 # 构建前端镜像
-docker build -f dashboard-fe/Dockerfile -t <REGISTRY>/mpi-dashboard-frontend:latest ./dashboard-fe
+docker build -f dashboard-fe/Dockerfile -t <REGISTRY>/kubernetes-ai-dashboard-frontend:latest ./dashboard-fe
 ```
 
 ## 贡献
