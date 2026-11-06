@@ -136,7 +136,7 @@ Config file: `dashboard/src/main/resources/application.yml`. All values support 
 | `SPRING_DATASOURCE_URL` | MySQL JDBC URL | jdbc:mysql://localhost:3306/mpi_dashboard |
 | `SPRING_DATA_REDIS_HOST` | Redis host | localhost |
 | `MINIO_ENDPOINT` | MinIO URL | http://localhost:9000 |
-| `SPRING_AI_OPENAI_BASE_URL` | AI API URL | https://api.deepseek.com |
+| `SPRING_AI_OPENAI_BASE_URL` | AI API URL | - |
 | `SPRING_AI_OPENAI_API_KEY` | AI API Key | `<YOUR_API_KEY>` |
 | `KUBERNETES_CLIENT_TRUST_CERTS` | Trust K8s API certs | true |
 | `DOCKER_REGISTRY_URL` | Docker Registry v2 address | - |

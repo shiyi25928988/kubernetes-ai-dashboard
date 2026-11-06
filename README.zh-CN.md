@@ -136,7 +136,7 @@ npm run dev
 | `SPRING_DATASOURCE_URL` | MySQL JDBC 地址 | jdbc:mysql://localhost:3306/mpi_dashboard |
 | `SPRING_DATA_REDIS_HOST` | Redis 地址 | localhost |
 | `MINIO_ENDPOINT` | MinIO 地址 | http://localhost:9000 |
-| `SPRING_AI_OPENAI_BASE_URL` | AI API 地址 | https://api.deepseek.com |
+| `SPRING_AI_OPENAI_BASE_URL` | AI API 地址 | - |
 | `SPRING_AI_OPENAI_API_KEY` | AI API Key | `<YOUR_API_KEY>` |
 | `KUBERNETES_CLIENT_TRUST_CERTS` | 信任 K8s API 证书 | true |
 | `DOCKER_REGISTRY_URL` | Docker Registry v2 地址 | - |
