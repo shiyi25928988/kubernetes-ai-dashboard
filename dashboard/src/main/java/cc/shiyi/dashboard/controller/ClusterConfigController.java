@@ -73,6 +73,18 @@ public class ClusterConfigController {
         }
     }
 
+    @Operation(summary = "测试集群连接", description = "临时构建客户端探测集群版本，验证kubeconfig是否可连通目标集群，不改变激活状态")
+    @PostMapping("/{id}/test")
+    public ResponseWrapper<ClusterConfig> testConnection(
+            @Parameter(description = "集群配置ID", required = true)
+            @PathVariable Long id) {
+        try {
+            return new ResponseWrapper().success(clusterConfigService.testConnection(id));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return new ResponseWrapper().fail(e.getMessage());
+        }
+    }
+
     @Operation(summary = "删除集群配置", description = "删除指定集群配置，激活中的集群不允许删除")
     @DeleteMapping("/{id}")
     public ResponseWrapper<Void> delete(

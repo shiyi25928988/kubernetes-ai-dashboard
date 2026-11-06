@@ -419,3 +419,12 @@ export const deleteClusterConfig = (id) => {
     method: 'delete'
   })
 }
+
+// 测试集群连接（临时构建客户端探测版本，不改变激活状态）
+export const testClusterConfig = (id) => {
+  return request({
+    url: `/v1/k8s/cluster-config/${id}/test`,
+    method: 'post',
+    timeout: 30000
+  })
+}

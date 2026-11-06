@@ -1,6 +1,7 @@
 package cc.shiyi.dashboard.db.table;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -38,4 +39,16 @@ public class ClusterConfig {
 
     /** 最后更新时间 */
     private LocalDateTime updatedTime;
+
+    /** 集群 server 地址（从kubeconfig解析，不落库） */
+    @TableField(exist = false)
+    private String server;
+
+    /** 测试连接时填写的集群版本（不落库） */
+    @TableField(exist = false)
+    private String version;
+
+    /** 上传人用户名（关联system_user，不落库） */
+    @TableField(exist = false)
+    private String creatorName;
 }

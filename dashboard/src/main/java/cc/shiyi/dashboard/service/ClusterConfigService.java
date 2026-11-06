@@ -1,13 +1,18 @@
 package cc.shiyi.dashboard.service;
 
+import cc.shiyi.coleditor.user.mapper.UserMapper;
+import cc.shiyi.coleditor.user.table.User;
 import cc.shiyi.dashboard.db.mapper.ClusterConfigMapper;
 import cc.shiyi.dashboard.db.table.ClusterConfig;
 import cc.shiyi.dashboard.config.KubernetesClientManager;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +30,11 @@ public class ClusterConfigService {
     private final ClusterConfigMapper clusterConfigMapper;
 
     private final KubernetesClientManager kubernetesClientManager;
+
+    private final UserMapper userMapper;
+
+    @Value("${kubernetes.client.trust-certs:true}")
+    private boolean trustCerts;
 
     /**
      * 上传 kubeconfig。内容会用 fabric8 解析校验，不合法直接拒绝。
@@ -63,13 +73,13 @@ public class ClusterConfigService {
     }
 
     /**
-     * 集群列表（不含 kubeconfig 内容）。
+     * 集群列表（不含 kubeconfig 内容；附带 server 地址和上传人用户名）。
      */
     public List<ClusterConfig> list() {
         List<ClusterConfig> list = clusterConfigMapper.selectList(
                 new LambdaQueryWrapper<ClusterConfig>().orderByDesc(ClusterConfig::getActive)
                         .orderByAsc(ClusterConfig::getClusterName));
-        list.forEach(this::mask);
+        list.forEach(this::enrich);
         return list;
     }
 
@@ -79,7 +89,7 @@ public class ClusterConfigService {
     public ClusterConfig getActive() {
         ClusterConfig active = clusterConfigMapper.selectOne(new LambdaQueryWrapper<ClusterConfig>()
                 .eq(ClusterConfig::getActive, 1).last("LIMIT 1"));
-        return active == null ? null : mask(active);
+        return active == null ? null : enrich(active);
     }
 
     /**
@@ -124,6 +134,62 @@ public class ClusterConfigService {
             throw new IllegalArgumentException("集群配置不存在: id=" + id);
         }
         return c;
+    }
+
+    /**
+     * 测试连接：按该行 kubeconfig 临时构建客户端，探测集群版本后立刻关闭。
+     * 用于激活前验证 kubeconfig 是否可连通目标集群。
+     */
+    public ClusterConfig testConnection(Long id) {
+        ClusterConfig target = requireExists(id);
+        Config config;
+        try {
+            config = Config.fromKubeconfig(target.getContent());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("kubeconfig 无法解析: " + e.getMessage());
+        }
+        KubernetesClient tempClient = null;
+        try {
+            config.setTrustCerts(trustCerts);
+            tempClient = new KubernetesClientBuilder().withConfig(config).build();
+            io.fabric8.kubernetes.client.VersionInfo versionInfo = tempClient.getKubernetesVersion();
+            String version = versionInfo == null ? null : versionInfo.getGitVersion();
+            target.setServer(config.getMasterUrl());
+            target.setVersion(version);
+            log.info("Cluster '{}' connection test OK, server={}, version={}",
+                    target.getClusterName(), target.getServer(), version);
+            return mask(target);
+        } catch (Exception e) {
+            throw new IllegalStateException("连接失败: " + rootMessage(e));
+        } finally {
+            if (tempClient != null) {
+                tempClient.close();
+            }
+        }
+    }
+
+    private String rootMessage(Exception e) {
+        Throwable t = e;
+        while (t.getCause() != null && t.getCause() != t) {
+            t = t.getCause();
+        }
+        return t.getMessage() == null ? e.getMessage() : t.getMessage();
+    }
+
+    /**
+     * 补充展示字段：server 地址、上传人用户名，并隐藏 kubeconfig 内容。
+     */
+    private ClusterConfig enrich(ClusterConfig c) {
+        try {
+            c.setServer(Config.fromKubeconfig(c.getContent()).getMasterUrl());
+        } catch (Exception e) {
+            log.debug("Failed to parse master url for cluster {}: {}", c.getId(), e.getMessage());
+        }
+        if (c.getCreatorId() != null) {
+            User user = userMapper.selectById(c.getCreatorId());
+            c.setCreatorName(user == null ? null : user.getUsername());
+        }
+        return mask(c);
     }
 
     /** 不对外返回 kubeconfig 内容 */

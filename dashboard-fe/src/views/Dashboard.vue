@@ -1296,20 +1296,33 @@
               <el-alert :title="t('cluster.tip')" type="info" :closable="false" show-icon />
             </div>
             <el-table :data="clusterList" v-loading="clusterLoading" border stripe>
-              <el-table-column prop="clusterName" :label="t('cluster.name')" min-width="160" />
-              <el-table-column prop="remark" :label="t('cluster.remark')" min-width="180" show-overflow-tooltip />
-              <el-table-column :label="t('cluster.status')" width="110" align="center">
+              <el-table-column prop="clusterName" :label="t('cluster.name')" min-width="150">
                 <template #default="scope">
-                  <el-tag v-if="scope.row.active === 1" type="success">{{ t('cluster.active') }}</el-tag>
-                  <el-tag v-else type="info">{{ t('cluster.inactive') }}</el-tag>
+                  <el-tag v-if="scope.row.active === 1" type="success" size="small" style="margin-right: 6px;">
+                    {{ t('cluster.active') }}
+                  </el-tag>
+                  {{ scope.row.clusterName }}
                 </template>
               </el-table-column>
-              <el-table-column prop="creatorId" :label="t('cluster.uploader')" width="100" align="center" />
+              <el-table-column prop="server" :label="t('cluster.server')" min-width="200" show-overflow-tooltip>
+                <template #default="scope">{{ scope.row.server || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="remark" :label="t('cluster.remark')" min-width="140" show-overflow-tooltip>
+                <template #default="scope">{{ scope.row.remark || '—' }}</template>
+              </el-table-column>
+              <el-table-column prop="creatorName" :label="t('cluster.uploader')" width="100" align="center">
+                <template #default="scope">{{ scope.row.creatorName || scope.row.creatorId }}</template>
+              </el-table-column>
               <el-table-column prop="createdTime" :label="t('cluster.uploadTime')" width="170">
                 <template #default="scope">{{ formatTimestamp(scope.row.createdTime) }}</template>
               </el-table-column>
-              <el-table-column :label="t('common.actions')" width="170" align="center">
+              <el-table-column :label="t('common.actions')" width="250" align="center">
                 <template #default="scope">
+                  <el-button
+                    size="small"
+                    :loading="clusterTestLoadingId === scope.row.id"
+                    @click="handleClusterTest(scope.row)"
+                  >{{ t('cluster.test') }}</el-button>
                   <el-button
                     v-if="scope.row.active !== 1"
                     type="primary" size="small"
@@ -1320,6 +1333,9 @@
                   </el-button>
                 </template>
               </el-table-column>
+              <template #empty>
+                <el-empty :description="t('cluster.empty')" />
+              </template>
             </el-table>
           </div>
 
@@ -2964,7 +2980,8 @@ import {
   getClusterConfigList,
   getActiveClusterConfig,
   activateClusterConfig,
-  deleteClusterConfig
+  deleteClusterConfig,
+  testClusterConfig
 } from '@/api/k8s'
 // 引入Markdown解析库
 import { marked } from 'marked'
@@ -5818,6 +5835,7 @@ const showClusterUploadDialog = ref(false)
 const clusterUploading = ref(false)
 const clusterForm = reactive({ clusterName: '', remark: '', file: null })
 const activeClusterName = ref('')
+const clusterTestLoadingId = ref(null)
 const headerTitle = computed(() =>
   activeClusterName.value
     ? activeClusterName.value
@@ -5881,6 +5899,19 @@ const handleClusterUpload = async () => {
     console.error('上传集群配置失败:', error)
   } finally {
     clusterUploading.value = false
+  }
+}
+
+const handleClusterTest = async (row) => {
+  clusterTestLoadingId.value = row.id
+  try {
+    const res = await testClusterConfig(row.id)
+    const version = res.data?.version || '?'
+    ElMessage.success(t('cluster.testSuccess').replace('{version}', version))
+  } catch (error) {
+    console.error('测试集群连接失败:', error)
+  } finally {
+    clusterTestLoadingId.value = null
   }
 }
 
