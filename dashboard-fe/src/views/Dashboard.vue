@@ -4040,12 +4040,83 @@
           </ul>
         </el-collapse-item>
         <el-collapse-item :title="t('help.a2aPanel')" name="a2a">
-          <ul>
-            <li>{{ t('help.a2a1') }}</li>
-            <li>{{ t('help.a2a2') }}</li>
-            <li>{{ t('help.a2a3') }}</li>
-            <li>{{ t('help.a2a4') }}</li>
-          </ul>
+          <div class="help-steps">
+            <div class="help-step">
+              <div class="help-step-badge">1</div>
+              <div class="help-step-body">
+                <div class="help-step-title">{{ t('help.a2aStep1Title') }}</div>
+                <div class="help-step-desc">{{ t('help.a2aStep1Desc') }}</div>
+                <pre class="help-code">curl -s http://localhost:8080/.well-known/agent-card.json
+
+{
+  "name": "Kubernetes AI Dashboard",
+  "url": "http://localhost:8080/",
+  "skills": [ ...由注册的 SolverProvider 自动聚合... ]
+}</pre>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="help-step-badge">2</div>
+              <div class="help-step-body">
+                <div class="help-step-title">{{ t('help.a2aStep2Title') }}</div>
+                <div class="help-step-desc">{{ t('help.a2aStep2Desc') }}</div>
+                <pre class="help-code"># 请求头（二选一）
+X-API-Key: YOUR_API_KEY
+Authorization: Bearer YOUR_API_KEY</pre>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="help-step-badge">3</div>
+              <div class="help-step-body">
+                <div class="help-step-title">{{ t('help.a2aStep3Title') }}</div>
+                <div class="help-step-desc">{{ t('help.a2aStep3Desc') }}</div>
+                <pre class="help-code">curl -X POST http://localhost:8080/a2a \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "message/send",
+    "params": {
+      "message": {
+        "role": "user",
+        "parts": [{ "kind": "text", "text": "要交给求解器处理的内容" }],
+        "messageId": "msg-001",
+        "contextId": "ctx-example"
+      },
+      "metadata": { "solverType": "my-solver" }
+    }
+  }'</pre>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="help-step-badge">4</div>
+              <div class="help-step-body">
+                <div class="help-step-title">{{ t('help.a2aStep4Title') }}</div>
+                <div class="help-step-desc">{{ t('help.a2aStep4Desc') }}</div>
+                <pre class="help-code"># 查询任务状态（result 中返回 task）
+{"jsonrpc":"2.0","id":2,"method":"tasks/get","params":{"id":"MSG-001返回的task.id"}}
+
+# 取消任务
+{"jsonrpc":"2.0","id":3,"method":"tasks/cancel","params":{"id":"42"}}
+
+# 列出任务
+{"jsonrpc":"2.0","id":4,"method":"tasks/list","params":{}}</pre>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="help-step-badge">5</div>
+              <div class="help-step-body">
+                <div class="help-step-title">{{ t('help.a2aStep5Title') }}</div>
+                <div class="help-step-desc">{{ t('help.a2aStep5Desc') }}</div>
+                <pre class="help-code">@Component
+public class MySolver implements SolverProvider {
+    public String getSolverType() { return "my-solver"; }
+    // 其余方法：getSkills() / processMessage() / getTask() / cancelTask()
+}</pre>
+              </div>
+            </div>
+          </div>
         </el-collapse-item>
         <el-collapse-item :title="t('help.messagesPanel')" name="messages">
           <ul>
@@ -8923,9 +8994,16 @@ onUnmounted(() => {
 
 /* 帮助文档 */
 .help-content {
-  max-height: 60vh;
+  max-height: 65vh;
   overflow-y: auto;
   text-align: left !important;
+}
+.help-content::-webkit-scrollbar {
+  width: 6px;
+}
+.help-content::-webkit-scrollbar-thumb {
+  background: #c1c5ce;
+  border-radius: 3px;
 }
 /* 折叠面板标题与正文全部左对齐 */
 .help-content .el-collapse-item__header,
@@ -8943,6 +9021,71 @@ onUnmounted(() => {
   line-height: 1.7;
   color: #606266;
   text-align: left !important;
+}
+
+/* 帮助文档：步骤条（A2A 接入指南） */
+.help-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 2px;
+}
+.help-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.help-step-badge {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--el-color-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  line-height: 1;
+}
+.help-step-body {
+  flex: 1;
+  min-width: 0;
+}
+.help-step-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 2px;
+}
+.help-step-desc {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #606266;
+  margin-bottom: 6px;
+}
+.help-code {
+  margin: 4px 0 6px 0;
+  padding: 10px 12px;
+  background: #f6f8fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #1f2328;
+  overflow-x: auto;
+  white-space: pre;
+  text-align: left !important;
+}
+.help-code::-webkit-scrollbar {
+  height: 6px;
+}
+.help-code::-webkit-scrollbar-thumb {
+  background: #d0d3d9;
+  border-radius: 3px;
 }
 
 /* 收件箱消息内容左对齐 */
