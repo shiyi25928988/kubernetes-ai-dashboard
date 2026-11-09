@@ -7682,9 +7682,13 @@ const sendMessage = async () => {
     renderedContent: ''
   })
 
+  // 是否被用户手动停止（停止时保留已流式接收的内容，不再用后端全量覆写）
+  // 注意：必须声明在 try 外面——catch/finally 都会引用它，
+  // 声明在 try 块内会因块级作用域让 finally 一进来就抛 ReferenceError，
+  // 导致 aiThinking 永远不会被复位，"思考中"提示行一直闪烁不消失
+  let abortedByUser = false
+
   try {
-    // 是否被用户手动停止（停止时保留已流式接收的内容，不再用后端全量覆写）
-    let abortedByUser = false
 
     // 先获取会话ID
     const currentConversationId = await getConversationId()
