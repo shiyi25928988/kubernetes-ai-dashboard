@@ -22,8 +22,15 @@ public class OssMcpService {
     UploadService uploadService;
     MinioFileListService minioFileListService;
 
-    @Tool(description = "上传文件到对象存储/文件存储服务,并返回下载路径")
-    public String uploadFile(@ToolParam(description = "文件夹名称")String folder, @ToolParam(description = "MultipartFile 类型的文件对象") File file) throws Exception {
+    @Tool(description = "上传服务器上已存在的文件到对象存储/文件存储服务，并返回下载路径")
+    public String uploadFile(@ToolParam(description = "文件夹名称") String folder,
+                             @ToolParam(description = "服务器上待上传文件的绝对路径，例如 /opt/data/report.pdf 或 D:/data/report.pdf") String filePath) throws Exception {
+        log.info("MCP调用-上传文件: folder={}, path={}", folder, filePath);
+        // MCP 传输是 JSON，参数改为路径字符串；File 类型无法从 JSON 反序列化
+        File file = new File(filePath);
+        if (!file.exists() || !file.isFile()) {
+            throw new IllegalArgumentException("文件不存在: " + filePath);
+        }
         return uploadService.setFolder(folder).uploadFile(file);
     }
 

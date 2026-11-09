@@ -51,7 +51,9 @@ public class KubernetesService {
     public List<StatusDetails> deleteNamespace(Namespace namespace) {
         ownershipService.requirePlatformManaged(namespace.getMetadata(),
                 "Namespace " + namespace.getMetadata().getName());
-        return client().resource(namespace).delete();
+        List<StatusDetails> details = client().resource(namespace).delete();
+        ownershipService.recordDeletion("Namespace", "", namespace.getMetadata().getName());
+        return details;
     }
 
     public NamespaceList listNamespaces() {
@@ -166,6 +168,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(deployment.getMetadata(),
                 "Deployment " + namespace + "/" + deployment.getMetadata().getName());
         client().resource(deployment).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("Deployment", namespace, deployment.getMetadata().getName());
     }
 
     public void createService(io.fabric8.kubernetes.api.model.Service service, String namespace) {
@@ -178,6 +181,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(service.getMetadata(),
                 "Service " + namespace + "/" + service.getMetadata().getName());
         client().resource(service).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("Service", namespace, service.getMetadata().getName());
     }
 
     public void createIngress(Ingress ingress, String namespace) {
@@ -190,6 +194,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(ingress.getMetadata(),
                 "Ingress " + namespace + "/" + ingress.getMetadata().getName());
         client().resource(ingress).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("Ingress", namespace, ingress.getMetadata().getName());
     }
 
     // ==================== StatefulSet ====================
@@ -211,6 +216,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(statefulSet.getMetadata(),
                 "StatefulSet " + namespace + "/" + statefulSet.getMetadata().getName());
         client().resource(statefulSet).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("StatefulSet", namespace, statefulSet.getMetadata().getName());
     }
 
     public StatefulSet updateStatefulSet(StatefulSet statefulSet, String namespace) {
@@ -253,6 +259,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(daemonSet.getMetadata(),
                 "DaemonSet " + namespace + "/" + daemonSet.getMetadata().getName());
         client().resource(daemonSet).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("DaemonSet", namespace, daemonSet.getMetadata().getName());
     }
 
     public DaemonSet updateDaemonSet(DaemonSet daemonSet, String namespace) {
@@ -366,6 +373,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(quota.getMetadata(),
                 "ResourceQuota " + namespace + "/" + quota.getMetadata().getName());
         client().resource(quota).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("ResourceQuota", namespace, quota.getMetadata().getName());
     }
 
     // ==================== RBAC ====================
@@ -388,6 +396,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(sa.getMetadata(),
                 "ServiceAccount " + namespace + "/" + sa.getMetadata().getName());
         client().resource(sa).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("ServiceAccount", namespace, sa.getMetadata().getName());
     }
 
     public List<Role> listRoles(String namespace) {
@@ -409,6 +418,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(role.getMetadata(),
                 "Role " + namespace + "/" + role.getMetadata().getName());
         client().resource(role).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("Role", namespace, role.getMetadata().getName());
     }
 
     public List<ClusterRole> listClusterRoles() {
@@ -429,6 +439,7 @@ public class KubernetesService {
     public void deleteClusterRole(ClusterRole role) {
         ownershipService.requirePlatformManaged(role.getMetadata(), "ClusterRole " + role.getMetadata().getName());
         client().resource(role).delete();
+        ownershipService.recordDeletion("ClusterRole", "", role.getMetadata().getName());
     }
 
     public List<RoleBinding> listRoleBindings(String namespace) {
@@ -450,6 +461,7 @@ public class KubernetesService {
         ownershipService.requirePlatformManaged(binding.getMetadata(),
                 "RoleBinding " + namespace + "/" + binding.getMetadata().getName());
         client().resource(binding).inNamespace(namespace).delete();
+        ownershipService.recordDeletion("RoleBinding", namespace, binding.getMetadata().getName());
     }
 
     public List<ClusterRoleBinding> listClusterRoleBindings() {
@@ -470,6 +482,7 @@ public class KubernetesService {
     public void deleteClusterRoleBinding(ClusterRoleBinding binding) {
         ownershipService.requirePlatformManaged(binding.getMetadata(), "ClusterRoleBinding " + binding.getMetadata().getName());
         client().resource(binding).delete();
+        ownershipService.recordDeletion("ClusterRoleBinding", "", binding.getMetadata().getName());
     }
 
     // ==================== Deployment扩展操作 ====================
@@ -589,10 +602,14 @@ public class KubernetesService {
         if (pvc != null) {
             ownershipService.requirePlatformManaged(pvc.getMetadata(), "PVC " + namespace + "/" + pvcName);
         }
-        return client().persistentVolumeClaims()
+        List<StatusDetails> details = client().persistentVolumeClaims()
                 .inNamespace(namespace)
                 .withName(pvcName)
                 .delete();
+        if (!details.isEmpty()) {
+            ownershipService.recordDeletion("PVC", namespace, pvcName);
+        }
+        return details;
     }
 
     /**
@@ -758,10 +775,14 @@ public class KubernetesService {
         if (cm != null) {
             ownershipService.requirePlatformManaged(cm.getMetadata(), "ConfigMap " + namespace + "/" + name);
         }
-        return client().configMaps()
+        List<StatusDetails> details = client().configMaps()
                 .inNamespace(namespace)
                 .withName(name)
                 .delete();
+        if (!details.isEmpty()) {
+            ownershipService.recordDeletion("ConfigMap", namespace, name);
+        }
+        return details;
     }
 
     // ==================== Secret相关操作 ====================
@@ -780,6 +801,19 @@ public class KubernetesService {
     }
 
     public Secret createSecret(Secret secret, String namespace) {
+        // Secret.data 的值必须是 base64 编码（K8s API 会拒绝非法 base64），提前校验并给出明确错误
+        Map<String, String> data = secret.getData();
+        if (data != null) {
+            for (Map.Entry<String, String> entry : data.entrySet()) {
+                try {
+                    java.util.Base64.getDecoder().decode(entry.getValue());
+                } catch (IllegalArgumentException ex) {
+                    throw new IllegalArgumentException(
+                            "Secret data 的值必须是 base64 编码: key=" + entry.getKey()
+                                    + "，生成方式示例: echo -n '明文' | base64");
+                }
+            }
+        }
         ownershipService.addOwnershipLabels(secret.getMetadata());
         Secret result = client().resource(secret).inNamespace(namespace).create();
         ownershipService.recordCreation("Secret", namespace, result.getMetadata().getName());
@@ -795,10 +829,14 @@ public class KubernetesService {
         if (secret != null) {
             ownershipService.requirePlatformManaged(secret.getMetadata(), "Secret " + namespace + "/" + name);
         }
-        return client().secrets()
+        List<StatusDetails> details = client().secrets()
                 .inNamespace(namespace)
                 .withName(name)
                 .delete();
+        if (!details.isEmpty()) {
+            ownershipService.recordDeletion("Secret", namespace, name);
+        }
+        return details;
     }
 
     // ==================== Job相关操作 ====================
@@ -832,6 +870,9 @@ public class KubernetesService {
                 .inNamespace(namespace)
                 .withName(name)
                 .delete();
+        if (job != null) {
+            ownershipService.recordDeletion("Job", namespace, name);
+        }
     }
 
     public Map<String, String> getJobLogs(String namespace, String jobName) {

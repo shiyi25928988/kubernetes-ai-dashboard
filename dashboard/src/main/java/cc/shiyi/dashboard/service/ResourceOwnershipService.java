@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@lombok.extern.slf4j.Slf4j
 public class ResourceOwnershipService {
 
     public static final String LABEL_MANAGED_BY = "dssp.io/managed-by";
@@ -79,6 +80,8 @@ public class ResourceOwnershipService {
 
     /**
      * Record a resource creation in the audit table.
+     * 同名的历史记录（例如资源曾被平台删除后又被外部重建又删掉，或重复创建场景）会残留，
+     * 此处先清掉同 key 记录再插入，避免同名资源再次创建时撞唯一键 uk_resource 导致创建失败。
      */
     public void recordCreation(String resourceType, String namespace, String name) {
         Long creatorId;
@@ -87,13 +90,42 @@ public class ResourceOwnershipService {
         } catch (Exception e) {
             creatorId = 0L;
         }
+        String ns = namespace != null ? namespace : "";
+        long removed = deleteRecord(resourceType, ns, name);
+        if (removed > 0) {
+            log.info("归属记录残留清理: {} {}/{} 共{}条", resourceType, ns, name, removed);
+        }
         PlatformResource record = new PlatformResource();
         record.setResourceType(resourceType);
         record.setResourceName(name);
-        record.setNamespace(namespace != null ? namespace : "");
+        record.setNamespace(ns);
         record.setCreatorId(creatorId);
         record.setCreatedTime(LocalDateTime.now());
         platformResourceMapper.insert(record);
+    }
+
+    /**
+     * Remove the ownership record after a resource is deleted through the platform.
+     * 幂等：记录不存在时为 no-op。
+     */
+    public void recordDeletion(String resourceType, String namespace, String name) {
+        try {
+            long removed = deleteRecord(resourceType, namespace, name);
+            if (removed > 0) {
+                log.info("归属记录删除: {} {}/{} 共{}条", resourceType, namespace != null ? namespace : "", name, removed);
+            }
+        } catch (Exception e) {
+            // 记录清理失败不应影响删除本身
+            log.warn("归属记录删除失败: {} {}/{}: {}", resourceType, namespace, name, e.getMessage());
+        }
+    }
+
+    private long deleteRecord(String resourceType, String namespace, String name) {
+        QueryWrapper<PlatformResource> qw = new QueryWrapper<>();
+        qw.eq("resource_type", resourceType);
+        qw.eq("resource_name", name);
+        qw.eq("namespace", namespace != null ? namespace : "");
+        return platformResourceMapper.delete(qw);
     }
 
     // ---- OWNERSHIP QUERY ----

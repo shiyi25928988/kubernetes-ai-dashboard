@@ -3,6 +3,7 @@ package cc.shiyi.dashboard.service.mcp;
 import cc.shiyi.dashboard.config.KubernetesClientManager;
 import cc.shiyi.dashboard.service.KubernetesService;
 import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.NamespaceList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
@@ -41,8 +42,9 @@ public class KubernetesMcpService {
     public Namespace createNamespace(
             @ToolParam(description = "要创建的命名空间名称，例如: test-namespace") String namespaceName) {
         log.info("MCP调用-创建命名空间: {}", namespaceName);
-        Namespace namespace = new Namespace();
-        namespace.getMetadata().setName(namespaceName);
+        // 裸 new Namespace() 的 metadata 是 null，直接 getMetadata().setName 会 NPE；
+        // 用 Builder 初始化 metadata，归属标签由 KubernetesService.createNamespace 统一添加
+        Namespace namespace = new NamespaceBuilder().withNewMetadata().withName(namespaceName).endMetadata().build();
         return kubernetesService.createNamespace(namespace);
     }
 
@@ -50,8 +52,12 @@ public class KubernetesMcpService {
     public String deleteNamespace(
             @ToolParam(description = "要删除的命名空间名称") String namespaceName) {
         log.info("MCP调用-删除命名空间: {}", namespaceName);
-        Namespace namespace = new Namespace();
-        namespace.getMetadata().setName(namespaceName);
+        // 与 REST 路径一致：先取线上对象（含归属标签），才能通过"仅平台创建可删"校验；
+        // 传空壳对象会 NPE（metadata 未初始化）且校验必然失败
+        Namespace namespace = kubernetesService.getNamespace(namespaceName);
+        if (namespace == null) {
+            return "命名空间不存在: " + namespaceName;
+        }
         kubernetesService.deleteNamespace(namespace);
         return "命名空间删除操作已提交: " + namespaceName;
     }
@@ -246,10 +252,10 @@ public class KubernetesMcpService {
             @ToolParam(description = "ConfigMap名称") String name,
             @ToolParam(description = "ConfigMap的data数据，JSON键值对格式") java.util.Map<String, String> data) {
         log.info("MCP调用-创建ConfigMap: {}/{}", namespace, name);
-        io.fabric8.kubernetes.api.model.ConfigMap cm = new io.fabric8.kubernetes.api.model.ConfigMap();
-        cm.getMetadata().setName(name);
-        cm.getMetadata().setNamespace(namespace);
-        cm.setData(data);
+        // 裸 new ConfigMap() 的 metadata 是 null，直接 getMetadata().setXxx 会 NPE；改用 Builder 构造
+        io.fabric8.kubernetes.api.model.ConfigMap cm = new io.fabric8.kubernetes.api.model.ConfigMapBuilder()
+                .withNewMetadata().withName(name).withNamespace(namespace).endMetadata()
+                .withData(data).build();
         return kubernetesService.createConfigMap(cm, namespace);
     }
 
@@ -278,16 +284,17 @@ public class KubernetesMcpService {
         return kubernetesService.getSecret(namespace, name);
     }
 
-    @Tool(description = "创建Secret，需要提供键值对数据")
+    @Tool(description = "创建Secret，data为键值对格式，值必须先base64编码（如 echo -n '明文' | base64 的输出）")
     public io.fabric8.kubernetes.api.model.Secret createSecret(
             @ToolParam(description = "命名空间名称") String namespace,
             @ToolParam(description = "Secret名称") String name,
             @ToolParam(description = "Secret的data数据，键值对格式，值需要base64编码") java.util.Map<String, String> data) {
         log.info("MCP调用-创建Secret: {}/{}", namespace, name);
-        io.fabric8.kubernetes.api.model.Secret secret = new io.fabric8.kubernetes.api.model.Secret();
-        secret.getMetadata().setName(name);
-        secret.getMetadata().setNamespace(namespace);
-        secret.setData(data);
+        // base64 校验已下沉到 KubernetesService.createSecret（MCP 与 REST 两条路径共用）
+        // 裸 new Secret() 的 metadata 是 null，直接 getMetadata().setXxx 会 NPE；改用 Builder 构造
+        io.fabric8.kubernetes.api.model.Secret secret = new io.fabric8.kubernetes.api.model.SecretBuilder()
+                .withNewMetadata().withName(name).withNamespace(namespace).endMetadata()
+                .withData(data).build();
         return kubernetesService.createSecret(secret, namespace);
     }
 
