@@ -66,19 +66,19 @@ public class A2AAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 校验 API Key
-//        String apiKey = extractApiKey(request);
-//        if (apiKey == null || apiKey.isEmpty()) {
-//            log.warn("A2A 请求缺少 API Key: path={}", path);
-//            sendUnauthorized(response, "缺少 API Key，请在 Authorization 或 X-API-Key 请求头中提供");
-//            return;
-//        }
-//
-//        if (!apiKey.equals(a2aProperties.getApiKey())) {
-//            log.warn("A2A 请求 API Key 无效: path={}", path);
-//            sendUnauthorized(response, "API Key 无效");
-//            return;
-//        }
+        // 校验 API Key（a2a.auth-enabled=true 时强制，配置见 application.yml）
+        String apiKey = extractApiKey(request);
+        if (apiKey == null || apiKey.isEmpty()) {
+            log.warn("A2A 请求缺少 API Key: path={}", path);
+            sendUnauthorized(response, "缺少 API Key，请在 Authorization 或 X-API-Key 请求头中提供");
+            return;
+        }
+
+        if (!apiKey.equals(a2aProperties.getApiKey())) {
+            log.warn("A2A 请求 API Key 无效: path={}", path);
+            sendUnauthorized(response, "API Key 无效");
+            return;
+        }
 
         // 认证通过，建立系统登录上下文
         establishSystemLogin();
