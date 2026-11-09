@@ -10,6 +10,12 @@
           <el-icon><plus /></el-icon> {{ t('header.createResource') }}
         </el-button>
         <LanguageSwitcher />
+        <!-- 帮助图标 -->
+        <el-tooltip :content="t('header.help')" placement="bottom">
+          <div class="header-icon-btn" @click="showHelpDialog = true">
+            <el-icon size="22"><QuestionFilled /></el-icon>
+          </div>
+        </el-tooltip>
         <!-- 消息图标 -->
         <div class="message-icon-wrapper" @click="openInboxDialog" style="margin-right: 20px; cursor: pointer; position: relative;">
           <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="message-badge">
@@ -3999,6 +4005,63 @@
 
   <!-- 自动巡检设置对话框 -->
   <el-dialog
+    v-model="showHelpDialog"
+    :title="t('help.title')"
+    width="720px"
+    :close-on-click-modal="true"
+  >
+    <div class="help-content">
+      <el-collapse v-model="helpActivePanels">
+        <el-collapse-item :title="t('help.quickStartPanel')" name="quickStart">
+          <ul>
+            <li>{{ t('help.quickStart1') }}</li>
+            <li>{{ t('help.quickStart2') }}</li>
+            <li>{{ t('help.quickStart3') }}</li>
+          </ul>
+        </el-collapse-item>
+        <el-collapse-item :title="t('help.k8sPanel')" name="k8s">
+          <ul>
+            <li>{{ t('help.k8s1') }}</li>
+            <li>{{ t('help.k8s2') }}</li>
+            <li>{{ t('help.k8s3') }}</li>
+          </ul>
+        </el-collapse-item>
+        <el-collapse-item :title="t('help.storagePanel')" name="storage">
+          <ul>
+            <li>{{ t('help.oss') }}</li>
+            <li>{{ t('help.registry') }}</li>
+          </ul>
+        </el-collapse-item>
+        <el-collapse-item :title="t('help.aiPanel')" name="ai">
+          <ul>
+            <li>{{ t('help.aiChat') }}</li>
+            <li>{{ t('help.manualInspect') }}</li>
+            <li>{{ t('help.autoInspect') }}</li>
+          </ul>
+        </el-collapse-item>
+        <el-collapse-item :title="t('help.a2aPanel')" name="a2a">
+          <ul>
+            <li>{{ t('help.a2a1') }}</li>
+            <li>{{ t('help.a2a2') }}</li>
+            <li>{{ t('help.a2a3') }}</li>
+            <li>{{ t('help.a2a4') }}</li>
+          </ul>
+        </el-collapse-item>
+        <el-collapse-item :title="t('help.messagesPanel')" name="messages">
+          <ul>
+            <li>{{ t('help.inbox') }}</li>
+            <li>{{ t('help.debounce') }}</li>
+          </ul>
+        </el-collapse-item>
+      </el-collapse>
+    </div>
+    <template #footer>
+      <el-button @click="showHelpDialog = false">{{ t('common.close') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- 自动巡检设置对话框 -->
+  <el-dialog
     v-model="showInspectionConfig"
     :title="t('header.inspectionSettings')"
     width="500px"
@@ -4064,7 +4127,7 @@ import {
   Connection, UploadFilled, Promotion, VideoPause,
   Collection, SetUp, Stopwatch, Position, Suitcase, Memo, Lock, Odometer,
   Histogram, CreditCard, TrendCharts, Umbrella, UserFilled, PieChart, Briefcase, DataBoard,
-  Setting
+  Setting, QuestionFilled
 } from '@element-plus/icons-vue'
 // 引入进度条组件
 import { ElProgress } from 'element-plus'
@@ -4266,6 +4329,10 @@ const inspectionForm = reactive({
   intervalMinutes: 5,
   aiAgentEnabled: '0'
 })
+
+// 帮助文档
+const showHelpDialog = ref(false)
+const helpActivePanels = ref(['quickStart'])
 
 // 镜像管理相关变量
 const registryRepos = ref([]) // 仓库列表
@@ -8835,6 +8902,47 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* 头部帮助按钮（与收件箱铃铛一致的手感） */
+.header-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-right: 20px;
+  border-radius: 50%;
+  color: var(--el-text-color-primary);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.header-icon-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 帮助文档 */
+.help-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  text-align: left !important;
+}
+/* 折叠面板标题与正文全部左对齐 */
+.help-content .el-collapse-item__header,
+.help-content .el-collapse-item__content {
+  text-align: left !important;
+}
+.help-content ul {
+  margin: 8px 0 4px 0;
+  padding-left: 20px;
+  text-align: left !important;
+}
+.help-content li {
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #606266;
+  text-align: left !important;
 }
 
 /* 收件箱消息内容左对齐 */
