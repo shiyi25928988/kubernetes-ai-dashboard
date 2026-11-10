@@ -8,6 +8,21 @@ const request = axios.create({
   timeout: 10000
 })
 
+// K8s 类接口 /v1/k8s/** 是对目标集群 API 服务器的实时转发，集群存在间歇性的 TLS 慢窗口
+// （直连握手即需数秒到十余秒），统一放宽到 30s，避免慢窗口下整页接口全部超时报错
+const SLOW_CLUSTER_PREFIXES = ['/v1/k8s']
+request.interceptors.request.use(config => {
+  const url = config.url || ''
+  if (config.timeout && config.timeout !== 10000) {
+    // 调用处显式指定的超时（如大文件上传）优先级更高，不覆盖
+    return config
+  }
+  if (SLOW_CLUSTER_PREFIXES.some(p => url.startsWith(p))) {
+    config.timeout = 30000
+  }
+  return config
+})
+
 // 统一处理401跳转登录页
 const handleUnauthorized = () => {
   localStorage.removeItem('token')
