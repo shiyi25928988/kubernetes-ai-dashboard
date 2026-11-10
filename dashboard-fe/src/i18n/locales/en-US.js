@@ -614,6 +614,7 @@ export default {
     uploadRetry: 'File upload failed, please try again later',
     copy: 'Copy',
     copied: 'Copied',
+    copyCode: 'Copy code',
     stop: 'Stop generating',
     stopped: '(Generation stopped)',
     inputHint: 'Enter to send · Shift+Enter for a new line'

@@ -22,12 +22,16 @@ import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler;
 
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 @Service
 public class KubernetesService {
 
@@ -952,7 +956,58 @@ public class KubernetesService {
         return amount.doubleValue();
     }
 
+    /**
+     * 集群统计是重接口：串行聚合 8 类全集群 LIST（nodes/pods/PV/ns/deployments/svc/ingress/pvc）。
+     * 页面会周期轮询该接口，叠加后端与 K8s API 之间偶发的高延迟窗口时，同步重建会
+     * 把后面的请求排队拖超时（前端 axios 10s 直接报"接口超时"）。
+     * 因此采用 stale-while-revalidate：
+     *  - 有缓存时永远立即返回旧数据（毫秒级），绝不阻塞；
+     *  - 缓存超过 TTL（15s）触发一次后台异步重建，并发期间只允许一个重建任务；
+     *  - 首次（无缓存）调用才同步构建。
+     * 换集群/重载后最多 TTL 内读到旧集群的数据，可接受。
+     */
+    private volatile Map<String, Object> cachedClusterStats;
+    private volatile long cachedClusterStatsAt = 0L;
+    private final AtomicBoolean clusterStatsRebuilding = new AtomicBoolean(false);
+    private static final long CLUSTER_STATS_TTL_MS = 15_000L;
+
     public Map<String, Object> getClusterStats() {
+        Map<String, Object> cached = cachedClusterStats;
+        if (cached == null) {
+            // 首次调用：同步构建一次，后续请求全部走缓存
+            synchronized (this) {
+                if (cachedClusterStats == null) {
+                    Map<String, Object> built = buildClusterStats();
+                    cachedClusterStats = built;
+                    cachedClusterStatsAt = System.currentTimeMillis();
+                    return built;
+                }
+            }
+            return cachedClusterStats;
+        }
+
+        // 缓存过期：立即返回旧数据，同时后台异步重建（只允许一个重建任务）
+        if (System.currentTimeMillis() - cachedClusterStatsAt >= CLUSTER_STATS_TTL_MS
+                && clusterStatsRebuilding.compareAndSet(false, true)) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    synchronized (this) {
+                        Map<String, Object> built = buildClusterStats();
+                        cachedClusterStats = built;
+                        cachedClusterStatsAt = System.currentTimeMillis();
+                        log.debug("集群统计后台刷新完成");
+                    }
+                } catch (Exception e) {
+                    log.warn("集群统计后台刷新失败（继续提供旧缓存）: {}", e.getMessage());
+                } finally {
+                    clusterStatsRebuilding.set(false);
+                }
+            });
+        }
+        return cached;
+    }
+
+    private Map<String, Object> buildClusterStats() {
         Map<String, Object> result = new HashMap<>();
 
         // 1. 节点状态统计

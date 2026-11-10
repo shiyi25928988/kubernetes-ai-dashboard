@@ -3765,9 +3765,10 @@
 
         <!-- 右侧聊天区域 - 自适应宽度，独立滚动 -->
         <div class="ai-chat-content">
-          <!-- 消息列表 - 独立滚动 -->
-          <div class="ai-chat-message-list" ref="chatMessagesRef">
-            <div v-for="(msg, index) in messageList" :key="index" :class="['ai-chat-message', msg.role]">
+          <!-- 消息列表 - 独立滚动（代码块复制按钮用事件委托：renderedContent 是 v-html 字符串，无法直接绑定按钮事件） -->
+          <div class="ai-chat-message-list" ref="chatMessagesRef" @click="handleMarkdownClick">
+            <div v-for="(msg, index) in messageList" :key="index"
+                 :class="['ai-chat-message', msg.role, { streaming: aiThinking && index === messageList.length - 1 && msg.role === 'assistant' && msg.content }]">
               <div class="ai-chat-message-avatar">
                 <el-icon v-if="msg.role === 'user'" size="20"><User /></el-icon>
                 <el-icon v-else size="20" color="#409eff"><ChatDotRound /></el-icon>
@@ -3799,7 +3800,8 @@
                 </div>
               </div>
             </div>
-            <div v-if="aiThinking" class="ai-chat-message assistant">
+            <!-- 独立"思考中"行：模型开始输出内容后，光标已在气泡尾部闪烁，此行隐藏，只在首字等待期显示 -->
+            <div v-if="aiThinking && !streamingStarted" class="ai-chat-message assistant">
               <div class="ai-chat-message-avatar">
                 <el-icon size="20" color="#409eff"><ChatDotRound /></el-icon>
               </div>
@@ -4559,13 +4561,41 @@ const parseMarkdown = (content) => {
   if (!content) return ''
   try {
     const result = marked.parse(content, { async: false })
-    if (typeof result === 'string' && result.length > 0) return result
+    if (typeof result === 'string' && result.length > 0) return wrapCodeBlocks(result)
     // 降级：marked 返回了空串或非 string（罕见），做最基本的安全转义 + 换行
     return escapeHtml(content).replace(/\n/g, '<br>')
   } catch (e) {
     console.error('Markdown解析失败:', e)
     return escapeHtml(content).replace(/\n/g, '<br>')
   }
+}
+
+// 给 marked 输出的代码块包一层容器并加"复制"按钮（点击处理见 handleMarkdownClick 事件委托）
+const wrapCodeBlocks = (html) => html
+  .replace(/<pre>/g, '<div class="md-code-block"><button type="button" class="md-code-copy">' + t('ai.copyCode') + '</button><pre>')
+  .replace(/<\/pre>/g, '</pre></div>')
+
+// 代码块复制按钮（事件委托）
+const handleMarkdownClick = async (e) => {
+  const btn = e.target?.closest ? e.target.closest('.md-code-copy') : null
+  if (!btn) return
+  e.stopPropagation()
+  const block = btn.closest('.md-code-block')
+  const code = block?.querySelector('pre code') || block?.querySelector('pre')
+  if (!code) return
+  try {
+    await navigator.clipboard.writeText(code.innerText)
+  } catch (err) {
+    // 降级方案：不允许 clipboard API 的环境
+    const ta = document.createElement('textarea')
+    ta.value = code.innerText
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    try { document.execCommand('copy') } finally { document.body.removeChild(ta) }
+  }
+  ElMessage.success(t('ai.copied'))
 }
 
 // 获取会话ID
@@ -4601,8 +4631,8 @@ const createNewConversation = async () => {
     ]
     await getConversationId()
     await loadConversationList()
-    // 等待DOM更新后滚动
-    nextTick(scrollChatToBottom)
+    // 等待DOM更新后滚动（新建会话属于主动浏览，直接吸底）
+    nextTick(() => scrollChatToBottom(true))
     // 新对话聚焦输入框
     focusChatInput()
   } catch (error) {
@@ -4632,7 +4662,7 @@ const selectExpert = (expert) => {
       content: msgText,
       renderedContent: parseMarkdown(msgText)
     })
-    scrollChatToBottom()
+    scrollChatToBottom(true)
   }
 }
 
@@ -4645,7 +4675,7 @@ const deselectExpert = () => {
     content: msgText,
     renderedContent: parseMarkdown(msgText)
   })
-  scrollChatToBottom()
+  scrollChatToBottom(true)
 }
 
 // 打开编辑专家
@@ -5441,8 +5471,8 @@ const switchConversation = async (convId) => {
         { role: 'assistant', content: welcome, renderedContent: parseMarkdown(welcome) }
       ]
     }
-    // 等待DOM更新后滚动
-    nextTick(scrollChatToBottom)
+    // 等待DOM更新后滚动（切换会话属于主动浏览，直接吸底）
+    nextTick(() => scrollChatToBottom(true))
     // 再加一次保险
     setTimeout(scrollChatToBottom, 100)
     // 切换对话后聚焦输入框
@@ -7580,10 +7610,17 @@ const formatTime = (timeStr) => {
 let messageRefreshTimer = null
 
 // 聊天消息滚动到底部（最终版，最可靠的实现）
-const scrollChatToBottom = () => {
+const scrollChatToBottom = (force = false) => {
   nextTick(() => {
     const container = chatMessagesRef.value
     if (!container) return
+
+    // 智能跟随：仅在距底部很近、或显式要求（打开弹窗/发送/切换会话）时才吸底；
+    // 用户在流式输出过程中上翻阅读历史时不被打断
+    if (!force) {
+      const distance = container.scrollHeight - container.scrollTop - container.clientHeight
+      if (distance > 80) return
+    }
 
     // 方案1：直接设置scrollTop（最基础）
     container.scrollTop = container.scrollHeight
@@ -7614,6 +7651,12 @@ const focusChatInput = () => {
   })
 }
 const handleChatKeydown = (e) => {
+  if (e.key === 'Escape' && aiThinking.value) {
+    // Esc 停止生成（仅生成过程中）
+    e.preventDefault()
+    stopGeneration()
+    return
+  }
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault()
     if (e.isComposing) return
@@ -7651,6 +7694,13 @@ const copyMessage = async (msg) => {
   ElMessage.success(t('ai.copied'))
 }
 
+// 流式输出是否已开始（首字已到）：用于隐藏独立的"思考中"行（光标此时挂在气泡尾部）
+const streamingStarted = computed(() => {
+  const list = messageList.value
+  const last = list[list.length - 1]
+  return !!(aiThinking.value && last && last.role === 'assistant' && last.content)
+})
+
 // 发送消息给AI
 const sendMessage = async () => {
   const content = inputMessage.value.trim()
@@ -7669,7 +7719,8 @@ const sendMessage = async () => {
 
   // 清空附件列表
   currentAttachments.value = []
-  scrollChatToBottom()
+  // 发送属于用户主动行为，直接吸底
+  scrollChatToBottom(true)
 
   // 设置加载状态
   aiThinking.value = true
@@ -7779,6 +7830,9 @@ const sendMessage = async () => {
         if (!msg.content) {
           msg.content = t('ai.stopped')
           msg.renderedContent = parseMarkdown(msg.content)
+        } else {
+          // 已有内容：去掉流式光标
+          msg.renderedContent = parseMarkdown(msg.content)
         }
       }
     } else {
@@ -7821,6 +7875,12 @@ const sendMessage = async () => {
         console.error('流式结束后刷新后端 memory 失败:', e)
       }
     }
+    // 兜底：无论历史覆写是否成功，只要还残留流式光标就清掉
+    const tailMsg = messageList.value[aiMsgIndex]
+    if (tailMsg && tailMsg.role === 'assistant' && typeof tailMsg.renderedContent === 'string'
+        && tailMsg.renderedContent.endsWith('<span class="stream-caret"></span>')) {
+      tailMsg.renderedContent = parseMarkdown(tailMsg.content)
+    }
     aiThinking.value = false
     controller.value = null
     scrollChatToBottom()
@@ -7851,8 +7911,10 @@ const appendContent = (msgIndex, newContent) => {
   }
 
   // 显式同步重算渲染后的 HTML，绕过 computed 依赖追踪的潜在异步问题
-  msg.renderedContent = parseMarkdown(msg.content)
+  // 流式过程中在内容尾部附加闪烁光标；结束后由 finally 的历史覆写（或停止处理）替换为最终 HTML
+  msg.renderedContent = parseMarkdown(msg.content) + '<span class="stream-caret"></span>'
 
+  // 非强推：用户上翻阅读时不打断
   scrollChatToBottom()
 }
 
@@ -7886,10 +7948,10 @@ watch(showAIChat, async (newVal) => {
 
 // 弹窗完全打开后回调，这时候DOM和动画都已完成，滚动最可靠
 const handleChatDialogOpened = () => {
-  // 弹窗完全打开后滚动到最新消息
-  scrollChatToBottom()
+  // 弹窗完全打开后滚动到最新消息（强制吸底）
+  scrollChatToBottom(true)
   // 再加一次保险，防止内容加载延迟
-  setTimeout(scrollChatToBottom, 100)
+  setTimeout(() => scrollChatToBottom(true), 100)
   // 打开聊天框即聚焦输入框
   focusChatInput()
 }
@@ -7932,7 +7994,8 @@ watch(() => deploymentForm.namespace, (ns) => {
 const loadClusterStats = async () => {
   try {
     const res = await getClusterStats()
-    if (res.code === 200 || res.ok) {
+    // 响应拦截器已保证 code===0 才会走到这里（其他两种写法历史兼容）
+    if (res.code === 0 || res.code === 200 || res.ok) {
       const stats = res.data
       // 适配后端返回结构 - 核心资源
       k8sStats.namespaceCount = stats.workloads.namespaces
@@ -8798,6 +8861,47 @@ onUnmounted(() => {
 @keyframes blink {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
+}
+/* 流式输出时气泡尾部的闪烁光标（appendContent 在渲染 HTML 里动态附加） */
+.stream-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: #409eff;
+  border-radius: 1px;
+  animation: stream-caret-blink 0.9s infinite;
+}
+@keyframes stream-caret-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+/* Markdown 代码块：相对定位容器 + 悬停显示的复制按钮（事件委托处理点击） */
+.markdown-content .md-code-block {
+  position: relative;
+}
+.markdown-content .md-code-block .md-code-copy {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  padding: 2px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  border: none;
+  border-radius: 4px;
+  background: rgba(64, 158, 255, 0.15);
+  color: #409eff;
+  cursor: pointer;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.markdown-content .md-code-block:hover .md-code-copy {
+  opacity: 1;
+}
+.markdown-content .md-code-block .md-code-copy:hover {
+  background: rgba(64, 158, 255, 0.3);
 }
 /* Markdown内容样式 */
 .markdown-content {

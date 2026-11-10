@@ -614,6 +614,7 @@ export default {
     uploadRetry: '文件上传失败，请稍后重试',
     copy: '复制',
     copied: '已复制',
+    copyCode: '复制代码',
     stop: '停止生成',
     stopped: '（已停止生成）',
     inputHint: 'Enter 发送 · Shift+Enter 换行'
