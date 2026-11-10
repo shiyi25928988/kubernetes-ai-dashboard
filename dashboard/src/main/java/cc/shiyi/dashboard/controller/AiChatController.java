@@ -6,6 +6,7 @@ import cc.shiyi.base.ai.chat.ParameterizedChatRequest;
 import cc.shiyi.base.ai.chat.SystemChatRequest;
 import cc.shiyi.base.ai.config.ChantClientPool;
 import cc.shiyi.base.ai.utils.ConversationIdGenerator;
+import cc.shiyi.dashboard.service.KnowledgeIndexService;
 import cc.shiyi.coleditor.common.http.ResponseWrapper;
 import cc.shiyi.dashboard.db.table.Conversation;
 import cc.shiyi.dashboard.service.AttachmentParserService;
@@ -15,6 +16,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -40,6 +43,8 @@ public class AiChatController {
     private ConversationService conversationService;
 
     private AttachmentParserService attachmentParserService;
+
+    private KnowledgeIndexService knowledgeIndexService;
 
     /**
      * 简单聊天接口
@@ -79,6 +84,12 @@ public class AiChatController {
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.getConversationId()));
         if (request.getSystemPrompt() != null && !request.getSystemPrompt().isEmpty()) {
             promptBuilder.system(request.getSystemPrompt());
+        } else {
+            // 未指定专家系统提示时，自动检索知识库命中内容注入系统语境（简单 RAG）
+            String knowledgePrompt = buildKnowledgeSystemPrompt(request.getMessage());
+            if (!knowledgePrompt.isEmpty()) {
+                promptBuilder.system(knowledgePrompt);
+            }
         }
 
         // 处理附件，解析文件内容并注入 prompt
@@ -156,6 +167,33 @@ public class AiChatController {
     public ResponseWrapper<String> generateNewConversationId() {
         String conversationId = ConversationIdGenerator.generateNewId(StpUtil.getLoginIdAsLong());
         return new ResponseWrapper<>().success(conversationId, "");
+    }
+
+    /**
+     * 从知识库检索与用户问题相关的内容，组装系统级 RAG 提示；
+     * 无命中或检索异常时返回空串（不打扰正常对话）。
+     */
+    private String buildKnowledgeSystemPrompt(String userMessage) {
+        try {
+            List<KnowledgeIndexService.KnowledgeHit> hits = knowledgeIndexService.search(userMessage, 3);
+            if (hits.isEmpty()) {
+                return "";
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append("以下是知识库中与用户问题可能相关的内容，回答时优先参考这些内容，并注意与用户问题的相关性：\n\n");
+            for (KnowledgeIndexService.KnowledgeHit hit : hits) {
+                sb.append("### ").append(hit.title());
+                if (hit.category() != null && !hit.category().isBlank()) {
+                    sb.append("（").append(hit.category()).append("）");
+                }
+                sb.append("\n").append(hit.snippet() == null ? "" : hit.snippet()).append("\n\n");
+            }
+            log.debug("知识库RAG注入: hits={}", hits.size());
+            return sb.toString();
+        } catch (Exception e) {
+            log.warn("知识库RAG检索失败（忽略继续对话）: {}", e.getMessage());
+            return "";
+        }
     }
 
     /**

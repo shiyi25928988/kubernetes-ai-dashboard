@@ -160,6 +160,10 @@
             <el-icon><Briefcase /></el-icon>
             <span>{{ t('menu.registry') }}</span>
           </el-menu-item>
+          <el-menu-item index="knowledge">
+            <el-icon><Reading /></el-icon>
+            <span>{{ t('menu.knowledge') }}</span>
+          </el-menu-item>
         </el-menu>
       </aside>
 
@@ -1978,6 +1982,143 @@
                 <el-empty :description="t('cluster.empty')" />
               </template>
             </el-table>
+          </div>
+
+          <!-- 知识库管理页面 -->
+          <div v-else-if="activeMenu === 'knowledge'" class="knowledge-page">
+            <div class="page-header">
+              <h3>{{ t('knowledge.title') }}</h3>
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="openKnowledgeEditor()">
+                  <el-icon class="mr-1"><Plus /></el-icon>
+                  {{ t('knowledge.newDoc') }}
+                </el-button>
+                <el-button size="small" @click="loadKnowledgeDocs" :loading="knowledgeLoading">
+                  <el-icon class="mr-1"><Refresh /></el-icon>
+                  {{ t('common.refresh') }}
+                </el-button>
+              </div>
+            </div>
+            <div class="cluster-tip">
+              <el-alert :title="t('knowledge.tip')" type="info" :closable="false" show-icon />
+            </div>
+
+            <div class="knowledge-toolbar">
+              <el-input
+                v-model="knowledgeSearchKey"
+                :placeholder="t('knowledge.searchPlaceholder')"
+                size="small"
+                clearable
+                style="width: 260px;"
+                @keyup.enter="handleKnowledgeSearch"
+                @clear="handleKnowledgeSearch"
+              >
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+              <el-button size="small" @click="handleKnowledgeSearch">{{ t('knowledge.search') }}</el-button>
+              <el-select
+                v-model="knowledgeCategory"
+                :placeholder="t('knowledge.categoryAll')"
+                size="small"
+                clearable
+                style="width: 160px; margin-left: 12px;"
+                @change="loadKnowledgeDocs"
+              >
+                <el-option v-for="c in knowledgeCategories" :key="c" :label="c" :value="c" />
+              </el-select>
+              <el-tag v-if="knowledgeHitsShown !== null" type="success" size="small" style="margin-left: 12px;">
+                {{ t('knowledge.hit', { n: knowledgeHitsShown }) }}
+              </el-tag>
+            </div>
+
+            <el-table
+              :data="knowledgeSearchMode ? knowledgeHits : knowledgeDocs"
+              v-loading="knowledgeLoading"
+              border
+              stripe
+            >
+              <el-table-column prop="title" :label="t('knowledge.titleCol')" min-width="240" show-overflow-tooltip>
+                <template #default="scope">
+                  <el-link type="primary" :title="knowledgeSearchMode ? t('knowledge.viewDoc') : undefined" @click="openKnowledgePreview(scope.row)">
+                    {{ knowledgeSearchMode ? scope.row.title : scope.row.title }}
+                  </el-link>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('knowledge.categoryCol')" width="140" align="center">
+                <template #default="scope">
+                  <el-tag v-if="scope.row.category" size="small" effect="plain">{{ scope.row.category }}</el-tag>
+                  <span v-else>—</span>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('knowledge.snippet')" v-if="knowledgeSearchMode" min-width="260" show-overflow-tooltip>
+                <template #default="scope">
+                  <span class="knowledge-snippet" v-html="scope.row.snippet"></span>
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('knowledge.updatedAt')" width="170">
+                <template #default="scope">
+                  {{ scope.row.updatedAt ? formatTimestamp(scope.row.updatedAt) : '—' }}
+                </template>
+              </el-table-column>
+              <el-table-column :label="t('common.actions')" width="200" align="center">
+                <template #default="scope">
+                  <el-button size="small" @click="openKnowledgePreview(scope.row)">{{ t('knowledge.preview') }}</el-button>
+                  <el-button size="small" type="primary" @click="openKnowledgeEditor(scope.row)">{{ t('common.edit') }}</el-button>
+                  <el-button size="small" type="danger" @click="handleKnowledgeDelete(scope.row)">{{ t('common.delete') }}</el-button>
+                </template>
+              </el-table-column>
+              <template #empty>
+                <el-empty :description="knowledgeSearchKey && knowledgeSearchMode ? t('knowledge.noHits') : t('knowledge.empty')" />
+              </template>
+            </el-table>
+
+            <el-pagination
+              v-if="!knowledgeSearchMode"
+              v-model:current-page="knowledgePage"
+              :page-size="knowledgePageSize"
+              :total="knowledgeTotal"
+              layout="prev, pager, next, total"
+              style="margin-top: 12px; justify-content: flex-end;"
+              @current-change="loadKnowledgeDocs"
+            />
+
+            <!-- 编辑文档对话框 -->
+            <el-dialog
+              v-model="showKnowledgeDialog"
+              :title="editingKnowledgeId ? t('knowledge.editDoc') : t('knowledge.newDoc')"
+              width="760px"
+              :close-on-click-modal="false"
+            >
+              <el-form label-width="70px">
+                <el-form-item :label="t('knowledge.titleCol')" required>
+                  <el-input v-model="knowledgeForm.title" maxlength="255" show-word-limit :placeholder="t('knowledge.titleCol')" />
+                </el-form-item>
+                <el-form-item :label="t('knowledge.categoryCol')">
+                  <el-input v-model="knowledgeForm.category" maxlength="100" style="width: 240px;" />
+                </el-form-item>
+                <el-form-item :label="t('knowledge.content')">
+                  <el-input
+                    v-model="knowledgeForm.content"
+                    type="textarea"
+                    :rows="16"
+                    :placeholder="t('knowledge.content')"
+                  />
+                </el-form-item>
+                <el-form-item :label="t('knowledge.preview')">
+                  <div class="knowledge-preview markdown-content" v-html="knowledgeFormPreview" />
+                </el-form-item>
+              </el-form>
+              <template #footer>
+                <el-button @click="showKnowledgeDialog = false">{{ t('common.cancel') }}</el-button>
+                <el-button type="primary" :loading="knowledgeSaving" @click="handleKnowledgeSave">{{ t('common.save') }}</el-button>
+              </template>
+            </el-dialog>
+
+            <!-- 预览文档抽屉 -->
+            <el-drawer v-model="showKnowledgePreview" size="50%" :title="knowledgePreviewRow?.title">
+              <el-tag v-if="knowledgePreviewRow?.category" size="small" style="margin-bottom: 12px;">{{ knowledgePreviewRow.category }}</el-tag>
+              <div class="knowledge-preview markdown-content" v-html="knowledgePreviewHtml" />
+            </el-drawer>
           </div>
 
         </div>
@@ -4200,7 +4341,7 @@ import {
   Connection, UploadFilled, Promotion, VideoPause,
   Collection, SetUp, Stopwatch, Position, Suitcase, Memo, Lock, Odometer,
   Histogram, CreditCard, TrendCharts, Umbrella, UserFilled, PieChart, Briefcase, DataBoard,
-  Setting, QuestionFilled
+  Setting, QuestionFilled, Reading
 } from '@element-plus/icons-vue'
 // 引入进度条组件
 import { ElProgress } from 'element-plus'
@@ -4253,6 +4394,15 @@ import {
   previewFile
 } from '@/api/oss'
 import { listRepositories, listTags, getManifest, deleteImage } from '@/api/registry'
+import {
+  listKnowledgeDocs,
+  getKnowledgeDoc,
+  listKnowledgeCategories,
+  searchKnowledge,
+  createKnowledgeDoc,
+  updateKnowledgeDoc,
+  deleteKnowledgeDoc
+} from '@/api/knowledge'
 import {
   uploadClusterConfig,
   getClusterConfigList,
@@ -5782,6 +5932,9 @@ const handleMenuSelect = (key) => {
   } else if (key === 'cluster') {
     loadClusterList()
     loadActiveClusterName()
+  } else if (key === 'knowledge') {
+    loadKnowledgeDocs()
+    loadKnowledgeCategories()
   }
 }
 
@@ -8078,6 +8231,198 @@ const openClusterUploadDialog = () => {
   showClusterUploadDialog.value = true
 }
 
+// ==================== 知识库管理 ====================
+const knowledgeDocs = ref([])
+const knowledgeTotal = ref(0)
+const knowledgeCategories = ref([])
+const knowledgePage = ref(1)
+const knowledgePageSize = ref(20)
+const knowledgeLoading = ref(false)
+const knowledgeSearchKey = ref('')
+const knowledgeSearchMode = ref(false)
+const knowledgeHits = ref([])
+const knowledgeHitsShown = ref(null)
+const knowledgeCategory = ref('')
+const knowledgeSaving = ref(false)
+const showKnowledgeDialog = ref(false)
+const showKnowledgePreview = ref(false)
+const knowledgePreviewRow = ref(null)
+const editingKnowledgeId = ref(null)
+const knowledgeForm = reactive({ title: '', category: '', content: '' })
+
+const knowledgeFormPreview = computed(() => {
+  try {
+    return parseMarkdown(knowledgeForm.content || '')
+  } catch (e) {
+    return ''
+  }
+})
+
+const knowledgePreviewHtml = computed(() => {
+  try {
+    return parseMarkdown(knowledgePreviewRow.value?.content || '')
+  } catch (e) {
+    return ''
+  }
+})
+
+const loadKnowledgeCategories = async () => {
+  try {
+    const res = await listKnowledgeCategories()
+    knowledgeCategories.value = res.data || []
+  } catch (error) {
+    console.error('加载知识分类失败:', error)
+  }
+}
+
+const loadKnowledgeDocs = async () => {
+  knowledgeLoading.value = true
+  knowledgeSearchMode.value = false
+  knowledgeHitsShown.value = null
+  try {
+    const res = await listKnowledgeDocs({
+      page: knowledgePage.value,
+      pageSize: knowledgePageSize.value,
+      keyword: knowledgeCategory.value ? '' : knowledgeSearchKey.value,
+      category: knowledgeCategory.value
+    })
+    res.code === 0 &&
+      ((knowledgeDocs.value = (res.data && res.data.records) || []),
+      (knowledgeTotal.value = (res.data && res.data.total) || 0))
+  } catch (error) {
+    console.error('加载知识文档失败:', error)
+    ElMessage.warning(t('knowledge.loadFailed'))
+  } finally {
+    knowledgeLoading.value = false
+  }
+}
+
+const handleKnowledgeSearch = async () => {
+  const kw = knowledgeSearchKey.value.trim()
+  if (!kw) {
+    knowledgePage.value = 1
+    loadKnowledgeDocs()
+    return
+  }
+  knowledgeLoading.value = true
+  knowledgeCategory.value = ''
+  try {
+    const res = await searchKnowledge(kw, 50)
+    if (res.code === 0) {
+      const hits = res.data || []
+      knowledgeHits.value = hits
+      knowledgeHitsShown.value = hits.length
+      knowledgeSearchMode.value = true
+    } else {
+      throw new Error(res.message)
+    }
+    // 同步刷新分类（检索模式下点编辑也能拿到）
+    loadKnowledgeCategories()
+  } catch (error) {
+    console.error('知识全文检索失败:', error)
+    ElMessage.warning(t('knowledge.searchFailed'))
+    // 退回普通模糊查询
+    knowledgePage.value = 1
+    loadKnowledgeDocs()
+  } finally {
+    knowledgeLoading.value = false
+  }
+}
+
+const openKnowledgeEditor = (row) => {
+  if (row) {
+    // 预览抽屉/表格行对象可能不含 content（检索返回的是片段），先拉详情
+    const fill = (doc) => {
+      editingKnowledgeId.value = doc.id
+      knowledgeForm.title = doc.title || ''
+      knowledgeForm.category = doc.category || ''
+      knowledgeForm.content = doc.content || ''
+      showKnowledgeDialog.value = true
+    }
+    if (row.content) {
+      fill(row)
+    } else {
+      getKnowledgeDoc(row.id)
+        .then((res) => res.code === 0 && res.data && fill(res.data))
+        .catch(() => ElMessage.warning(t('common.getDetailFailed')))
+    }
+  } else {
+    editingKnowledgeId.value = null
+    knowledgeForm.title = ''
+    knowledgeForm.category = ''
+    knowledgeForm.content = ''
+    showKnowledgeDialog.value = true
+  }
+}
+
+const handleKnowledgeSave = async () => {
+  if (!knowledgeForm.title.trim()) {
+    ElMessage.warning(t('knowledge.titleRequired'))
+    return
+  }
+  if (!knowledgeForm.content.trim()) {
+    ElMessage.warning(t('knowledge.contentRequired'))
+    return
+  }
+  knowledgeSaving.value = true
+  try {
+    const payload = {
+      title: knowledgeForm.title.trim(),
+      category: knowledgeForm.category.trim() || null,
+      content: knowledgeForm.content
+    }
+    if (editingKnowledgeId.value) {
+      payload.id = editingKnowledgeId.value
+      await updateKnowledgeDoc(payload)
+    } else {
+      await createKnowledgeDoc(payload)
+    }
+    ElMessage.success(t('common.updateSuccess'))
+    showKnowledgeDialog.value = false
+    knowledgePage.value = 1
+    loadKnowledgeDocs()
+    loadKnowledgeCategories()
+  } catch (error) {
+    console.error('保存知识文档失败:', error)
+    ElMessage.warning(t('knowledge.saveFailed'))
+  } finally {
+    knowledgeSaving.value = false
+  }
+}
+
+const handleKnowledgeDelete = (row) => {
+  ElMessageBox.confirm(t('knowledge.deleteConfirm', { name: row.title }), t('knowledge.deleteConfirmTitle'), {
+    type: 'warning',
+    confirmButtonText: t('common.confirm'),
+    cancelButtonText: t('common.cancel')
+  })
+    .then(async () => {
+      const res = await deleteKnowledgeDoc(row.id)
+      if (res.code === 0) {
+        ElMessage.success(t('common.deleteSuccess'))
+        loadKnowledgeDocs()
+        loadKnowledgeCategories()
+      }
+    })
+    .catch(() => {})
+}
+
+const openKnowledgePreview = (row) => {
+  if (row.content) {
+    knowledgePreviewRow.value = row
+    showKnowledgePreview.value = true
+    return
+  }
+  getKnowledgeDoc(row.id)
+    .then((res) => {
+      if (res.code === 0 && res.data) {
+        knowledgePreviewRow.value = res.data
+        showKnowledgePreview.value = true
+      }
+    })
+    .catch(() => ElMessage.warning(t('common.getDetailFailed')))
+}
+
 const onClusterFileChange = (file) => {
   clusterForm.file = file.raw
 }
@@ -10046,6 +10391,31 @@ onUnmounted(() => {
   display: flex;
   gap: 16px;
   align-items: flex-start;
+}
+/* ==================== 知识库管理 ==================== */
+.knowledge-page {
+  margin-top: 8px;
+}
+.knowledge-toolbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.knowledge-snippet :deep(em) {
+  color: var(--el-color-primary, #409eff);
+  font-style: normal;
+  font-weight: 600;
+  margin: 0 1px;
+}
+.knowledge-preview {
+  min-height: 60px;
+  max-height: 360px;
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--el-border-color-lighter, #ebeef5);
+  border-radius: 6px;
+  padding: 10px 14px;
+  box-sizing: border-box;
 }
 .oss-bucket-panel {
   width: 200px;

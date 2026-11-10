@@ -98,6 +98,32 @@
             <artifactId>snakeyaml</artifactId>
             <version>2.6</version>
         </dependency>
+        <!-- 知识库全文检索：Lucene + IK 中文分词（版本与 ik-analyzer-lucene 5.1.0 适配的 Lucene 9.12 保持一致） -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>9.12.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analysis-common</artifactId>
+            <version>9.12.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-queryparser</artifactId>
+            <version>9.12.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-highlighter</artifactId>
+            <version>9.12.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.truenewx</groupId>
+            <artifactId>ik-analyzer-lucene</artifactId>
+            <version>5.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

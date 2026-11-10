@@ -242,3 +242,24 @@ CREATE TABLE IF NOT EXISTS `cluster_inspection_config` (
 INSERT INTO `cluster_inspection_config` (`id`, `enabled`, `interval_minutes`, `ai_agent_enabled`, `updated_time`)
 SELECT 1, 0, 5, 0, NOW()
 WHERE NOT EXISTS (SELECT 1 FROM `cluster_inspection_config` WHERE `id` = 1);
+
+CREATE TABLE IF NOT EXISTS `knowledge_doc` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `title` VARCHAR(255) NOT NULL COMMENT 'Document title',
+    `category` VARCHAR(100) DEFAULT NULL COMMENT 'Category for grouping',
+    `content` LONGTEXT NOT NULL COMMENT 'Document content (Markdown)',
+    `creator_id` BIGINT COMMENT 'Creator user ID from system_user table',
+    `created_at` DATETIME NOT NULL COMMENT 'Create time',
+    `updated_at` DATETIME NOT NULL COMMENT 'Update time',
+    `is_deleted` TINYINT(1) DEFAULT 0 COMMENT 'Logical deletion flag (0-not deleted, 1-deleted)',
+    PRIMARY KEY (`id`),
+    KEY `idx_category` (`category`),
+    KEY `idx_updated_at` (`updated_at`)
+) ENGINE=InnoDB COMMENT='Knowledge base documents (full-text indexed by Lucene+IK)';
+
+-- 初始化示例知识文档（仅当表为空时插入第一条）
+INSERT INTO `knowledge_doc` (`title`, `category`, `content`, `created_at`, `updated_at`)
+SELECT '平台快速入门', '入门指南',
+'# 平台快速入门\n\n欢迎使用 Kubernetes Dashboard For AI。\n\n## 典型使用流程\n\n1. 在「集群配置」页面上传 kubeconfig 并激活目标集群；\n2. 概览页查看集群资源统计（Namespace / Pod / Deployment / PVC 等）；\n3. 进入对应功能页面管理 K8S 资源；\n4. 在 AI 助手对话中直接用自然语言查询和操作集群。\n\n## AI 助手能力\n\nAI 助手可以查询 Pod、Deployment、Service 等资源状态，也支持创建 Deployment、扩缩容、重启滚动更新等操作。',
+NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM `knowledge_doc` WHERE `is_deleted` = 0);
