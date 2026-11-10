@@ -134,6 +134,50 @@ public class KubernetesMcpService {
         return kubernetesService.restartDeployment(namespace, deploymentName);
     }
 
+    @Tool(description = "创建Deployment，使用指定镜像和副本数（默认标签 app=<名称> 作为选择器）")
+    public String createDeployment(
+            @ToolParam(description = "命名空间名称") String namespace,
+            @ToolParam(description = "Deployment名称") String name,
+            @ToolParam(description = "容器镜像，例如 nginx:1.27") String image,
+            @ToolParam(description = "副本数量，默认1，必须大于等于0", required = false) Integer replicas,
+            @ToolParam(description = "容器监听端口，可选", required = false) Integer containerPort) {
+        log.info("MCP调用-创建Deployment: {}/{} 镜像: {}", namespace, name, image);
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Deployment名称不能为空");
+        }
+        if (image == null || image.isBlank()) {
+            throw new IllegalArgumentException("容器镜像不能为空");
+        }
+        if (replicas == null) {
+            replicas = 1;
+        }
+        if (replicas < 0) {
+            throw new IllegalArgumentException("副本数量不能小于0");
+        }
+
+        io.fabric8.kubernetes.api.model.ContainerBuilder cb =
+                new io.fabric8.kubernetes.api.model.ContainerBuilder().withName(name).withImage(image);
+        if (containerPort != null && containerPort > 0) {
+            cb = cb.addNewPort().withContainerPort(containerPort).endPort();
+        }
+
+        // 裸 new Deployment() 的 metadata 是 null，会 NPE；用 Builder 构造
+        Deployment deployment = new io.fabric8.kubernetes.api.model.apps.DeploymentBuilder()
+                .withNewMetadata().withName(name).withNamespace(namespace).endMetadata()
+                .withNewSpec()
+                    .withReplicas(replicas)
+                    .withNewSelector().addToMatchLabels("app", name).endSelector()
+                    .withNewTemplate()
+                        .withNewMetadata().addToLabels("app", name).endMetadata()
+                        .withNewSpec().withContainers(cb.build()).endSpec()
+                    .endTemplate()
+                .endSpec()
+                .build();
+
+        kubernetesService.createDeployment(deployment, namespace);
+        return "Deployment 创建成功: " + namespace + "/" + name + " (镜像=" + image + ", 副本数=" + replicas + ")";
+    }
+
     // ==================== Service相关操作 ====================
     @Tool(description = "查询指定命名空间下的所有Service列表")
     public List<Service> listServices(
