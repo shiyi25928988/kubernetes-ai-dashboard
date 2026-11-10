@@ -14,3 +14,5 @@ dashboard/target/
 ai-base/target/
 message/target/
 .run/
+/data/
+nginx-alpine.tar
