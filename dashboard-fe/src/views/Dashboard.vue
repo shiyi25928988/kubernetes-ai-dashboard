@@ -3928,7 +3928,7 @@
       :close-on-click-modal="false"
       @close="handleAIChatClose"
       @opened="handleChatDialogOpened"
-      custom-class="ai-chat-dialog"
+      class="ai-chat-dialog"
       :destroy-on-close="false"
     >
       <!-- 最外层容器 - 完全控制布局 -->
