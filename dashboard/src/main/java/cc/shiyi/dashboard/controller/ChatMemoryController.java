@@ -125,13 +125,25 @@ public class ChatMemoryController {
 
     /**
      * 验证对话所有权
-     * 确保当前用户是该对话的创建者
+     * 优先依据 conversation 表的 user_id 校验；表无记录时退回对话ID格式解析
      *
      * @param conversationId 对话ID
      */
     private void validateConversationOwnership(String conversationId) {
         Long currentUserId = StpUtil.getLoginIdAsLong();
-        Long conversationOwnerId = ConversationIdGenerator.extractUserId(conversationId);
+        Conversation conversation = conversationService.getById(conversationId);
+        if (conversation != null) {
+            if (!currentUserId.equals(conversation.getUserId())) {
+                throw new RuntimeException("无权访问该对话");
+            }
+            return;
+        }
+        Long conversationOwnerId;
+        try {
+            conversationOwnerId = ConversationIdGenerator.extractUserId(conversationId);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("无权访问该对话");
+        }
         if (!currentUserId.equals(conversationOwnerId)) {
             throw new RuntimeException("无权访问该对话");
         }
