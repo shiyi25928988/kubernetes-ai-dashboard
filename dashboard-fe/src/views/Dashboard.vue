@@ -1862,6 +1862,18 @@
             <div class="page-header">
               <h3>{{ t('registry.title') }}</h3>
               <div class="header-actions">
+                <el-select v-model="activeRegistryId" size="small" style="width: 220px; margin-right: 8px;" @change="onRegistryChange">
+                  <el-option v-for="cfg in registryConfigs" :key="cfg.id" :value="cfg.id" :label="cfg.name">
+                    <span style="display:flex;justify-content:space-between;align-items:center;">
+                      <span>{{ cfg.name }}</span>
+                      <el-tag size="small" :type="cfg.type === 'harbor' ? 'warning' : 'info'" disable-transitions>{{ cfg.type }}</el-tag>
+                    </span>
+                  </el-option>
+                </el-select>
+                <el-button size="small" @click="openRegistryManage">
+                  <el-icon class="mr-1"><Setting /></el-icon>
+                  {{ t('registry.manage') }}
+                </el-button>
                 <el-button size="small" @click="loadRegistryRepos" :loading="registryLoading">
                   <el-icon class="mr-1"><Refresh /></el-icon>
                   {{ t('common.refresh') }}
@@ -2195,6 +2207,73 @@
       </div>
       <template #footer>
         <el-button @click="showManifestDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 镜像仓库源管理弹窗 -->
+    <el-dialog v-model="showRegistryManageDialog" :title="t('registry.manage')" width="760px">
+      <div style="margin-bottom: 10px; display: flex; justify-content: flex-end;">
+        <el-button type="primary" size="small" @click="openRegistryCreate">
+          <el-icon class="mr-1"><Plus /></el-icon>{{ t('registry.addSource') }}
+        </el-button>
+      </div>
+      <el-table :data="registryConfigs" v-loading="registryManageLoading" border size="small">
+        <el-table-column prop="name" :label="t('registry.sourceName')" min-width="120" show-overflow-tooltip />
+        <el-table-column :label="t('registry.sourceType')" width="90" align="center">
+          <template #default="scope">
+            <el-tag size="small" :type="scope.row.type === 'harbor' ? 'warning' : 'info'">{{ scope.row.type }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="url" :label="t('registry.sourceUrl')" min-width="180" show-overflow-tooltip />
+        <el-table-column :label="t('registry.sourceUser')" width="100" show-overflow-tooltip>
+          <template #default="scope">{{ scope.row.username || '—' }}</template>
+        </el-table-column>
+        <el-table-column :label="t('registry.sourcePassword')" width="90" align="center">
+          <template #default="scope">{{ scope.row.hasPassword ? '••••' : '—' }}</template>
+        </el-table-column>
+        <el-table-column prop="remark" :label="t('cluster.remark')" min-width="100" show-overflow-tooltip />
+        <el-table-column :label="t('common.actions')" width="200" align="center">
+          <template #default="scope">
+            <el-button type="primary" size="small" :loading="registryTestingId === scope.row.id" @click="handleTestRegistry(scope.row)">{{ t('registry.testConn') }}</el-button>
+            <el-button size="small" @click="openRegistryEdit(scope.row)">{{ t('common.edit') }}</el-button>
+            <el-button type="danger" size="small" @click="handleDeleteRegistry(scope.row)">{{ t('common.delete') }}</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <el-button @click="showRegistryManageDialog = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 镜像仓库源编辑弹窗 -->
+    <el-dialog v-model="showRegistryEditDialog" :title="registryForm.id ? t('registry.editSource') : t('registry.addSource')" width="480px" append-to-body>
+      <el-form :model="registryForm" label-width="90px">
+        <el-form-item :label="t('registry.sourceName')" required>
+          <el-input v-model="registryForm.name" :placeholder="t('registry.sourceNamePlaceholder')" />
+        </el-form-item>
+        <el-form-item :label="t('registry.sourceType')" required>
+          <el-select v-model="registryForm.type" style="width: 100%;">
+            <el-option value="docker" :label="t('registry.typeDocker')" />
+            <el-option value="harbor" :label="t('registry.typeHarbor')" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="t('registry.sourceUrl')" required>
+          <el-input v-model="registryForm.url" placeholder="http://registry.example.com" />
+        </el-form-item>
+        <el-form-item :label="t('registry.sourceUser')">
+          <el-input v-model="registryForm.username" :placeholder="t('registry.userPlaceholder')" />
+        </el-form-item>
+        <el-form-item :label="t('registry.sourcePassword')">
+          <el-input v-model="registryForm.password" type="password" show-password
+            :placeholder="registryForm.id && !registryForm.password ? t('registry.passwordKeep') : t('registry.passwordPlaceholder')" />
+        </el-form-item>
+        <el-form-item :label="t('cluster.remark')">
+          <el-input v-model="registryForm.remark" :placeholder="t('cluster.remarkPlaceholder')" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showRegistryEditDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="registrySaving" @click="saveRegistryConfig">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
 
@@ -4393,7 +4472,11 @@ import {
   createBucket,
   previewFile
 } from '@/api/oss'
-import { listRepositories, listTags, getManifest, deleteImage } from '@/api/registry'
+import {
+  listRepositories, listTags, getManifest, deleteImage,
+  listRegistryConfigs, createRegistryConfig, updateRegistryConfig,
+  testRegistryConfig, deleteRegistryConfig
+} from '@/api/registry'
 import {
   listKnowledgeDocs,
   getKnowledgeDoc,
@@ -4573,6 +4656,15 @@ const registryManifest = ref(null) // manifest详情
 const registryLoading = ref(false) // 加载状态
 const manifestLoading = ref(false) // manifest加载状态
 const showManifestDialog = ref(false) // manifest详情弹窗
+// 仓库源配置相关
+const registryConfigs = ref([]) // 仓库源列表
+const activeRegistryId = ref(null) // 当前选中的仓库源
+const showRegistryManageDialog = ref(false)
+const showRegistryEditDialog = ref(false)
+const registryManageLoading = ref(false)
+const registryTestingId = ref(null) // 正在测试连接的仓库源ID
+const registrySaving = ref(false)
+const registryForm = reactive({ id: null, name: '', type: 'docker', url: '', username: '', password: '', remark: '' })
 
 // ConfigMap相关变量
 const configMapList = ref([])
@@ -5274,11 +5366,150 @@ const formatFileSize = (bytes) => {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 
+// 加载仓库源列表；selectFirst 为 true 时（首次进入）默认选中第一个仓库源
+const loadRegistryConfigs = async (selectFirst = false) => {
+  try {
+    const res = await listRegistryConfigs()
+    registryConfigs.value = res.data || []
+    const ids = registryConfigs.value.map(c => c.id)
+    if (activeRegistryId.value == null || !ids.includes(activeRegistryId.value)) {
+      activeRegistryId.value = ids.length ? ids[0] : null
+      if (selectFirst) {
+        selectedRepo.value = ''
+        currentRepoData.value = null
+        await loadRegistryRepos()
+        return
+      }
+    }
+  } catch (error) {
+    console.error('加载仓库源列表失败:', error)
+    ElMessage.error(t('registry.loadConfigsFailed'))
+  }
+}
+
+// 切换仓库源
+const onRegistryChange = async () => {
+  selectedRepo.value = ''
+  currentRepoData.value = null
+  selectedTag.value = ''
+  registryManifest.value = null
+  await loadRegistryRepos()
+}
+
+// 打开仓库源管理弹窗
+const openRegistryManage = async () => {
+  showRegistryManageDialog.value = true
+  registryManageLoading.value = true
+  try {
+    const res = await listRegistryConfigs()
+    registryConfigs.value = res.data || []
+  } catch (error) {
+    console.error('加载仓库源列表失败:', error)
+    ElMessage.error(t('registry.loadConfigsFailed'))
+  } finally {
+    registryManageLoading.value = false
+  }
+}
+
+// 新增仓库源表单
+const openRegistryCreate = () => {
+  registryForm.id = null
+  registryForm.name = ''
+  registryForm.type = 'docker'
+  registryForm.url = ''
+  registryForm.username = ''
+  registryForm.password = ''
+  registryForm.remark = ''
+  showRegistryEditDialog.value = true
+}
+
+// 编辑仓库源表单
+const openRegistryEdit = (row) => {
+  registryForm.id = row.id
+  registryForm.name = row.name
+  registryForm.type = row.type
+  registryForm.url = row.url
+  registryForm.username = row.username || ''
+  registryForm.password = ''
+  registryForm.remark = row.remark || ''
+  showRegistryEditDialog.value = true
+}
+
+// 保存仓库源
+const saveRegistryConfig = async () => {
+  if (!registryForm.name || !registryForm.url) {
+    ElMessage.warning(t('registry.nameUrlRequired'))
+    return
+  }
+  registrySaving.value = true
+  try {
+    if (registryForm.id) {
+      await updateRegistryConfig(registryForm.id, { ...registryForm })
+    } else {
+      await createRegistryConfig({ ...registryForm })
+    }
+    ElMessage.success(t('common.saveSuccess'))
+    showRegistryEditDialog.value = false
+    await openRegistryManage()
+    // 若当前选中的仓库源被修改，刷新仓库列表
+    if (!activeRegistryId.value || registryForm.id === activeRegistryId.value) {
+      selectedRepo.value = ''
+      currentRepoData.value = null
+      await loadRegistryConfigs(true)
+    }
+  } catch (error) {
+    console.error('保存仓库源失败:', error)
+    ElMessage.error(error.response?.data?.message || t('registry.saveFailed'))
+  } finally {
+    registrySaving.value = false
+  }
+}
+
+// 测试仓库源连接
+const handleTestRegistry = async (row) => {
+  registryTestingId.value = row.id
+  try {
+    await testRegistryConfig(row.id)
+    ElMessage.success(t('registry.testOk', { name: row.name }))
+  } catch (error) {
+    console.error('测试连接失败:', error)
+    ElMessage.error(t('registry.testFail', { name: row.name, msg: error.response?.data?.message || '' }))
+  } finally {
+    registryTestingId.value = null
+  }
+}
+
+// 删除仓库源
+const handleDeleteRegistry = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      t('registry.deleteSourceConfirm', { name: row.name }),
+      t('common.confirmDelete'),
+      { type: 'warning' }
+    )
+  } catch {
+    return
+  }
+  try {
+    await deleteRegistryConfig(row.id)
+    ElMessage.success(t('common.deleteSuccess'))
+    if (row.id === activeRegistryId.value) {
+      activeRegistryId.value = null
+      selectedRepo.value = ''
+      currentRepoData.value = null
+    }
+    await loadRegistryConfigs(true)
+  } catch (error) {
+    console.error('删除仓库源失败:', error)
+    ElMessage.error(error.response?.data?.message || t('registry.deleteSourceFailed'))
+  }
+}
+
 // 加载镜像仓库列表
 const loadRegistryRepos = async () => {
   registryLoading.value = true
   try {
-    const res = await listRepositories()
+    const res = await listRepositories(activeRegistryId.value)
     registryRepos.value = res.data || []
     // 自动选中第一个仓库
     if (!selectedRepo.value && registryRepos.value.length) {
@@ -5543,7 +5774,7 @@ const selectRepo = async (repo) => {
   selectedTag.value = ''
   registryManifest.value = null
   try {
-    const res = await listTags(repo)
+    const res = await listTags(repo, activeRegistryId.value)
     currentRepoData.value = res.data
   } catch (error) {
     console.error('加载Tags失败:', error)
@@ -5556,7 +5787,7 @@ const selectTag = async (tag) => {
   selectedTag.value = tag
   manifestLoading.value = true
   try {
-    const res = await getManifest(selectedRepo.value, tag)
+    const res = await getManifest(selectedRepo.value, tag, activeRegistryId.value)
     registryManifest.value = res.data
     showManifestDialog.value = true
   } catch (error) {
@@ -5581,10 +5812,10 @@ const copyImagePath = (tag) => {
 // 删除tag
 const handleDeleteTag = async (tag) => {
   try {
-    await deleteImage(selectedRepo.value, tag)
+    await deleteImage(selectedRepo.value, tag, activeRegistryId.value)
     ElMessage.success(t('common.deleteSuccess'))
     // 刷新tags列表
-    const res = await listTags(selectedRepo.value)
+    const res = await listTags(selectedRepo.value, activeRegistryId.value)
     currentRepoData.value = res.data
     if (selectedTag.value === tag) {
       selectedTag.value = ''
@@ -5893,7 +6124,7 @@ const handleMenuSelect = (key) => {
   } else if (key === 'oss') {
     loadBucketList()
   } else if (key === 'registry') {
-    loadRegistryRepos()
+    loadRegistryConfigs(true)
   } else if (key === 'configmap') {
     loadConfigMapList()
     loadNamespaceList()

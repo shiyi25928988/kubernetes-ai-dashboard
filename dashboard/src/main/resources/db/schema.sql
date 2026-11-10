@@ -263,3 +263,28 @@ SELECT '平台快速入门', '入门指南',
 '# 平台快速入门\n\n欢迎使用 Kubernetes Dashboard For AI。\n\n## 典型使用流程\n\n1. 在「集群配置」页面上传 kubeconfig 并激活目标集群；\n2. 概览页查看集群资源统计（Namespace / Pod / Deployment / PVC 等）；\n3. 进入对应功能页面管理 K8S 资源；\n4. 在 AI 助手对话中直接用自然语言查询和操作集群。\n\n## AI 助手能力\n\nAI 助手可以查询 Pod、Deployment、Service 等资源状态，也支持创建 Deployment、扩缩容、重启滚动更新等操作。',
 NOW(), NOW()
 WHERE NOT EXISTS (SELECT 1 FROM `knowledge_doc` WHERE `is_deleted` = 0);
+
+CREATE TABLE IF NOT EXISTS `registry_config` (
+    `id` BIGINT AUTO_INCREMENT COMMENT 'Primary key',
+    `name` VARCHAR(100) NOT NULL COMMENT 'Display name of the registry source',
+    `type` VARCHAR(20) NOT NULL DEFAULT 'docker' COMMENT 'Source type: docker = Docker Registry V2; harbor = Harbor',
+    `url` VARCHAR(255) NOT NULL COMMENT 'Registry base URL',
+    `username` VARCHAR(100) DEFAULT '' COMMENT 'Auth username (empty for anonymous docker registry)',
+    `password` VARCHAR(255) DEFAULT '' COMMENT 'Auth password',
+    `remark` VARCHAR(255) DEFAULT '' COMMENT 'Optional description',
+    `creator_id` BIGINT COMMENT 'Creator user ID from system_user table',
+    `created_time` DATETIME NOT NULL COMMENT 'Create time',
+    `updated_time` DATETIME NOT NULL COMMENT 'Last update time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_registry_name` (`name`)
+) ENGINE=InnoDB COMMENT='Image registry sources managed from UI (Docker Registry V2 / Harbor)';
+
+-- 初始化默认仓库源：内网 Docker Registry（仅当不存在时插入）
+INSERT INTO `registry_config` (`name`, `type`, `url`, `username`, `password`, `remark`, `created_time`, `updated_time`)
+SELECT '内网Docker Registry', 'docker', 'http://10.113.16.240', '', '', 'docker distribution (V2 API)', NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM `registry_config` WHERE `name` = '内网Docker Registry');
+
+-- 初始化默认仓库源：内网 Harbor（仅当不存在时插入）
+INSERT INTO `registry_config` (`name`, `type`, `url`, `username`, `password`, `remark`, `created_time`, `updated_time`)
+SELECT '内网Harbor', 'harbor', 'http://10.13.13.187:3000', 'shanghang', '4rfv$RFV', 'Harbor (cax 项目)', NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM `registry_config` WHERE `name` = '内网Harbor');
