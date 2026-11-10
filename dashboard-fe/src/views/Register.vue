@@ -84,7 +84,7 @@
           </el-button>
           <div class="register-footer">
             <span>{{ t('register.hasAccount') }}</span>
-            <el-button type="text" @click="$router.push('/login')">{{ t('register.loginNow') }}</el-button>
+            <el-button link type="primary" @click="$router.push('/login')">{{ t('register.loginNow') }}</el-button>
           </div>
         </el-form-item>
       </el-form>

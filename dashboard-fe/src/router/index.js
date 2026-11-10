@@ -49,24 +49,19 @@ const router = createRouter({
 })
 
 // 路由守卫（页面标题由 App.vue 根据 i18n 语言统一设置，这里只做鉴权）
-router.beforeEach((to, from, next) => {
+// vue-router 4 推荐直接 return 目标路径/true/false，而非调用 next()
+router.beforeEach((to) => {
   const token = localStorage.getItem('token')
   // 如果是登录或注册页面，直接放行
   if (to.path === '/login' || to.path === '/register') {
     // 如果已经登录了，跳转到控制台
-    if (token) {
-      next('/dashboard')
-    } else {
-      next()
-    }
-  } else {
-    // 需要登录的页面
-    if (to.meta.requiresAuth && !token) {
-      next('/login')
-    } else {
-      next()
-    }
+    return token ? '/dashboard' : true
   }
+  // 需要登录的页面
+  if (to.meta.requiresAuth && !token) {
+    return '/login'
+  }
+  return true
 })
 
 export default router
