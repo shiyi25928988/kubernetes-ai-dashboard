@@ -1,7 +1,7 @@
 <template>
   <el-dropdown trigger="click" @command="handleChange">
     <span class="lang-switch" :title="currentLabel">
-      <span class="lang-globe">🌐</span>
+      <img class="lang-icon" :src="langIcon" alt="" />
       <span class="lang-label">{{ currentLabel }}</span>
     </span>
     <template #dropdown>
@@ -22,6 +22,7 @@
 <script setup>
 import { computed } from 'vue'
 import i18n, { setLocale, supportedLocales } from '@/i18n'
+import langIcon from '@/assets/language.png'
 
 const current = computed(() => i18n.global.locale.value)
 const currentLabel = computed(
@@ -44,8 +45,10 @@ const handleChange = (locale) => {
   user-select: none;
   font-size: 14px;
 }
-.lang-globe {
-  font-size: 16px;
+.lang-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
   line-height: 1;
 }
 </style>
