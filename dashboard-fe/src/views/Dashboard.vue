@@ -168,10 +168,10 @@
         <div class="content-wrapper">
           <!-- 概览页面 -->
           <div v-if="activeMenu === 'overview'" class="overview-page">
-            <!-- 第一行：核心资源统计 -->
+            <!-- 第一行：核心资源统计（点击卡片跳转对应功能页面） -->
             <el-row :gutter="20">
               <el-col :span="6">
-                <el-card class="stat-card">
+                <el-card class="stat-card clickable" @click="handleMenuSelect('namespace')" :title="t('menu.namespace')">
                   <div class="stat-item">
                     <div class="stat-icon blue">
                       <el-icon><FolderOpened /></el-icon>
@@ -184,7 +184,7 @@
                 </el-card>
               </el-col>
               <el-col :span="6">
-                <el-card class="stat-card">
+                <el-card class="stat-card clickable" @click="handleMenuSelect('pod')" :title="t('menu.pod')">
                   <div class="stat-item">
                     <div class="stat-icon green">
                       <el-icon><Cpu /></el-icon>
@@ -197,7 +197,7 @@
                 </el-card>
               </el-col>
               <el-col :span="6">
-                <el-card class="stat-card">
+                <el-card class="stat-card clickable" @click="handleMenuSelect('service')" :title="t('menu.service')">
                   <div class="stat-item">
                     <div class="stat-icon orange">
                       <el-icon><service /></el-icon>
@@ -210,7 +210,7 @@
                 </el-card>
               </el-col>
               <el-col :span="6">
-                <el-card class="stat-card">
+                <el-card class="stat-card clickable" @click="handleMenuSelect('pvc')" :title="t('menu.pvc')">
                   <div class="stat-item">
                     <div class="stat-icon purple">
                       <el-icon><Suitcase /></el-icon>
@@ -224,10 +224,10 @@
               </el-col>
             </el-row>
 
-            <!-- 第二行：基础设施统计 -->
+            <!-- 第二行：基础设施统计（点击卡片跳转对应功能页面） -->
             <el-row :gutter="20" class="mt-20">
               <el-col :span="6">
-                <el-card class="stat-card">
+                <el-card class="stat-card clickable" @click="handleMenuSelect('node')" :title="t('menu.node')">
                   <div class="stat-item">
                     <div class="stat-icon blue">
                       <el-icon><Odometer /></el-icon>
@@ -240,7 +240,7 @@
                 </el-card>
               </el-col>
               <el-col :span="6">
-                <el-card class="stat-card">
+                <el-card class="stat-card clickable" @click="handleMenuSelect('deployment')" :title="t('menu.deployment')">
                   <div class="stat-item">
                     <div class="stat-icon green">
                       <el-icon><Monitor /></el-icon>
@@ -253,7 +253,7 @@
                 </el-card>
               </el-col>
               <el-col :span="6">
-                <el-card class="stat-card">
+                <el-card class="stat-card clickable" @click="handleMenuSelect('pv')" :title="t('menu.pv')">
                   <div class="stat-item">
                     <div class="stat-icon orange">
                       <el-icon><CreditCard /></el-icon>
@@ -266,7 +266,7 @@
                 </el-card>
               </el-col>
               <el-col :span="6">
-                <el-card class="stat-card">
+                <el-card class="stat-card clickable" @click="handleMenuSelect('ingress')" :title="t('menu.ingress')">
                   <div class="stat-item">
                     <div class="stat-icon purple">
                       <el-icon><Position /></el-icon>
@@ -8475,6 +8475,16 @@ onUnmounted(() => {
 
 .stat-card {
   margin-bottom: 20px;
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .stat-item {
