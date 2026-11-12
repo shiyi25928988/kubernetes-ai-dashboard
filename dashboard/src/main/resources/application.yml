@@ -13,7 +13,6 @@ spring:
       - optional:classpath:sa-token.yml
       - optional:classpath:lucene.yml
       - optional:classpath:kubernetes.yml
-      - optional:classpath:docker-registry.yml
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev} # dev, test, uat, prod
   main:

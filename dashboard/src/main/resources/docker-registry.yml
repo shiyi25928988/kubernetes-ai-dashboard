@@ -1,5 +1,0 @@
-docker:
-  registry:
-    url: ${DOCKER_REGISTRY_URL:}
-    username: ${DOCKER_REGISTRY_USERNAME:}
-    password: ${DOCKER_REGISTRY_PASSWORD:}
